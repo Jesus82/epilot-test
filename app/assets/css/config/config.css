@@ -1,0 +1,224 @@
+/* ========================================================================
+//   #VARIABLES
+//   ======================================================================== */
+
+
+/* Typography */
+
+:root {
+  --leading: 1.5;
+  --leading-tight: 1.3;
+}
+
+
+/* @function --fluid-scaler(--small-ratio, --large-ratio) {
+  result: calc(--small-ratio + (--large-ratio - --small-ratio) * var(--screen-normalizer));
+} */
+
+/* Fonts */
+
+
+
+:root {
+  --font-size-2xs: var(--step--2);
+  --font-size-xs: var(--step--1);
+  --font-size-sm: var(--step--0_5);
+  --font-size-base: var(--step-0);
+  --font-size-md: var(--step-1);
+  --font-size-lg: var(--step-1_5);
+  --font-size-xl: var(--step-2);
+  --font-size-2xl: var(--step-3_5);
+  --font-size-3xl: var(--step-4);
+  --font-size-4xl: var(--step-5);
+  --font-size-5xl: var(--step-6);
+
+  --spacing-sixteenth: var(--step--4);
+  --spacing-eighth: var(--step--3);
+  --spacing-quarter: var(--step--2);
+  --spacing-half: var(--step-0);
+  --spacing-base: var(--step-2);
+  --spacing-second: var(--step-4);
+  --spacing-third: var(--step-6);
+  --spacing-fourth: var(--step-8);
+  --spacing-fifth: var(--step-9);
+
+  /* Step -4: 4.952px → 3.7773px */
+  --step--4: clamp(0.2361rem, 0.3462rem + -0.1468vw, 0.3095rem);
+
+  /* Step -3: 7.0021px → 6.1117px */
+  --step--3: clamp(0.382rem, 0.4655rem + -0.1113vw, 0.4376rem);
+
+  /* Step -2: 8.3484px → 10.0925px */
+  --step--2: clamp(0.5218rem, 0.4823rem + 0.2105vw, 0.6308rem);
+
+  /* Step -1: 10.0925px → 12.5786px */
+  --step--1: clamp(0.6308rem, 0.579rem + 0.2762vw, 0.7862rem);
+
+  /* Step -0.5: 11.0092px → 14.1844px */
+  --step--0_5: clamp(0.6881rem, 0.6219rem + 0.3528vw, 0.8865rem);
+
+  /* Step 0: 14px → 16px */
+  --step-0: clamp(0.875rem, 0.8333rem + 0.2222vw, 1rem);
+
+  /* Step 0.5: 15.26px → 18.048px */
+  --step-0_5: clamp(0.9538rem, 0.8957rem + 0.3098vw, 1.128rem);
+
+  /* Step 1: 16.6334px → 20.3581px */
+  --step-1: clamp(1.0396rem, 0.962rem + 0.4139vw, 1.2724rem);
+
+  /* Step 1.5: 18.1304px → 22.964px */
+  --step-1_5: clamp(1.1332rem, 1.0325rem + 0.5371vw, 1.4352rem);
+
+  /* Step 2: 19.7621px → 25.9034px */
+  --step-2: clamp(1.2351rem, 1.1072rem + 0.6824vw, 1.619rem);
+
+  /* Step 2.5: 21.5407px → 29.219px */
+  --step-2_5: clamp(1.3463rem, 1.1863rem + 0.8531vw, 1.8262rem);
+
+  /* Step 3: 23.4794px → 32.959px */
+  --step-3: clamp(1.4675rem, 1.27rem + 1.0533vw, 2.0599rem);
+
+  /* Step 3_5: 25.5925px → 37.1778px */
+  --step-3_5: clamp(1.5995rem, 1.3582rem + 1.2873vw, 2.3236rem);
+
+  /* Step 4: 27.8959px → 41.9366px */
+  --step-4: clamp(1.7435rem, 1.451rem + 1.5601vw, 2.621rem);
+
+  /* Step 4.5: 30.4065px → 47.3044px */
+  --step-4_5: clamp(1.9004rem, 1.5484rem + 1.8775vw, 2.9565rem);
+
+  /* Step 5: 33.1431px → 53.3594px */
+  --step-5: clamp(2.0714rem, 1.6503rem + 2.2463vw, 3.335rem);
+
+  /* Step 5.5: 36.1221px → 60.1816px */
+  --step-5_5: clamp(2.2576rem, 1.7564rem + 2.6733vw, 3.7613rem);
+
+  /* Step 6: 39.373px → 67.8848px */
+  --step-6: clamp(2.4608rem, 1.8668rem + 3.168vw, 4.2428rem);
+
+  /* Step 6.5: 42.9166px → 76.5741px */
+  --step-6_5: clamp(2.6823rem, 1.9811rem + 3.7397vw, 4.7859rem);
+
+  /* Step 7: 46.7791px → 86.3755px */
+  --step-7: clamp(2.9237rem, 2.0988rem + 4.3996vw, 5.3985rem);
+
+  /* Step 8: 55.9662px → 109.6564px */
+  --step-8: clamp(3.4979rem, 1.8201rem + 6.7113vw, 6.8535rem);
+
+  /* Step 9: 79.1362px → 177.4241px */
+  --step-9: clamp(4.946rem, 1.8745rem + 12.286vw, 11.089rem);
+}
+
+
+
+/* Fluid Typography Ratios */
+@supports (transform: scale(calc(1px / 1px))) {
+  :root {
+    --base-font-size-small: 0.875rem;
+    --base-font-size-large: 1rem;
+    --pythagoras: 1.414;
+    --golden-ratio: 1.618;
+    --upper-ratio: var(--golden-ratio);
+    --lower-ratio: var(--pythagoras);
+    --lower-bound: 400px;
+    --upper-bound: 1200px;
+    --screen-normalizer: clamp(0,
+        (100vw - var(--lower-bound)) / (var(--upper-bound) - var(--lower-bound)),
+        1);
+    --fluid-base-size: calc(var(--base-font-size-small) + (var(--base-font-size-large) - var(--base-font-size-small)) * var(--screen-normalizer));
+    --fluid-step: calc(var(--lower-ratio) + (var(--upper-ratio) - var(--lower-ratio)) * var(--screen-normalizer));
+    --fluid-step-half: pow(var(--fluid-step), 0.5);
+    --fluid-quarter-step: pow(var(--fluid-step), 0.25);
+
+
+    --font-size-2xs: calc(var(--font-size-xs) / var(--fluid-quarter-step));
+    --font-size-xs: calc(var(--font-size-sm) / var(--fluid-quarter-step));
+    --font-size-sm: calc(var(--fluid-base-size) / var(--fluid-quarter-step));
+    --font-size-base: var(--fluid-base-size);
+    --font-size-md: calc(var(--font-size-base) * var(--fluid-step-half));
+    --font-size-lg: calc(var(--font-size-md) * var(--fluid-quarter-step));
+    --font-size-xl: calc(var(--font-size-lg) * var(--fluid-quarter-step));
+    --font-size-2xl: calc(var(--font-size-xl) * var(--fluid-step-half) * var(--fluid-quarter-step));
+    --font-size-3xl: calc(var(--font-size-2xl) * var(--fluid-quarter-step));
+    --font-size-4xl: calc(var(--font-size-3xl) * var(--fluid-step-half));
+    --font-size-5xl: calc(var(--font-size-4xl) * var(--fluid-step-half));
+
+    --spacing-sixteenth: calc(var(--spacing-eighth) / var(--fluid-step));
+    /* 4px */
+    --spacing-eighth: calc(var(--spacing-quarter) / var(--fluid-step));
+    /* 6px */
+    --spacing-quarter: calc(var(--font-size-base) / var(--fluid-step));
+    /* 10px */
+    --spacing-half: calc(var(--font-size-base));
+    /* 16px */
+    --spacing-base: calc(var(--font-size-base) * var(--fluid-step));
+    /* 26px */
+    --spacing-second: calc(var(--spacing-base) * var(--fluid-step));
+    /* 42px */
+    --spacing-third: calc(var(--spacing-second) * var(--fluid-step));
+    /* 68px */
+    --spacing-fourth: calc(var(--spacing-third) * var(--fluid-step));
+    /* 110px */
+    --spacing-fifth: calc(var(--spacing-fourth) * var(--fluid-step));
+    /* 178px */
+  }
+}
+
+
+/* Animations */
+
+:root {
+  --ease-in-quad: cubic-bezier(.55, .085, .68, .53);
+  --ease-in-cubic: cubic-bezier(.550, .055, .675, .19);
+  --ease-in-quart: cubic-bezier(.895, .03, .685, .22);
+  --ease-in-quint: cubic-bezier(.755, .05, .855, .06);
+  --ease-in-expo: cubic-bezier(.95, .05, .795, .035);
+  --ease-in-circ: cubic-bezier(.6, .04, .98, .335);
+
+  --ease-out-quad: cubic-bezier(.25, .46, .45, .94);
+  --ease-out-cubic: cubic-bezier(.215, .61, .355, 1);
+  --ease-out-quart: cubic-bezier(.165, .84, .44, 1);
+  --ease-out-quint: cubic-bezier(.23, 1, .32, 1);
+  --ease-out-expo: cubic-bezier(.19, 1, .22, 1);
+  --ease-out-circ: cubic-bezier(.075, .82, .165, 1);
+
+  --ease-in-out-quad: cubic-bezier(.455, .03, .515, .955);
+  --ease-in-out-cubic: cubic-bezier(.645, .045, .355, 1);
+  --ease-in-out-quart: cubic-bezier(.77, 0, .175, 1);
+  --ease-in-out-quint: cubic-bezier(.86, 0, .07, 1);
+  --ease-in-out-expo: cubic-bezier(1, 0, 0, 1);
+  --ease-in-out-circ: cubic-bezier(.785, .135, .15, .86);
+}
+
+
+
+
+/* ========================================================================
+//   #FONTS
+//   ======================================================================== */
+
+@font-face {
+  font-family: "Adjusted HelveticaNeue";
+  src: local(HelveticaNeue), local(helvetica-neue);
+  size-adjust: 80%;
+}
+
+@font-face {
+  font-family: "Adjusted Helvetica";
+  src: local(Helvetica), local(helvetica);
+  size-adjust: 80%;
+}
+
+@font-face {
+  font-family: "Adjusted Arial";
+  src: local(Arial);
+  size-adjust: 80%;
+}
+
+@font-face {
+  font-family: "Adjusted sans-serif";
+  src: local(sans-serif);
+  size-adjust: 80%;
+}
+
+/* Inter fonts are now handled by next/font/local in layout.tsx */

@@ -1,0 +1,34 @@
+@keyframes blur-old {
+  0% {
+    backdrop-filter: blur(0px);
+    filter: blur(0px);
+    opacity: 1;
+  }
+
+  100% {
+    backdrop-filter: blur(3px);
+    filter: blur(10px);
+    opacity: 0;
+  }
+}
+
+@keyframes blur-new {
+  0% {
+    filter: blur(1px);
+    opacity: 0;
+  }
+
+  100% {
+    filter: blur(0px);
+    opacity: 1;
+  }
+}
+
+@keyframes button-pulse {
+  0%, 100% {
+    background-color: var(--color-blue);
+  }
+  50% {
+    background-color: hsl(from var(--color-blue) h s 60% / 1);
+  }
+}

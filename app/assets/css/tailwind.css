@@ -1,0 +1,90 @@
+@import "tailwindcss/utilities";
+
+@theme inline {
+  /* Breakpoints */
+  --breakpoint-sm: 600px;
+  --breakpoint-md: 900px;
+  --breakpoint-lg: 1200px;
+
+  /* Colors */
+  --color-gray: hsl(225, 25%, 93.7%);
+  --color-gray-dark: hsl(206.4, 10.6%, 53.9%);
+  --color-gray-darkest: hsl(216, 60%, 9.8%);
+  --color-gray-lightest: hsl(212.7, 24.4%, 91.2%);
+
+  --color-blue: hsl(232.4, 69.9%, 55.7%);
+
+  --color-red: hsl(9.4, 100%, 68.6%);
+
+  --color-orange: hsl(38, 92%, 50%);
+
+  --color-black: hsl(0, 0%, 0%);
+  --color-white: hsl(0, 0%, 100%);
+  --color-transparent: transparent;
+
+  /* Font Families */
+  --font-sans: var(--font-inter), 'Adjusted HelveticaNeue', 'Adjusted Helvetica', 'Adjusted Arial', 'Adjusted sans-serif';
+
+  /* Font Sizes - use --text-* for text-* utilities */
+  --text-2xs: 0.625rem;           /* 10px */
+  --text-xs: 0.875rem;            /* 14px */
+  --text-sm: 0.9375rem;           /* 15px */
+  --text-base: 1rem;              /* 16px */
+  --text-md: 1.125rem;            /* 18px */
+  --text-lg: 1.25rem;             /* 20px */
+  --text-xl: 1.5rem;              /* 24px */
+  --text-2xl: 2rem;               /* 32px */
+  --text-3xl: 2.25rem;            /* 36px */
+  --text-4xl: 3rem;               /* 48px */
+  --text-5xl: 3.75rem;            /* 60px */
+
+  /* Spacing */
+  --spacing-0: 0;                 /* 0px */
+  --spacing-px: 1px;              /* 1px */
+  --spacing-0_5: 0.125rem;        /* 2px */
+  --spacing-1: 0.25rem;           /* 4px */
+  --spacing-1_5: 0.375rem;        /* 6px */
+  --spacing-2: 0.5rem;            /* 8px */
+  --spacing-2_5: 0.625rem;        /* 10px */
+  --spacing-3: 0.75rem;           /* 12px */
+  --spacing-3_5: 0.875rem;        /* 14px */
+  --spacing-4: 1rem;              /* 16px */
+  --spacing-5: 1.25rem;           /* 20px */
+  --spacing-6: 1.5rem;            /* 24px */
+  --spacing-7: 1.75rem;           /* 28px */
+  --spacing-8: 2rem;              /* 32px */
+  --spacing-9: 2.25rem;           /* 36px */
+  --spacing-10: 2.5rem;           /* 40px */
+  --spacing-11: 2.75rem;          /* 44px */
+  --spacing-12: 3rem;             /* 48px */
+  --spacing-14: 3.5rem;           /* 56px */
+  --spacing-16: 4rem;             /* 64px */
+  --spacing-18: 4.5rem;           /* 72px */
+  --spacing-20: 5rem;             /* 80px */
+  --spacing-24: 6rem;             /* 96px */
+  --spacing-28: 7rem;             /* 112px */
+  --spacing-32: 8rem;             /* 128px */
+
+  /* Border Radius */
+  --radius-none: 0;
+  --radius-sm: 0.125rem;          /* 2px */
+  --radius-base: 0.25rem;         /* 4px */
+  --radius-md: 0.375rem;          /* 6px */
+  --radius-lg: 0.5rem;            /* 8px */
+  --radius-xl: 0.75rem;           /* 12px */
+  --radius-2xl: 1rem;             /* 16px */
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+  /* Font Weights */
+  --font-weight-400: 400;
+  --font-weight-500: 500;
+  --font-weight-600: 600;
+  --font-weight-700: 700;
+}

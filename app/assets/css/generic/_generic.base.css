@@ -1,0 +1,99 @@
+/* ========================================================================
+//   #BASE
+//   ======================================================================== */
+
+/**
+ * Basic typographic styles.
+ */
+
+html,
+body {
+  background-color: var(--white);
+  interpolate-size: allow-keywords;
+}
+
+address,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+blockquote,
+p,
+pre,
+dl,
+ol,
+ul,
+figure,
+button,
+hr,
+table,
+input,
+select,
+label,
+fieldset,
+legend,
+textarea,
+output,
+a {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-style: normal;
+  line-height: var(--leading);
+  color: var(--color-gray-darkest);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+a {
+  display: inline-block;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 500;
+}
+
+p {
+  font-weight: 400;
+}
+
+em {
+  font-style: italic;
+}
+
+iframe {
+  border: none;
+}
+
+strong {
+  font-weight: 500;
+}
+
+
+
+/**
+ * Remove Button styles
+ */
+
+button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  line-height: normal;
+  overflow: visible;
+  padding: 0;
+}

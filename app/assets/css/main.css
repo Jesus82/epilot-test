@@ -1,0 +1,9 @@
+@charset "UTF-8";
+
+@layer config, generic, objects, utilities, transitions;
+
+@import './config/config.css' layer(config);
+@import './generic/generic.css' layer(generic);
+@import './objects/objects.css' layer(objects);
+@import './tailwind.css' layer(utilities);
+@import './transitions/transitions.css' layer(transitions);
