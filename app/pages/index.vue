@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { priceData, formattedPrice, status, connect, disconnect } = useBtcPrice()
+const { priceData, formattedPrice, status, bidPrice, connect, disconnect } = useBtcPrice()
 
 // Game state
 const score = ref(0)
@@ -17,6 +17,7 @@ const makeGuess = (direction: 'up' | 'down') => {
   isLocked.value = true
   guess.value = direction
   guessPrice.value = priceData.value.price
+  bidPrice.value = priceData.value.price // Set bid marker
   countdown.value = 60
   
   // Start countdown
@@ -52,10 +53,14 @@ const checkGuess = () => {
   isLocked.value = false
   guess.value = null
   guessPrice.value = null
+  bidPrice.value = null // Clear bid marker
   countdown.value = 0
 }
 
-onMounted(() => connect())
+onMounted(() => {
+  connect()
+})
+
 onUnmounted(() => {
   disconnect()
   if (countdownInterval) {
@@ -68,32 +73,38 @@ onUnmounted(() => {
   <main>
     <h1>BTC Price Prediction Game</h1>
     
-    <div>
-      <p><strong>Status:</strong> {{ status }}</p>
-      <p><strong>Current Price:</strong> {{ formattedPrice ?? 'Loading...' }}</p>
-      <p><strong>Score:</strong> {{ score }}</p>
-    </div>
-    
-    <div v-if="isLocked">
-      <p><strong>Your guess:</strong> {{ guess?.toUpperCase() }}</p>
-      <p><strong>Price when guessed:</strong> ${{ guessPrice?.toFixed(2) }}</p>
-      <p>{{ countdown }}s</p>
-    </div>
-    
-    <div>
-      <button 
-        @click="makeGuess('up')"
-        :disabled="isLocked || status !== 'connected'"
-      >
-        ⬆ UP
-      </button>
+    <ClientOnly fallback-tag="div">
+      <BtcPriceChart />
+      <BtcPriceChartJs />
+      <BtcPriceTradingView />
       
-      <button 
-        @click="makeGuess('down')"
-        :disabled="isLocked || status !== 'connected'"
-      >
-        ⬇ DOWN
-      </button>
-    </div>
+      <div>
+        <p><strong>Status:</strong> {{ status }}</p>
+        <p><strong>Current Price:</strong> {{ formattedPrice ?? 'Loading...' }}</p>
+        <p><strong>Score:</strong> {{ score }}</p>
+      </div>
+      
+      <div v-if="isLocked">
+        <p><strong>Your guess:</strong> {{ guess?.toUpperCase() }}</p>
+        <p><strong>Price when guessed:</strong> ${{ guessPrice?.toFixed(2) }}</p>
+        <p>{{ countdown }}s</p>
+      </div>
+      
+      <div>
+        <button 
+          @click="makeGuess('up')"
+          :disabled="isLocked || status !== 'connected'"
+        >
+          ⬆ UP
+        </button>
+        
+        <button 
+          @click="makeGuess('down')"
+          :disabled="isLocked || status !== 'connected'"
+        >
+          ⬇ DOWN
+        </button>
+      </div>
+    </ClientOnly>
   </main>
 </template>

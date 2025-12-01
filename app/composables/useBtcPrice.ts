@@ -1,17 +1,22 @@
 import type { BinanceTickerMessage, BtcPriceData, WebSocketStatus } from '~/types'
 
 const BINANCE_WS_URL = 'wss://stream.binance.com:9443/ws/btcusdt@ticker'
+const BINANCE_KLINE_API = 'https://api.binance.com/api/v3/klines'
+
+// Global shared state
+const priceData = ref<BtcPriceData | null>(null)
+const priceHistory = ref<Array<{ timestamp: number; price: number }>>([])
+const bidPrice = ref<number | null>(null)
+const status = ref<WebSocketStatus>('disconnected')
+const error = ref<string | null>(null)
+
+let ws: WebSocket | null = null
+let reconnectTimeout: ReturnType<typeof setTimeout> | null = null
+let reconnectAttempts = 0
+const MAX_RECONNECT_ATTEMPTS = 5
+const RECONNECT_DELAY = 3000
 
 export const useBtcPrice = () => {
-  const priceData = ref<BtcPriceData | null>(null)
-  const status = ref<WebSocketStatus>('disconnected')
-  const error = ref<string | null>(null)
-
-  let ws: WebSocket | null = null
-  let reconnectTimeout: ReturnType<typeof setTimeout> | null = null
-  let reconnectAttempts = 0
-  const MAX_RECONNECT_ATTEMPTS = 5
-  const RECONNECT_DELAY = 3000
 
   const parseTickerMessage = (data: BinanceTickerMessage): BtcPriceData => ({
     price: parseFloat(data.c),
@@ -22,11 +27,37 @@ export const useBtcPrice = () => {
     timestamp: data.E,
   })
 
-  const connect = () => {
+  const fetchHistoricalData = async () => {
+    try {
+      // Fetch last 5 minutes of 1-second klines
+      const endTime = Date.now()
+      const startTime = endTime - (5 * 60 * 1000) // 5 minutes ago
+      
+      const url = `${BINANCE_KLINE_API}?symbol=BTCUSDT&interval=1s&startTime=${startTime}&endTime=${endTime}&limit=300`
+      
+      const response = await fetch(url)
+      const data = await response.json()
+      
+      // Binance kline format: [openTime, open, high, low, close, volume, closeTime, ...]
+      priceHistory.value = data.map((kline: any[]) => ({
+        timestamp: kline[0], // openTime
+        price: parseFloat(kline[4]), // close price
+      }))
+      
+      console.log(`[BTC] Loaded ${priceHistory.value.length} historical data points`)
+    } catch (e) {
+      console.error('[BTC] Failed to fetch historical data:', e)
+    }
+  }
+
+  const connect = async () => {
     if (ws?.readyState === WebSocket.OPEN) return
 
     status.value = 'connecting'
     error.value = null
+
+    // Fetch historical data first
+    await fetchHistoricalData()
 
     try {
       ws = new WebSocket(BINANCE_WS_URL)
@@ -41,6 +72,16 @@ export const useBtcPrice = () => {
         try {
           const data: BinanceTickerMessage = JSON.parse(event.data)
           priceData.value = parseTickerMessage(data)
+          
+          // Add to history
+          priceHistory.value.push({
+            timestamp: data.E,
+            price: parseFloat(data.c),
+          })
+          
+          // Keep only last 5 minutes (300 seconds)
+          const fiveMinutesAgo = Date.now() - (5 * 60 * 1000)
+          priceHistory.value = priceHistory.value.filter(p => p.timestamp > fiveMinutesAgo)
         }
         catch (e) {
           console.error('[BTC WebSocket] Failed to parse message:', e)
@@ -94,12 +135,21 @@ export const useBtcPrice = () => {
       : null,
   )
   const isConnected = computed(() => status.value === 'connected')
+  
+  const averagePrice = computed(() => {
+    if (priceHistory.value.length === 0) return null
+    const sum = priceHistory.value.reduce((acc, p) => acc + p.price, 0)
+    return sum / priceHistory.value.length
+  })
 
   return {
     // State
     priceData,
+    priceHistory,
+    bidPrice,
     price,
     formattedPrice,
+    averagePrice,
     status,
     error,
     isConnected,
