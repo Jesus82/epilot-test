@@ -1,45 +1,119 @@
 <script setup lang="ts">
+import { interpolatePath } from 'd3-interpolate-path'
+
 const { priceHistory, averagePrice, bidPrice } = useBtcPrice()
 
 const chartRef = ref<HTMLDivElement | null>(null)
-const isMounted = ref(false)
+const isChartReady = ref(false)
 
-// Watch for price updates
+// Store D3 selections for updates (avoid recreating)
+let svg: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
+let priceLine: d3.Selection<SVGPathElement, unknown, null, undefined> | null = null
+let avgLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = null
+let avgText: d3.Selection<SVGTextElement, unknown, null, undefined> | null = null
+let bidLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = null
+let bidText: d3.Selection<SVGTextElement, unknown, null, undefined> | null = null
+let xAxisGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
+let yAxisGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
+let d3Module: typeof import('d3') | null = null
+
+const margin = { top: 20, right: 30, bottom: 30, left: 60 }
+const TRANSITION_DURATION = 300
+
+// Watch for price updates - only when chart is ready
 watch(priceHistory, () => {
-  if (!isMounted.value) return
+  if (!isChartReady.value) return
   updateChart()
 }, { deep: true })
 
 // Watch for bid price changes
 watch(bidPrice, () => {
-  if (!isMounted.value) return
+  if (!isChartReady.value) return
   updateChart()
 })
 
-const updateChart = async () => {
+const initChart = async () => {
   if (!chartRef.value) return
-  if (priceHistory.value.length < 2) return
   
   // Dynamic import D3 only on client
-  const d3 = await import('d3')
+  d3Module = await import('d3')
+  const d3 = d3Module
   
   const container = chartRef.value
-  const margin = { top: 20, right: 30, bottom: 30, left: 60 }
   const width = Math.max(container.clientWidth, 400) - margin.left - margin.right
   const height = 300 - margin.top - margin.bottom
   
-  // Clear previous chart
+  // Clear any existing SVG
   d3.select(container).selectAll('*').remove()
   
-  // Create SVG
-  const svg = d3.select(container)
+  // Create SVG structure once
+  const svgElement = d3.select(container)
     .append('svg')
     .attr('width', width + margin.left + margin.right)
     .attr('height', height + margin.top + margin.bottom)
+  
+  svg = svgElement
     .append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`)
   
-  // Scales
+  // Create elements (empty initially)
+  priceLine = svg.append('path')
+    .attr('class', 'price-line')
+    .attr('fill', 'none')
+    .attr('stroke', '#2563eb')
+    .attr('stroke-width', 2)
+  
+  avgLine = svg.append('line')
+    .attr('class', 'avg-line')
+    .attr('stroke', '#10b981')
+    .attr('stroke-width', 2)
+    .attr('stroke-dasharray', '5,5')
+    .style('opacity', 0)
+  
+  avgText = svg.append('text')
+    .attr('class', 'avg-text')
+    .attr('text-anchor', 'end')
+    .attr('fill', '#10b981')
+    .attr('font-size', '12px')
+    .style('opacity', 0)
+  
+  bidLine = svg.append('line')
+    .attr('class', 'bid-line')
+    .attr('stroke', '#f59e0b')
+    .attr('stroke-width', 2)
+    .attr('stroke-dasharray', '3,3')
+    .style('opacity', 0)
+  
+  bidText = svg.append('text')
+    .attr('class', 'bid-text')
+    .attr('text-anchor', 'end')
+    .attr('fill', '#f59e0b')
+    .attr('font-size', '12px')
+    .attr('font-weight', 'bold')
+    .style('opacity', 0)
+  
+  // Create axis groups
+  xAxisGroup = svg.append('g')
+    .attr('class', 'x-axis')
+    .attr('transform', `translate(0,${height})`)
+  
+  yAxisGroup = svg.append('g')
+    .attr('class', 'y-axis')
+  
+  // Mark chart as ready and do initial update
+  isChartReady.value = true
+  updateChart()
+}
+
+const updateChart = () => {
+  if (!chartRef.value || !svg || !d3Module || priceHistory.value.length < 2) return
+  
+  const d3 = d3Module
+  const container = chartRef.value
+  const width = Math.max(container.clientWidth, 400) - margin.left - margin.right
+  const height = 300 - margin.top - margin.bottom
+  
+  // Update scales
   const x = d3.scaleTime()
     .domain(d3.extent(priceHistory.value, (d: { timestamp: number; price: number }) => new Date(d.timestamp)) as [Date, Date])
     .range([0, width])
@@ -57,79 +131,101 @@ const updateChart = async () => {
     .y((d: { timestamp: number; price: number }) => y(d.price))
     .curve(d3.curveMonotoneX)
   
-  // Draw line
-  svg.append('path')
-    .datum(priceHistory.value)
-    .attr('fill', 'none')
-    .attr('stroke', '#2563eb')
-    .attr('stroke-width', 2)
-    .attr('d', line)
+  // Animate price line with path interpolation
+  const newPath = line(priceHistory.value) || ''
+  const currentPath = priceLine?.attr('d') || ''
   
-  // Draw average line
+  if (currentPath && currentPath !== newPath) {
+    priceLine
+      ?.transition()
+      .duration(TRANSITION_DURATION)
+      .ease(d3.easeCubicOut)
+      .attrTween('d', () => interpolatePath(currentPath, newPath))
+  } else {
+    priceLine?.attr('d', newPath)
+  }
+  
+  // Animate average line
   if (averagePrice.value) {
-    svg.append('line')
+    const avgY = y(averagePrice.value)
+    avgLine
+      ?.transition()
+      .duration(TRANSITION_DURATION)
+      .ease(d3.easeCubicOut)
       .attr('x1', 0)
       .attr('x2', width)
-      .attr('y1', y(averagePrice.value))
-      .attr('y2', y(averagePrice.value))
-      .attr('stroke', '#10b981')
-      .attr('stroke-width', 2)
-      .attr('stroke-dasharray', '5,5')
+      .attr('y1', avgY)
+      .attr('y2', avgY)
+      .style('opacity', 1)
     
-    svg.append('text')
+    avgText
+      ?.transition()
+      .duration(TRANSITION_DURATION)
+      .ease(d3.easeCubicOut)
       .attr('x', width - 5)
-      .attr('y', y(averagePrice.value) - 5)
-      .attr('text-anchor', 'end')
-      .attr('fill', '#10b981')
-      .attr('font-size', '12px')
+      .attr('y', avgY - 5)
+      .style('opacity', 1)
       .text(`Avg: $${averagePrice.value.toFixed(2)}`)
+  } else {
+    avgLine?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
+    avgText?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
   }
   
-  // Draw bid line
+  // Animate bid line
   if (bidPrice.value) {
-    svg.append('line')
+    const bidY = y(bidPrice.value)
+    bidLine
+      ?.transition()
+      .duration(TRANSITION_DURATION)
+      .ease(d3.easeCubicOut)
       .attr('x1', 0)
       .attr('x2', width)
-      .attr('y1', y(bidPrice.value))
-      .attr('y2', y(bidPrice.value))
-      .attr('stroke', '#f59e0b')
-      .attr('stroke-width', 2)
-      .attr('stroke-dasharray', '3,3')
+      .attr('y1', bidY)
+      .attr('y2', bidY)
+      .style('opacity', 1)
     
-    svg.append('text')
+    bidText
+      ?.transition()
+      .duration(TRANSITION_DURATION)
+      .ease(d3.easeCubicOut)
       .attr('x', width - 5)
-      .attr('y', y(bidPrice.value) + 15)
-      .attr('text-anchor', 'end')
-      .attr('fill', '#f59e0b')
-      .attr('font-size', '12px')
-      .attr('font-weight', 'bold')
+      .attr('y', bidY + 15)
+      .style('opacity', 1)
       .text(`Bid: $${bidPrice.value.toFixed(2)}`)
+  } else {
+    bidLine?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
+    bidText?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
   }
   
-  // Add axes
-  svg.append('g')
-    .attr('transform', `translate(0,${height})`)
-    .call(d3.axisBottom(x).ticks(5))
-  
-  svg.append('g')
-    .call(d3.axisLeft(y).tickFormat((d: d3.NumberValue) => `$${d3.format(',.2f')(d as number)}`))
+  // Update axes with transition
+  xAxisGroup?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).call(d3.axisBottom(x).ticks(5))
+  yAxisGroup?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).call(d3.axisLeft(y).tickFormat((d: d3.NumberValue) => `$${d3.format(',.2f')(d as number)}`))
 }
 
+const handleResize = () => {
+  initChart()
+}
+
+// Register lifecycle hooks synchronously (before any await)
 onMounted(() => {
-  isMounted.value = true
-  window.addEventListener('resize', updateChart)
+  window.addEventListener('resize', handleResize)
+  // Use nextTick to ensure DOM is ready, then init chart
+  nextTick(() => {
+    initChart()
+  })
 })
 
 onUnmounted(() => {
-  window.removeEventListener('resize', updateChart)
+  window.removeEventListener('resize', handleResize)
+  isChartReady.value = false
 })
 </script>
 
 <template>
-  <div v-if="isMounted" class="btc-chart">
+  <div class="btc-chart">
     <h2>Live BTC Price Chart</h2>
     <p>Data points: {{ priceHistory.length }}</p>
-    <div ref="chartRef" class="chart-container"></div>
+    <div ref="chartRef" class="chart-container" />
   </div>
 </template>
 
