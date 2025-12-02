@@ -1,13 +1,62 @@
 <script setup lang="ts">
 import { interpolatePath } from 'd3-interpolate-path'
 
-const { priceHistory, averagePrice, bidPrice } = useBtcPrice()
+const { priceHistory, bidPrice, loadHistoricalData, isLoadingHistory } = useBtcPrice()
+const { getTimeInterval, getSampleInterval, calculateNiceStep } = useBtcHelpers()
+
+// Type alias for price data points
+type PricePoint = { timestamp: number; price: number }
+
+// Time range options (in minutes)
+const timeRanges = [
+  { label: '5m', minutes: 5 },
+  { label: '10m', minutes: 10 },
+  { label: '1h', minutes: 60 },
+  { label: '6h', minutes: 360 },
+  { label: '24h', minutes: 1440 },
+] as const
+
+const selectedRange = ref(5) // Default 5 minutes
+
+// Filter price history based on selected time range
+const filteredPriceHistory = computed(() => {
+  const now = Date.now()
+  const cutoff = now - selectedRange.value * 60 * 1000
+  return priceHistory.value.filter(p => p.timestamp >= cutoff)
+})
+
+// Downsample data for consistent density across time ranges (300-600 points)
+const sampledPriceHistory = computed(() => {
+  const data = filteredPriceHistory.value
+  if (data.length === 0) return []
+  
+  const sampleIntervalMs = getSampleInterval(selectedRange.value)
+  
+  // Bucket data by interval and take the last price in each bucket
+  const buckets = new Map<number, PricePoint>()
+  
+  for (const point of data) {
+    const bucketKey = Math.floor(point.timestamp / sampleIntervalMs)
+    // Keep the last point in each bucket (most recent)
+    buckets.set(bucketKey, point)
+  }
+  
+  // Convert back to array and sort by timestamp
+  return Array.from(buckets.values()).sort((a, b) => a.timestamp - b.timestamp)
+})
+
+// Average price based on filtered (visible) data
+const averagePrice = computed(() => {
+  if (filteredPriceHistory.value.length === 0) return null
+  const sum = filteredPriceHistory.value.reduce((acc, p) => acc + p.price, 0)
+  return sum / filteredPriceHistory.value.length
+})
 
 const chartRef = ref<HTMLDivElement | null>(null)
 const isChartReady = ref(false)
 
 // Hover state
-const hoveredData = ref<{ price: number; timestamp: number } | null>(null)
+const hoveredData = ref<PricePoint | null>(null)
 
 // Store D3 selections for updates (avoid recreating)
 let svg: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
@@ -20,7 +69,7 @@ let bidLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let xAxisGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let yAxisGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let crosshairGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
-let _hoverOverlay: d3.Selection<SVGRectElement, unknown, null, undefined> | null = null
+let hoverOverlay: d3.Selection<SVGRectElement, unknown, null, undefined> | null = null
 let d3Module: typeof import('d3') | null = null
 
 // Store scales for hover calculations
@@ -29,21 +78,20 @@ let currentYScale: d3.ScaleLinear<number, number> | null = null
 let currentWidth = 0
 let currentHeight = 0
 
-// Store adjusted label Y positions for crosshair collision detection
-let currentAvgLabelY: number | null = null
-let currentBidLabelY: number | null = null
-
 const margin = { top: 20, right: 80, bottom: 30, left: 10 }
 const TRANSITION_DURATION = 300
 
 // Watch for price updates - only when chart is ready
-watch(priceHistory, () => {
+watch(sampledPriceHistory, () => {
   if (!isChartReady.value) return
   updateChart()
 }, { deep: true })
 
-// Watch for bid price changes
-watch(bidPrice, () => {
+// Watch for time range changes - load historical data on-demand
+watch(selectedRange, async (newRange) => {
+  // Load historical data for the new range
+  await loadHistoricalData(newRange)
+  
   if (!isChartReady.value) return
   updateChart()
 })
@@ -240,7 +288,7 @@ const initChart = async () => {
     .attr('dominant-baseline', 'middle')
   
   // Hover overlay (must be on top for mouse events)
-  _hoverOverlay = svg.append('rect')
+  hoverOverlay = svg.append('rect')
     .attr('class', 'hover-overlay')
     .attr('width', currentWidth)
     .attr('height', currentHeight)
@@ -255,17 +303,17 @@ const initChart = async () => {
 }
 
 const handleMouseMove = (event: MouseEvent) => {
-  if (!d3Module || !currentXScale || !currentYScale || !crosshairGroup || priceHistory.value.length < 2) return
+  if (!d3Module || !currentXScale || !currentYScale || !crosshairGroup || sampledPriceHistory.value.length < 2) return
   
   const d3 = d3Module
   const [mouseX] = d3.pointer(event)
   
   // Find closest data point
-  const bisect = d3.bisector((d: { timestamp: number; price: number }) => d.timestamp).left
+  const bisect = d3.bisector((d: PricePoint) => d.timestamp).left
   const x0 = currentXScale.invert(mouseX).getTime()
-  const i = bisect(priceHistory.value, x0, 1)
-  const d0 = priceHistory.value[i - 1]
-  const d1 = priceHistory.value[i]
+  const i = bisect(sampledPriceHistory.value, x0, 1)
+  const d0 = sampledPriceHistory.value[i - 1]
+  const d1 = sampledPriceHistory.value[i]
   
   if (!d0) return
   
@@ -304,30 +352,23 @@ const handleMouseMove = (event: MouseEvent) => {
   const priceLabelText = priceLabelGroup.select('text').text(priceText)
   const priceLabelWidth = (priceLabelText.node() as SVGTextElement)?.getBBox().width || 60
   const labelHeight = 20
-  const collisionThreshold = labelHeight + 4 // minimum vertical distance to avoid overlap
+  const collisionThreshold = labelHeight + 4
   
   // Calculate Y positions of other labels for collision detection
   let adjustedYPos = yPos
-  const labelsToCheck: { y: number; active: boolean }[] = []
+  const labelsToCheck: number[] = []
   
-  if (averagePrice.value) {
-    labelsToCheck.push({ y: currentYScale(averagePrice.value), active: true })
-  }
-  if (bidPrice.value) {
-    labelsToCheck.push({ y: currentYScale(bidPrice.value), active: true })
-  }
+  if (averagePrice.value) labelsToCheck.push(currentYScale(averagePrice.value))
+  if (bidPrice.value) labelsToCheck.push(currentYScale(bidPrice.value))
   
   // Check for collisions and adjust position
-  for (const label of labelsToCheck) {
-    if (!label.active) continue
-    const distance = Math.abs(adjustedYPos - label.y)
+  for (const labelY of labelsToCheck) {
+    const distance = Math.abs(adjustedYPos - labelY)
     if (distance < collisionThreshold) {
       // Move crosshair label away from the static label
-      if (adjustedYPos < label.y) {
-        adjustedYPos = label.y - collisionThreshold
-      } else {
-        adjustedYPos = label.y + collisionThreshold
-      }
+      adjustedYPos = adjustedYPos < labelY 
+        ? labelY - collisionThreshold 
+        : labelY + collisionThreshold
     }
   }
   
@@ -368,7 +409,7 @@ const handleMouseLeave = () => {
 }
 
 const updateChart = () => {
-  if (!chartRef.value || !svg || !d3Module || priceHistory.value.length < 2) return
+  if (!chartRef.value || !svg || !d3Module || sampledPriceHistory.value.length < 2) return
   
   const d3 = d3Module
   const container = chartRef.value
@@ -388,19 +429,20 @@ const updateChart = () => {
   yAxisGroup?.attr('transform', `translate(${width},0)`)
   
   // Update hover overlay size
-  _hoverOverlay?.attr('width', width).attr('height', height)
+  hoverOverlay?.attr('width', width).attr('height', height)
   
   // Update scales
   const x = d3.scaleTime()
-    .domain(d3.extent(priceHistory.value, (d: { timestamp: number; price: number }) => new Date(d.timestamp)) as [Date, Date])
+    .domain(d3.extent(sampledPriceHistory.value, (d: PricePoint) => new Date(d.timestamp)) as [Date, Date])
     .range([0, width])
   
-  // Calculate nice $20 step ticks for Y axis
-  const minPrice = d3.min(priceHistory.value, (d: { timestamp: number; price: number }) => d.price)!
-  const maxPrice = d3.max(priceHistory.value, (d: { timestamp: number; price: number }) => d.price)!
-  const priceStep = 20
-  const yMin = Math.floor(minPrice / priceStep) * priceStep - priceStep
-  const yMax = Math.ceil(maxPrice / priceStep) * priceStep + priceStep
+  // Calculate Y scale with nice step values
+  const minPrice = d3.min(sampledPriceHistory.value, (d: PricePoint) => d.price)!
+  const maxPrice = d3.max(sampledPriceHistory.value, (d: PricePoint) => d.price)!
+  const finalStep = calculateNiceStep(maxPrice - minPrice, 10)
+  
+  const yMin = Math.floor(minPrice / finalStep) * finalStep - finalStep
+  const yMax = Math.ceil(maxPrice / finalStep) * finalStep + finalStep
   
   const y = d3.scaleLinear()
     .domain([yMin, yMax])
@@ -410,14 +452,14 @@ const updateChart = () => {
   currentXScale = x
   currentYScale = y
   
-  // Generate tick values for $20 steps
+  // Generate tick values based on dynamic step
   const yTickValues: number[] = []
-  for (let tick = yMin; tick <= yMax; tick += priceStep) {
+  for (let tick = yMin; tick <= yMax; tick += finalStep) {
     yTickValues.push(tick)
   }
   
-  // Generate time ticks (one per minute)
-  const xTicks = d3.timeMinute.every(1)
+  // Get time interval based on selected range (used for both axis ticks and grid)
+  const xTicks = getTimeInterval(d3, selectedRange.value)
   
   // Update grid lines
   if (gridGroup) {
@@ -436,9 +478,9 @@ const updateChart = () => {
         .attr('stroke-width', 1)
     })
     
-    // Vertical grid lines (time steps - one per minute)
+    // Vertical grid lines (time steps - based on selected range)
     const timeExtent = x.domain() as [Date, Date]
-    const timeTicks = d3.timeMinute.range(timeExtent[0], timeExtent[1])
+    const timeTicks = xTicks!.range(timeExtent[0], timeExtent[1])
     timeTicks.forEach((tickTime) => {
       gridGroup!.append('line')
         .attr('class', 'grid-line-v')
@@ -452,13 +494,13 @@ const updateChart = () => {
   }
   
   // Line generator
-  const line = d3.line<{ timestamp: number; price: number }>()
-    .x((d: { timestamp: number; price: number }) => x(new Date(d.timestamp)))
-    .y((d: { timestamp: number; price: number }) => y(d.price))
+  const line = d3.line<PricePoint>()
+    .x((d) => x(new Date(d.timestamp)))
+    .y((d) => y(d.price))
     .curve(d3.curveMonotoneX)
   
   // Animate price line with path interpolation
-  const newPath = line(priceHistory.value) || ''
+  const newPath = line(sampledPriceHistory.value) || ''
   const currentPath = priceLine?.attr('d') || ''
   
   if (currentPath && currentPath !== newPath) {
@@ -506,10 +548,6 @@ const updateChart = () => {
       adjustedBidY = Math.max(9, Math.min(height - 9, adjustedBidY))
     }
   }
-  
-  // Store adjusted positions for crosshair collision detection
-  currentAvgLabelY = adjustedAvgY
-  currentBidLabelY = adjustedBidY
   
   // Animate average line with TradingView-style label
   if (averagePrice.value && adjustedAvgY !== null) {
@@ -657,15 +695,32 @@ onUnmounted(() => {
   <div class="btc-chart">
     <div class="chart-header">
       <h2>Live BTC Price Chart</h2>
-      <div class="chart-info">
-        <span class="data-points">{{ priceHistory.length }} points</span>
-        <span v-if="hoveredData" class="hovered-info">
-          <span class="hovered-price">${{ hoveredData.price.toFixed(2) }}</span>
-          <span class="hovered-time">{{ new Date(hoveredData.timestamp).toLocaleTimeString() }}</span>
-        </span>
+      <div class="chart-controls">
+        <div class="time-range-selector">
+          <button
+            v-for="range in timeRanges"
+            :key="range.minutes"
+            :class="['range-btn', { active: selectedRange === range.minutes }]"
+            @click="selectedRange = range.minutes"
+          >
+            {{ range.label }}
+          </button>
+        </div>
+        <div class="chart-info">
+          <span v-if="isLoadingHistory" class="loading-indicator">Loading...</span>
+          <span class="data-points">{{ sampledPriceHistory.length }} points</span>
+          <span v-if="hoveredData" class="hovered-info">
+            <span class="hovered-price">${{ hoveredData.price.toFixed(2) }}</span>
+            <span class="hovered-time">{{ new Date(hoveredData.timestamp).toLocaleTimeString() }}</span>
+          </span>
+        </div>
       </div>
     </div>
-    <div ref="chartRef" class="chart-container" />
+    <div ref="chartRef" class="chart-container">
+      <div v-if="isLoadingHistory" class="chart-loading-overlay">
+        <span>Loading historical data...</span>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -679,6 +734,8 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .chart-header h2 {
@@ -688,11 +745,54 @@ onUnmounted(() => {
   color: #374151;
 }
 
+.chart-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.time-range-selector {
+  display: flex;
+  gap: 4px;
+  background: #f3f4f6;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.range-btn {
+  padding: 4px 10px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.range-btn:hover {
+  color: #374151;
+  background: #e5e7eb;
+}
+
+.range-btn.active {
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
 .chart-info {
   display: flex;
   align-items: center;
   gap: 16px;
   font-size: 13px;
+}
+
+.loading-indicator {
+  color: #f59e0b;
+  font-weight: 500;
 }
 
 .data-points {
@@ -715,11 +815,27 @@ onUnmounted(() => {
 }
 
 .chart-container {
+  position: relative;
   width: 100%;
   min-height: 300px;
   background: #ffffff;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
+}
+
+.chart-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+  color: #6b7280;
+  font-size: 14px;
+  z-index: 10;
 }
 
 .chart-container :deep(.x-axis),

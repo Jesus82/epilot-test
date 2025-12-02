@@ -1,4 +1,7 @@
-import type { BinanceTickerMessage, BtcPriceData, WebSocketStatus } from '~/types'
+import type { BinanceTickerMessage, BtcPriceData, WebSocketStatus } from '~/types/btc'
+
+// Binance kline format: [openTime, open, high, low, close, volume, closeTime, ...]
+type BinanceKline = [number, string, string, string, string, string, number, string, number, string, string, string]
 
 const BINANCE_WS_URL = 'wss://stream.binance.com:9443/ws/btcusdt@ticker'
 const BINANCE_KLINE_API = 'https://api.binance.com/api/v3/klines'
@@ -9,12 +12,17 @@ const priceHistory = ref<Array<{ timestamp: number; price: number }>>([])
 const bidPrice = ref<number | null>(null)
 const status = ref<WebSocketStatus>('disconnected')
 const error = ref<string | null>(null)
+const isLoadingHistory = ref(false)
+
+// Track the oldest data we have loaded (in minutes from now)
+const loadedRangeMinutes = ref(0)
 
 let ws: WebSocket | null = null
 let reconnectTimeout: ReturnType<typeof setTimeout> | null = null
 let reconnectAttempts = 0
 const MAX_RECONNECT_ATTEMPTS = 5
 const RECONNECT_DELAY = 3000
+const MAX_HISTORY_POINTS = 100000 // Limit total stored points
 
 export const useBtcPrice = () => {
 
@@ -27,26 +35,80 @@ export const useBtcPrice = () => {
     timestamp: data.E,
   })
 
-  const fetchHistoricalData = async () => {
+  // Fetch historical data for a specific time range
+  const fetchHistoricalData = async (minutes: number) => {
     try {
-      // Fetch last 5 minutes of 1-second klines
       const endTime = Date.now()
-      const startTime = endTime - (5 * 60 * 1000) // 5 minutes ago
+      const startTime = endTime - (minutes * 60 * 1000)
       
-      const url = `${BINANCE_KLINE_API}?symbol=BTCUSDT&interval=1s&startTime=${startTime}&endTime=${endTime}&limit=300`
+      // Choose interval to get 300-600 data points
+      let interval: string
+      let limit: number
+      
+      if (minutes <= 15) {
+        // Up to 15m: 1s candles
+        interval = '1s'
+        limit = minutes * 60
+      } else if (minutes <= 400) {
+        // Up to ~6h: 1m candles
+        interval = '1m'
+        limit = minutes
+      } else {
+        // 24h: 5m candles
+        interval = '5m'
+        limit = Math.ceil(minutes / 5)
+      }
+      
+      limit = Math.min(limit, 1000) // Binance max limit
+      
+      const url = `${BINANCE_KLINE_API}?symbol=BTCUSDT&interval=${interval}&startTime=${startTime}&endTime=${endTime}&limit=${limit}`
       
       const response = await fetch(url)
       const data = await response.json()
       
-      // Binance kline format: [openTime, open, high, low, close, volume, closeTime, ...]
-      priceHistory.value = data.map((kline: any[]) => ({
+      return data.map((kline: BinanceKline) => ({
         timestamp: kline[0], // openTime
         price: parseFloat(kline[4]), // close price
       }))
-      
-      console.log(`[BTC] Loaded ${priceHistory.value.length} historical data points`)
     } catch (e) {
       console.error('[BTC] Failed to fetch historical data:', e)
+      return []
+    }
+  }
+
+  // Load historical data on-demand for a specific time range
+  const loadHistoricalData = async (minutes: number) => {
+    // Skip if we already have data for this range
+    if (minutes <= loadedRangeMinutes.value) {
+      console.log(`[BTC] Already have ${loadedRangeMinutes.value}m of data, skipping load for ${minutes}m`)
+      return
+    }
+    
+    isLoadingHistory.value = true
+    console.log(`[BTC] Loading historical data for ${minutes} minutes...`)
+    
+    try {
+      const historicalData = await fetchHistoricalData(minutes)
+      
+      if (historicalData.length > 0) {
+        // Get existing timestamps to avoid duplicates
+        const existingTimestamps = new Set(priceHistory.value.map(p => p.timestamp))
+        
+        // Add only new data points
+        const newPoints = historicalData.filter(
+          (p: { timestamp: number }) => !existingTimestamps.has(p.timestamp)
+        )
+        
+        // Merge and sort by timestamp
+        priceHistory.value = [...newPoints, ...priceHistory.value]
+          .sort((a, b) => a.timestamp - b.timestamp)
+          .slice(-MAX_HISTORY_POINTS) // Keep only recent points if too many
+        
+        loadedRangeMinutes.value = minutes
+        console.log(`[BTC] Loaded ${newPoints.length} new points, total: ${priceHistory.value.length}`)
+      }
+    } finally {
+      isLoadingHistory.value = false
     }
   }
 
@@ -56,8 +118,8 @@ export const useBtcPrice = () => {
     status.value = 'connecting'
     error.value = null
 
-    // Fetch historical data first
-    await fetchHistoricalData()
+    // Fetch initial 5 minutes of historical data
+    await loadHistoricalData(5)
 
     try {
       ws = new WebSocket(BINANCE_WS_URL)
@@ -79,9 +141,10 @@ export const useBtcPrice = () => {
             price: parseFloat(data.c),
           })
           
-          // Keep only last 5 minutes (300 seconds)
-          const fiveMinutesAgo = Date.now() - (5 * 60 * 1000)
-          priceHistory.value = priceHistory.value.filter(p => p.timestamp > fiveMinutesAgo)
+          // Trim if exceeding max points
+          if (priceHistory.value.length > MAX_HISTORY_POINTS) {
+            priceHistory.value = priceHistory.value.slice(-MAX_HISTORY_POINTS)
+          }
         }
         catch (e) {
           console.error('[BTC WebSocket] Failed to parse message:', e)
@@ -129,18 +192,12 @@ export const useBtcPrice = () => {
 
   // Computed properties for easy access
   const price = computed(() => priceData.value?.price ?? null)
-  const formattedPrice = computed(() =>
-    priceData.value
-      ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(priceData.value.price)
-      : null,
-  )
   const isConnected = computed(() => status.value === 'connected')
-  
-  const averagePrice = computed(() => {
-    if (priceHistory.value.length === 0) return null
-    const sum = priceHistory.value.reduce((acc, p) => acc + p.price, 0)
-    return sum / priceHistory.value.length
-  })
+
+  // Set bid price for display on chart
+  const setBidPrice = (price: number | null) => {
+    bidPrice.value = price
+  }
 
   return {
     // State
@@ -148,14 +205,15 @@ export const useBtcPrice = () => {
     priceHistory,
     bidPrice,
     price,
-    formattedPrice,
-    averagePrice,
     status,
     error,
     isConnected,
+    isLoadingHistory,
 
     // Actions
     connect,
     disconnect,
+    loadHistoricalData,
+    setBidPrice,
   }
 }
