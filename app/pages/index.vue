@@ -75,7 +75,6 @@ onUnmounted(() => {
     
     <ClientOnly fallback-tag="div">
       <BtcPriceChart />
-      <BtcPriceChartJs />
       <BtcPriceTradingView />
       
       <div>

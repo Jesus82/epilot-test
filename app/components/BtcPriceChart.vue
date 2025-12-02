@@ -8,6 +8,7 @@ const isChartReady = ref(false)
 
 // Store D3 selections for updates (avoid recreating)
 let svg: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
+let gridGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let priceLine: d3.Selection<SVGPathElement, unknown, null, undefined> | null = null
 let avgLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = null
 let avgText: d3.Selection<SVGTextElement, unknown, null, undefined> | null = null
@@ -17,7 +18,7 @@ let xAxisGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null = nul
 let yAxisGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let d3Module: typeof import('d3') | null = null
 
-const margin = { top: 20, right: 30, bottom: 30, left: 60 }
+const margin = { top: 20, right: 80, bottom: 30, left: 10 }
 const TRANSITION_DURATION = 300
 
 // Watch for price updates - only when chart is ready
@@ -55,6 +56,10 @@ const initChart = async () => {
   svg = svgElement
     .append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`)
+  
+  // Create grid group (behind everything)
+  gridGroup = svg.append('g')
+    .attr('class', 'grid')
   
   // Create elements (empty initially)
   priceLine = svg.append('path')
@@ -97,8 +102,10 @@ const initChart = async () => {
     .attr('class', 'x-axis')
     .attr('transform', `translate(0,${height})`)
   
+  // Y-axis on the right side
   yAxisGroup = svg.append('g')
     .attr('class', 'y-axis')
+    .attr('transform', `translate(${width},0)`)
   
   // Mark chart as ready and do initial update
   isChartReady.value = true
@@ -118,12 +125,57 @@ const updateChart = () => {
     .domain(d3.extent(priceHistory.value, (d: { timestamp: number; price: number }) => new Date(d.timestamp)) as [Date, Date])
     .range([0, width])
   
+  // Calculate nice $20 step ticks for Y axis
+  const minPrice = d3.min(priceHistory.value, (d: { timestamp: number; price: number }) => d.price)!
+  const maxPrice = d3.max(priceHistory.value, (d: { timestamp: number; price: number }) => d.price)!
+  const priceStep = 20
+  const yMin = Math.floor(minPrice / priceStep) * priceStep - priceStep
+  const yMax = Math.ceil(maxPrice / priceStep) * priceStep + priceStep
+  
   const y = d3.scaleLinear()
-    .domain([
-      d3.min(priceHistory.value, (d: { timestamp: number; price: number }) => d.price)! * 0.9999,
-      d3.max(priceHistory.value, (d: { timestamp: number; price: number }) => d.price)! * 1.0001
-    ])
+    .domain([yMin, yMax])
     .range([height, 0])
+  
+  // Generate tick values for $20 steps
+  const yTickValues: number[] = []
+  for (let tick = yMin; tick <= yMax; tick += priceStep) {
+    yTickValues.push(tick)
+  }
+  
+  // Generate time ticks (one per minute)
+  const xTicks = d3.timeMinute.every(1)
+  
+  // Update grid lines
+  if (gridGroup) {
+    // Remove old grid lines
+    gridGroup.selectAll('*').remove()
+    
+    // Horizontal grid lines (price steps)
+    yTickValues.forEach((tickValue) => {
+      gridGroup!.append('line')
+        .attr('class', 'grid-line-h')
+        .attr('x1', 0)
+        .attr('x2', width)
+        .attr('y1', y(tickValue))
+        .attr('y2', y(tickValue))
+        .attr('stroke', '#e0e0e0')
+        .attr('stroke-width', 1)
+    })
+    
+    // Vertical grid lines (time steps - one per minute)
+    const timeExtent = x.domain() as [Date, Date]
+    const timeTicks = d3.timeMinute.range(timeExtent[0], timeExtent[1])
+    timeTicks.forEach((tickTime) => {
+      gridGroup!.append('line')
+        .attr('class', 'grid-line-v')
+        .attr('x1', x(tickTime))
+        .attr('x2', x(tickTime))
+        .attr('y1', 0)
+        .attr('y2', height)
+        .attr('stroke', '#e0e0e0')
+        .attr('stroke-width', 1)
+    })
+  }
   
   // Line generator
   const line = d3.line<{ timestamp: number; price: number }>()
@@ -198,8 +250,19 @@ const updateChart = () => {
   }
   
   // Update axes with transition
-  xAxisGroup?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).call(d3.axisBottom(x).ticks(5))
-  yAxisGroup?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).call(d3.axisLeft(y).tickFormat((d: d3.NumberValue) => `$${d3.format(',.2f')(d as number)}`))
+  // X-axis: show time in HH:mm format, one tick per minute
+  xAxisGroup?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).call(
+    d3.axisBottom(x)
+      .ticks(xTicks)
+      .tickFormat((d) => d3.timeFormat('%H:%M')(d as Date))
+  )
+  
+  // Y-axis on the right: $20 steps, no decimals
+  yAxisGroup?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).call(
+    d3.axisRight(y)
+      .tickValues(yTickValues)
+      .tickFormat((d: d3.NumberValue) => d3.format(',.0f')(d as number))
+  )
 }
 
 const handleResize = () => {
@@ -237,7 +300,23 @@ onUnmounted(() => {
 .chart-container {
   width: 100%;
   min-height: 300px;
-  background: #f9f9f9;
-  border: 1px solid #ddd;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+}
+
+.chart-container :deep(.x-axis),
+.chart-container :deep(.y-axis) {
+  font-size: 11px;
+  color: #666;
+}
+
+.chart-container :deep(.x-axis path),
+.chart-container :deep(.y-axis path) {
+  stroke: #e0e0e0;
+}
+
+.chart-container :deep(.x-axis .tick line),
+.chart-container :deep(.y-axis .tick line) {
+  stroke: #e0e0e0;
 }
 </style>
