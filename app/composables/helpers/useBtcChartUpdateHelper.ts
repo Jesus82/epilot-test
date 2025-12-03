@@ -329,6 +329,143 @@ export const useBtcChartUpdateHelper = () => {
     )
   }
 
+  // Find min and max price points from data
+  const findMinMaxPoints = (data: PricePoint[]) => {
+    if (data.length === 0) return { minPoint: null, maxPoint: null }
+
+    let minPoint = data[0]!
+    let maxPoint = data[0]!
+
+    for (const point of data) {
+      if (point.price < minPoint.price) minPoint = point
+      if (point.price > maxPoint.price) maxPoint = point
+    }
+
+    return { minPoint, maxPoint }
+  }
+
+  // Update min/max labels positioned at the data points
+  const updateMinMaxLabels = (
+    d3: typeof import('d3'),
+    maxLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null,
+    minLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null,
+    data: PricePoint[],
+    x: d3.ScaleTime<number, number>,
+    y: d3.ScaleLinear<number, number>,
+    width: number,
+    height: number,
+  ) => {
+    const { minPoint, maxPoint } = findMinMaxPoints(data)
+
+    if (maxPoint && maxLabel) {
+      const maxX = x(new Date(maxPoint.timestamp))
+      const maxY = y(maxPoint.price)
+
+      const priceText = d3.format(',.2f')(maxPoint.price)
+      maxLabel.select('.max-price-text').text(priceText)
+
+      const nameWidth = 32
+      const priceTextWidth = (maxLabel.select('.max-price-text').node() as SVGTextElement)?.getBBox().width || 60
+      const totalWidth = nameWidth + priceTextWidth + 16
+
+      // Position label: prefer right side of point, but flip to left if near edge
+      let labelX = maxX + 8
+      if (labelX + totalWidth > width) {
+        labelX = maxX - totalWidth - 8
+      }
+
+      // Position above the point, but ensure it stays within bounds
+      let labelY = maxY - 12
+      if (labelY < 9) {
+        labelY = maxY + 12
+      }
+
+      maxLabel
+        .transition()
+        .duration(TRANSITION_DURATION)
+        .ease(d3.easeCubicOut)
+        .attr('transform', `translate(${labelX}, ${labelY})`)
+        .style('opacity', 1)
+
+      maxLabel.select('.max-name-bg')
+        .attr('x', 0)
+        .attr('y', -9)
+        .attr('width', nameWidth)
+        .attr('height', 18)
+
+      maxLabel.select('.max-name-text')
+        .attr('x', 5)
+        .attr('y', 0)
+
+      maxLabel.select('.max-price-bg')
+        .attr('x', nameWidth + 3)
+        .attr('y', -9)
+        .attr('width', priceTextWidth + 10)
+        .attr('height', 18)
+
+      maxLabel.select('.max-price-text')
+        .attr('x', nameWidth + 8)
+        .attr('y', 0)
+    }
+    else {
+      maxLabel?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
+    }
+
+    if (minPoint && minLabel) {
+      const minX = x(new Date(minPoint.timestamp))
+      const minY = y(minPoint.price)
+
+      const priceText = d3.format(',.2f')(minPoint.price)
+      minLabel.select('.min-price-text').text(priceText)
+
+      const nameWidth = 28
+      const priceTextWidth = (minLabel.select('.min-price-text').node() as SVGTextElement)?.getBBox().width || 60
+      const totalWidth = nameWidth + priceTextWidth + 16
+
+      // Position label: prefer right side of point, but flip to left if near edge
+      let labelX = minX + 8
+      if (labelX + totalWidth > width) {
+        labelX = minX - totalWidth - 8
+      }
+
+      // Position below the point, but ensure it stays within bounds
+      let labelY = minY + 12
+      if (labelY > height - 9) {
+        labelY = minY - 12
+      }
+
+      minLabel
+        .transition()
+        .duration(TRANSITION_DURATION)
+        .ease(d3.easeCubicOut)
+        .attr('transform', `translate(${labelX}, ${labelY})`)
+        .style('opacity', 1)
+
+      minLabel.select('.min-name-bg')
+        .attr('x', 0)
+        .attr('y', -9)
+        .attr('width', nameWidth)
+        .attr('height', 18)
+
+      minLabel.select('.min-name-text')
+        .attr('x', 5)
+        .attr('y', 0)
+
+      minLabel.select('.min-price-bg')
+        .attr('x', nameWidth + 3)
+        .attr('y', -9)
+        .attr('width', priceTextWidth + 10)
+        .attr('height', 18)
+
+      minLabel.select('.min-price-text')
+        .attr('x', nameWidth + 8)
+        .attr('y', 0)
+    }
+    else {
+      minLabel?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
+    }
+  }
+
   return {
     TRANSITION_DURATION,
     updateScales,
@@ -339,5 +476,7 @@ export const useBtcChartUpdateHelper = () => {
     createLineGenerator,
     animatePriceLine,
     updateAxes,
+    findMinMaxPoints,
+    updateMinMaxLabels,
   }
 }

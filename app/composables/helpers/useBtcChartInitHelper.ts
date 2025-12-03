@@ -160,6 +160,76 @@ export const useBtcChartInitHelper = () => {
     return { bidLine, bidLabel }
   }
 
+  const createMinMaxLabelElements = (
+    svg: d3.Selection<SVGGElement, unknown, null, undefined>,
+  ) => {
+    // Max price label
+    const maxLabel = svg.append('g')
+      .attr('class', 'max-label')
+      .style('opacity', 0)
+
+    maxLabel.append('rect')
+      .attr('class', 'max-name-bg')
+      .attr('fill', '#22c55e')
+      .attr('rx', 2)
+      .attr('ry', 2)
+
+    maxLabel.append('text')
+      .attr('class', 'max-name-text')
+      .attr('fill', '#ffffff')
+      .attr('font-size', '10px')
+      .attr('font-weight', '500')
+      .attr('dominant-baseline', 'middle')
+      .text('Max')
+
+    maxLabel.append('rect')
+      .attr('class', 'max-price-bg')
+      .attr('fill', '#22c55e')
+      .attr('rx', 2)
+      .attr('ry', 2)
+
+    maxLabel.append('text')
+      .attr('class', 'max-price-text')
+      .attr('fill', '#ffffff')
+      .attr('font-size', '11px')
+      .attr('font-weight', '500')
+      .attr('dominant-baseline', 'middle')
+
+    // Min price label
+    const minLabel = svg.append('g')
+      .attr('class', 'min-label')
+      .style('opacity', 0)
+
+    minLabel.append('rect')
+      .attr('class', 'min-name-bg')
+      .attr('fill', '#ef4444')
+      .attr('rx', 2)
+      .attr('ry', 2)
+
+    minLabel.append('text')
+      .attr('class', 'min-name-text')
+      .attr('fill', '#ffffff')
+      .attr('font-size', '10px')
+      .attr('font-weight', '500')
+      .attr('dominant-baseline', 'middle')
+      .text('Min')
+
+    minLabel.append('rect')
+      .attr('class', 'min-price-bg')
+      .attr('fill', '#ef4444')
+      .attr('rx', 2)
+      .attr('ry', 2)
+
+    minLabel.append('text')
+      .attr('class', 'min-price-text')
+      .attr('fill', '#ffffff')
+      .attr('font-size', '11px')
+      .attr('font-weight', '500')
+      .attr('dominant-baseline', 'middle')
+
+    return { maxLabel, minLabel }
+  }
+
   const createCrosshairGroup = (
     svg: d3.Selection<SVGGElement, unknown, null, undefined>,
   ) => {
@@ -241,6 +311,7 @@ export const useBtcChartInitHelper = () => {
     createPriceLine,
     createAverageLineElements,
     createBidLineElements,
+    createMinMaxLabelElements,
     createCrosshairGroup,
     createHoverOverlay,
   }

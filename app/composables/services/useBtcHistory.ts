@@ -6,9 +6,17 @@ const BINANCE_KLINE_API = 'https://api.binance.com/api/v3/klines'
 // Global shared state for price history
 const priceHistory = ref<PricePoint[]>([])
 const isLoadingHistory = ref(false)
-const loadedRangeMinutes = ref(0)
+const currentRangeMinutes = ref(5)
 
-const MAX_HISTORY_POINTS = 100000
+// Max points based on time range to prevent memory leaks
+// We keep slightly more than needed to avoid edge cases
+const getMaxPointsForRange = (minutes: number): number => {
+  if (minutes <= 5) return 400      // 1s interval -> ~300 points + buffer
+  if (minutes <= 10) return 400     // 2s interval -> ~300 points + buffer
+  if (minutes <= 60) return 100     // 1m interval -> 60 points + buffer
+  if (minutes <= 360) return 500    // 1m interval -> 360 points + buffer
+  return 400                         // 5m interval -> 288 points + buffer
+}
 
 const fetchBinanceKlines = async (
   symbol: string,
@@ -53,22 +61,6 @@ const getKlineParams = (minutes: number): { interval: string; limit: number } =>
   return { interval, limit: Math.min(limit, 1000) } // Binance max limit
 }
 
-const mergeHistoricalData = (
-  existingData: PricePoint[],
-  newData: PricePoint[],
-  maxPoints: number,
-): { mergedData: PricePoint[]; newPointsCount: number } => {
-  const existingTimestamps = new Set(existingData.map(p => p.timestamp))
-
-  const newPoints = newData.filter(p => !existingTimestamps.has(p.timestamp))
-
-  const mergedData = [...newPoints, ...existingData]
-    .sort((a, b) => a.timestamp - b.timestamp)
-    .slice(-maxPoints)
-
-  return { mergedData, newPointsCount: newPoints.length }
-}
-
 export const useBtcHistory = () => {
   const fetchHistoricalData = async (minutes: number): Promise<PricePoint[]> => {
     try {
@@ -87,10 +79,13 @@ export const useBtcHistory = () => {
   }
 
   const loadHistoricalData = async (minutes: number) => {
-    // Skip if we already have data for this range
-    if (minutes <= loadedRangeMinutes.value) {
-      console.log(`[BTC History] Already have ${loadedRangeMinutes.value}m of data, skipping load for ${minutes}m`)
-      return
+    // Always clear and reload when range changes to prevent memory leaks
+    const rangeChanged = minutes !== currentRangeMinutes.value
+
+    if (rangeChanged) {
+      console.log(`[BTC History] Range changed from ${currentRangeMinutes.value}m to ${minutes}m, clearing history`)
+      priceHistory.value = []
+      currentRangeMinutes.value = minutes
     }
 
     isLoadingHistory.value = true
@@ -98,17 +93,12 @@ export const useBtcHistory = () => {
 
     try {
       const historicalData = await fetchHistoricalData(minutes)
+      const maxPoints = getMaxPointsForRange(minutes)
 
       if (historicalData.length > 0) {
-        const { mergedData, newPointsCount } = mergeHistoricalData(
-          priceHistory.value,
-          historicalData,
-          MAX_HISTORY_POINTS,
-        )
-
-        priceHistory.value = mergedData
-        loadedRangeMinutes.value = minutes
-        console.log(`[BTC History] Loaded ${newPointsCount} new points, total: ${priceHistory.value.length}`)
+        // Take only the most recent points up to max
+        priceHistory.value = historicalData.slice(-maxPoints)
+        console.log(`[BTC History] Loaded ${priceHistory.value.length} points (max: ${maxPoints})`)
       }
     }
     finally {
@@ -117,21 +107,36 @@ export const useBtcHistory = () => {
   }
 
   const addPricePoint = (timestamp: number, price: number) => {
+    const maxPoints = getMaxPointsForRange(currentRangeMinutes.value)
+    const cutoffTime = Date.now() - (currentRangeMinutes.value * 60 * 1000)
+
+    // Add new point
     priceHistory.value.push({ timestamp, price })
 
-    // Trim if exceeding max points
-    if (priceHistory.value.length > MAX_HISTORY_POINTS) {
-      priceHistory.value = priceHistory.value.slice(-MAX_HISTORY_POINTS)
+    // Trim old data: remove points outside time range AND respect max points
+    if (priceHistory.value.length > maxPoints) {
+      // First, remove points that are too old
+      const validPoints = priceHistory.value.filter(p => p.timestamp >= cutoffTime)
+      // Then apply max points limit
+      priceHistory.value = validPoints.slice(-maxPoints)
     }
+  }
+
+  const clearHistory = () => {
+    priceHistory.value = []
+    currentRangeMinutes.value = 5
+    console.log('[BTC History] History cleared')
   }
 
   return {
     // State
     priceHistory,
     isLoadingHistory,
+    currentRangeMinutes,
 
     // Actions
     loadHistoricalData,
     addPricePoint,
+    clearHistory,
   }
 }

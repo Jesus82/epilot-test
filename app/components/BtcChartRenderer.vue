@@ -21,6 +21,7 @@ const {
   createLineGenerator,
   animatePriceLine,
   updateAxes,
+  updateMinMaxLabels,
 } = useBtcChartUpdateHelper()
 
 const {
@@ -38,6 +39,7 @@ const {
   createPriceLine,
   createAverageLineElements,
   createBidLineElements,
+  createMinMaxLabelElements,
   createCrosshairGroup,
   createHoverOverlay,
 } = useBtcChartInitHelper()
@@ -53,6 +55,8 @@ let avgLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = nul
 let avgLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let bidLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = null
 let bidLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
+let maxLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
+let minLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let xAxisGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let yAxisGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let crosshairGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
@@ -119,6 +123,11 @@ const initChart = async () => {
   const bidResult = createBidLineElements(svg)
   bidLine = bidResult.bidLine
   bidLabel = bidResult.bidLabel
+
+  // Create min/max labels
+  const minMaxResult = createMinMaxLabelElements(svg)
+  maxLabel = minMaxResult.maxLabel
+  minLabel = minMaxResult.minLabel
 
   // Create crosshair
   crosshairGroup = createCrosshairGroup(svg)
@@ -192,6 +201,8 @@ const updateChart = () => {
   const { avgY, bidY, adjustedAvgY, adjustedBidY } = calculateLabelCollision(y, props.averagePrice, props.bidPrice, height)
   updateAverageLine(d3, avgLine, avgLabel, props.averagePrice, width, avgY, adjustedAvgY)
   updateBidLine(d3, bidLine, bidLabel, props.bidPrice, width, bidY, adjustedBidY)
+
+  updateMinMaxLabels(d3, maxLabel, minLabel, props.data, x, y, width, height)
 
   updateAxes(d3, xAxisGroup, yAxisGroup, x, y, xTicks!, yTickValues)
 }
