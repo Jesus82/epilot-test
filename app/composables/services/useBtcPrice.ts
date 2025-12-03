@@ -11,12 +11,10 @@ export const useBtcPrice = () => {
   const { priceData, price, status, error, isConnected, connect, disconnect } = useBtcWS()
   const { priceHistory, isLoadingHistory, loadHistoricalData } = useBtcHistory()
 
-  // Set bid price for display on chart
   const setBidPrice = (price: number | null) => {
     bidPrice.value = price
   }
 
-  // Format price for display
   const formattedPrice = computed(() => {
     if (!priceData.value) return null
     return new Intl.NumberFormat('en-US', {

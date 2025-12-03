@@ -3,7 +3,6 @@ import type { BtcPriceData, WebSocketStatus } from '~/types/btc'
 
 const BINANCE_WS_URL = 'wss://stream.binance.com:9443/ws/btcusdt@ticker'
 
-// Global shared state for WebSocket
 const priceData = ref<BtcPriceData | null>(null)
 const status = ref<WebSocketStatus>('disconnected')
 const error = ref<string | null>(null)
@@ -14,8 +13,11 @@ let reconnectAttempts = 0
 const MAX_RECONNECT_ATTEMPTS = 5
 const RECONNECT_DELAY = 3000
 
+const shouldAttemptReconnect = (closeCode: number): boolean => {
+  return closeCode !== 1000 && reconnectAttempts < MAX_RECONNECT_ATTEMPTS
+}
+
 export const useBtcWS = () => {
-  // Get history composable to add live price points
   const { addPricePoint, loadHistoricalData } = useBtcHistory()
 
   const parseTickerMessage = (data: BinanceTickerMessage): BtcPriceData => ({
@@ -68,8 +70,7 @@ export const useBtcWS = () => {
         status.value = 'disconnected'
         console.log('[BTC WebSocket] Disconnected:', event.code, event.reason)
 
-        // Attempt to reconnect if not manually closed
-        if (event.code !== 1000 && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        if (shouldAttemptReconnect(event.code)) {
           reconnectAttempts++
           console.log(`[BTC WebSocket] Reconnecting... Attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}`)
           reconnectTimeout = setTimeout(connect, RECONNECT_DELAY)
