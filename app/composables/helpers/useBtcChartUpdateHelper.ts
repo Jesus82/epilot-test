@@ -1,6 +1,7 @@
 import { interpolatePath } from 'd3-interpolate-path'
+import type { PricePoint } from '~/types/btc'
 
-export type PricePoint = { timestamp: number; price: number }
+export type { PricePoint }
 
 export interface ChartElements {
   gridGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null

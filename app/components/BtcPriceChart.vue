@@ -1,7 +1,7 @@
 <script setup lang="ts">
-const { priceHistory, bidPrice, loadHistoricalData, isLoadingHistory } = useBtcPrice()
+import type { PricePoint } from '~/types/btc'
 
-type PricePoint = { timestamp: number; price: number }
+const { priceHistory, bidPrice, loadHistoricalData, isLoadingHistory } = useBtcPrice()
 
 // Get sample interval for downsampling price data (in milliseconds)
 // Must match API intervals for consistency across historical and live data

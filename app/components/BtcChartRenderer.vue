@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PricePoint } from '~/composables/helpers/useBtcChartUpdateHelper'
+import type { PricePoint } from '~/types/btc'
 
 const props = defineProps<{
   data: PricePoint[]

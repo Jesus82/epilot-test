@@ -1,51 +1,84 @@
-// Binance kline format: [openTime, open, high, low, close, volume, closeTime, ...]
-type BinanceKline = [number, string, string, string, string, string, number, string, number, string, string, string]
+import type { BinanceKline } from '~/types/binance'
+import type { PricePoint } from '~/types/btc'
 
 const BINANCE_KLINE_API = 'https://api.binance.com/api/v3/klines'
 
 // Global shared state for price history
-const priceHistory = ref<Array<{ timestamp: number; price: number }>>([])
+const priceHistory = ref<PricePoint[]>([])
 const isLoadingHistory = ref(false)
 const loadedRangeMinutes = ref(0)
 
 const MAX_HISTORY_POINTS = 100000
 
+const fetchBinanceKlines = async (
+  symbol: string,
+  interval: string,
+  startTime: number,
+  endTime: number,
+  limit: number,
+): Promise<BinanceKline[]> => {
+  const url = `${BINANCE_KLINE_API}?symbol=${symbol}&interval=${interval}&startTime=${startTime}&endTime=${endTime}&limit=${limit}`
+  const response = await fetch(url)
+  return response.json() as Promise<BinanceKline[]>
+}
+
+const klinesToPricePoints = (klines: BinanceKline[]): PricePoint[] => {
+  return klines.map((kline) => ({
+    timestamp: kline[0], // openTime
+    price: parseFloat(kline[4]), // close price
+  }))
+}
+
+// Choose interval to get appropriate data points
+const getKlineParams = (minutes: number): { interval: string; limit: number } => {
+  let interval: string
+  let limit: number
+
+  if (minutes <= 15) {
+    // Up to 15m: 1s candles
+    interval = '1s'
+    limit = minutes * 60
+  }
+  else if (minutes <= 400) {
+    // Up to ~6h: 1m candles
+    interval = '1m'
+    limit = minutes
+  }
+  else {
+    // 24h: 5m candles
+    interval = '5m'
+    limit = Math.ceil(minutes / 5)
+  }
+
+  return { interval, limit: Math.min(limit, 1000) } // Binance max limit
+}
+
+const mergeHistoricalData = (
+  existingData: PricePoint[],
+  newData: PricePoint[],
+  maxPoints: number,
+): { mergedData: PricePoint[]; newPointsCount: number } => {
+  const existingTimestamps = new Set(existingData.map(p => p.timestamp))
+
+  const newPoints = newData.filter(p => !existingTimestamps.has(p.timestamp))
+
+  const mergedData = [...newPoints, ...existingData]
+    .sort((a, b) => a.timestamp - b.timestamp)
+    .slice(-maxPoints)
+
+  return { mergedData, newPointsCount: newPoints.length }
+}
+
 export const useBtcHistory = () => {
-  // Fetch historical data for a specific time range
-  const fetchHistoricalData = async (minutes: number) => {
+  const fetchHistoricalData = async (minutes: number): Promise<PricePoint[]> => {
     try {
       const endTime = Date.now()
       const startTime = endTime - (minutes * 60 * 1000)
 
-      // Choose interval to get appropriate data points
-      let interval: string
-      let limit: number
+      const { interval, limit } = getKlineParams(minutes)
 
-      if (minutes <= 15) {
-        // Up to 15m: 1s candles
-        interval = '1s'
-        limit = minutes * 60
-      } else if (minutes <= 400) {
-        // Up to ~6h: 1m candles
-        interval = '1m'
-        limit = minutes
-      } else {
-        // 24h: 5m candles
-        interval = '5m'
-        limit = Math.ceil(minutes / 5)
-      }
-
-      limit = Math.min(limit, 1000) // Binance max limit
-
-      const url = `${BINANCE_KLINE_API}?symbol=BTCUSDT&interval=${interval}&startTime=${startTime}&endTime=${endTime}&limit=${limit}`
-
-      const response = await fetch(url)
-      const data = await response.json()
-
-      return data.map((kline: BinanceKline) => ({
-        timestamp: kline[0], // openTime
-        price: parseFloat(kline[4]), // close price
-      }))
+      const klines = await fetchBinanceKlines('BTCUSDT', interval, startTime, endTime, limit)
+      return klinesToPricePoints(klines)
     }
     catch (e) {
       console.error('[BTC History] Failed to fetch historical data:', e)
@@ -53,7 +86,6 @@ export const useBtcHistory = () => {
     }
   }
 
-  // Load historical data on-demand for a specific time range
   const loadHistoricalData = async (minutes: number) => {
     // Skip if we already have data for this range
     if (minutes <= loadedRangeMinutes.value) {
@@ -68,21 +100,15 @@ export const useBtcHistory = () => {
       const historicalData = await fetchHistoricalData(minutes)
 
       if (historicalData.length > 0) {
-        // Get existing timestamps to avoid duplicates
-        const existingTimestamps = new Set(priceHistory.value.map(p => p.timestamp))
-
-        // Add only new data points
-        const newPoints = historicalData.filter(
-          (p: { timestamp: number }) => !existingTimestamps.has(p.timestamp),
+        const { mergedData, newPointsCount } = mergeHistoricalData(
+          priceHistory.value,
+          historicalData,
+          MAX_HISTORY_POINTS,
         )
 
-        // Merge and sort by timestamp
-        priceHistory.value = [...newPoints, ...priceHistory.value]
-          .sort((a, b) => a.timestamp - b.timestamp)
-          .slice(-MAX_HISTORY_POINTS)
-
+        priceHistory.value = mergedData
         loadedRangeMinutes.value = minutes
-        console.log(`[BTC History] Loaded ${newPoints.length} new points, total: ${priceHistory.value.length}`)
+        console.log(`[BTC History] Loaded ${newPointsCount} new points, total: ${priceHistory.value.length}`)
       }
     }
     finally {
@@ -90,7 +116,6 @@ export const useBtcHistory = () => {
     }
   }
 
-  // Add a single price point (called by WebSocket on each tick)
   const addPricePoint = (timestamp: number, price: number) => {
     priceHistory.value.push({ timestamp, price })
 

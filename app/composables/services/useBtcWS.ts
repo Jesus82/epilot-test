@@ -1,4 +1,5 @@
-import type { BinanceTickerMessage, BtcPriceData, WebSocketStatus } from '~/types/btc'
+import type { BinanceTickerMessage } from '~/types/binance'
+import type { BtcPriceData, WebSocketStatus } from '~/types/btc'
 
 const BINANCE_WS_URL = 'wss://stream.binance.com:9443/ws/btcusdt@ticker'
 
