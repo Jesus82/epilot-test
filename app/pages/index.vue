@@ -1,61 +1,16 @@
 <script setup lang="ts">
 const { priceData, formattedPrice, status, bidPrice, connect, disconnect } = useBtcPrice()
 
-// Game state
-const score = ref(0)
-const guess = ref<'up' | 'down' | null>(null)
-const isLocked = ref(false)
-const countdown = ref(0)
-const guessPrice = ref<number | null>(null)
-
-let countdownInterval: ReturnType<typeof setInterval> | null = null
-
-const makeGuess = (direction: 'up' | 'down') => {
-  if (isLocked.value || !priceData.value) return
-  
-  // Lock the buttons
-  isLocked.value = true
-  guess.value = direction
-  guessPrice.value = priceData.value.price
-  bidPrice.value = priceData.value.price // Set bid marker
-  countdown.value = 60
-  
-  // Start countdown
-  countdownInterval = setInterval(() => {
-    countdown.value--
-    
-    if (countdown.value <= 0) {
-      checkGuess()
-    }
-  }, 1000)
-}
-
-const checkGuess = () => {
-  if (!priceData.value || !guessPrice.value || !guess.value) return
-  
-  const currentPrice = priceData.value.price
-  const priceWentUp = currentPrice > guessPrice.value
-  
-  const isCorrect = (guess.value === 'up' && priceWentUp) || (guess.value === 'down' && !priceWentUp)
-  
-  if (isCorrect) {
-    score.value++
-  } else {
-    score.value--
-  }
-  
-  // Reset game state
-  if (countdownInterval) {
-    clearInterval(countdownInterval)
-    countdownInterval = null
-  }
-  
-  isLocked.value = false
-  guess.value = null
-  guessPrice.value = null
-  bidPrice.value = null // Clear bid marker
-  countdown.value = 0
-}
+// Game logic composable
+const {
+  score,
+  guess,
+  isLocked,
+  countdown,
+  guessPrice,
+  makeGuess,
+  cleanup,
+} = useGameLogic(priceData, bidPrice)
 
 onMounted(() => {
   connect()
@@ -63,9 +18,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   disconnect()
-  if (countdownInterval) {
-    clearInterval(countdownInterval)
-  }
+  cleanup()
 })
 </script>
 

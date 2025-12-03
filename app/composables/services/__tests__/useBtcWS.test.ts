@@ -1,303 +1,339 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { computed, ref } from 'vue'
-import type { BtcPriceData, WebSocketStatus } from '~/types/btc'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { ref, computed, isRef } from 'vue'
 
-// Mock the helper functions
-vi.mock('~/helpers/btcWSHelpers', () => ({
-  shouldAttemptReconnect: vi.fn((closeCode: number, attempts: number, maxAttempts = 5) => {
-    return closeCode !== 1000 && attempts < maxAttempts
-  }),
-  parseTickerMessage: vi.fn((data: { c: string; p: string; P: string; h: string; l: string; E: number }) => ({
-    price: parseFloat(data.c),
-    priceChange24h: parseFloat(data.p),
-    priceChangePercent24h: parseFloat(data.P),
-    high24h: parseFloat(data.h),
-    low24h: parseFloat(data.l),
-    timestamp: data.E,
-  })),
-}))
-
-// Mock useBtcHistory
-vi.mock('../useBtcHistory', () => ({
-  useBtcHistory: () => ({
-    addPricePoint: vi.fn(),
-    loadHistoricalData: vi.fn(),
-  }),
-}))
+// Mock WebSocket
+class MockWebSocket {
+  static OPEN = 1
+  static CLOSED = 3
+  
+  readyState = MockWebSocket.CLOSED
+  onopen: (() => void) | null = null
+  onmessage: ((event: { data: string }) => void) | null = null
+  onerror: ((event: Event) => void) | null = null
+  onclose: ((event: { code: number; reason: string }) => void) | null = null
+  
+  constructor(public url: string) {
+    // Simulate async connection
+    setTimeout(() => {
+      this.readyState = MockWebSocket.OPEN
+      this.onopen?.()
+    }, 0)
+  }
+  
+  close(code?: number, reason?: string) {
+    this.readyState = MockWebSocket.CLOSED
+    this.onclose?.({ code: code ?? 1000, reason: reason ?? '' })
+  }
+  
+  // Helper to simulate receiving a message
+  simulateMessage(data: unknown) {
+    this.onmessage?.({ data: JSON.stringify(data) })
+  }
+  
+  // Helper to simulate error
+  simulateError() {
+    this.onerror?.(new Event('error'))
+  }
+}
 
 describe('useBtcWS', () => {
-  let mockWebSocket: {
-    onopen: (() => void) | null
-    onmessage: ((event: { data: string }) => void) | null
-    onerror: ((event: Event) => void) | null
-    onclose: ((event: { code: number; reason: string }) => void) | null
-    close: ReturnType<typeof vi.fn>
-    readyState: number
+  let mockFetch: ReturnType<typeof vi.fn>
+  let mockWebSocketInstance: MockWebSocket | null = null
+  
+  const setupGlobals = () => {
+    // Re-stub Vue reactivity (needed after resetModules)
+    vi.stubGlobal('ref', ref)
+    vi.stubGlobal('computed', computed)
+    vi.stubGlobal('isRef', isRef)
   }
-
-  beforeEach(() => {
-    vi.clearAllMocks()
-
-    // Create mock WebSocket
-    mockWebSocket = {
-      onopen: null,
-      onmessage: null,
-      onerror: null,
-      onclose: null,
-      close: vi.fn(),
-      readyState: 0, // CONNECTING
-    }
-
-    // Mock global WebSocket constructor
-    global.WebSocket = vi.fn(() => mockWebSocket) as unknown as typeof WebSocket
-    ;(global.WebSocket as unknown as { OPEN: number }).OPEN = 1
+  
+  beforeEach(async () => {
+    vi.resetModules()
+    setupGlobals()
+    
+    // Mock fetch for loadHistoricalData
+    mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve([]),
+    })
+    vi.stubGlobal('fetch', mockFetch)
+    
+    // Import useBtcHistory first and stub it globally
+    const { useBtcHistory } = await import('../useBtcHistory')
+    vi.stubGlobal('useBtcHistory', useBtcHistory)
+    
+    // Add WebSocket constants
+    vi.stubGlobal('WebSocket', Object.assign(
+      class extends MockWebSocket {
+        constructor(url: string) {
+          super(url)
+          mockWebSocketInstance = this
+        }
+      },
+      { OPEN: 1, CLOSED: 3 }
+    ))
   })
-
-  describe('initial state', () => {
-    it('should start with disconnected status', () => {
-      const status = ref<WebSocketStatus>('disconnected')
-      expect(status.value).toBe('disconnected')
-    })
-
-    it('should start with null priceData', () => {
-      const priceData = ref<BtcPriceData | null>(null)
-      expect(priceData.value).toBeNull()
-    })
-
-    it('should start with null error', () => {
-      const error = ref<string | null>(null)
-      expect(error.value).toBeNull()
-    })
+  
+  afterEach(() => {
+    mockWebSocketInstance = null
+    vi.unstubAllGlobals()
   })
-
+  
   describe('connect', () => {
-    it('should set status to connecting when connect is called', () => {
-      const status = ref<WebSocketStatus>('disconnected')
-
-      // Simulate connect start
-      status.value = 'connecting'
-
+    it('should set status to connecting when called', async () => {
+      const { useBtcWS } = await import('../useBtcWS')
+      const { connect, status } = useBtcWS()
+      
+      // Start connection (don't await to check intermediate state)
+      const connectPromise = connect()
       expect(status.value).toBe('connecting')
+      
+      await connectPromise
     })
-
-    it('should set status to connected on successful connection', () => {
-      const status = ref<WebSocketStatus>('connecting')
-
-      // Simulate onopen callback
-      status.value = 'connected'
-
+    
+    it('should set status to connected after WebSocket opens', async () => {
+      const { useBtcWS } = await import('../useBtcWS')
+      const { connect, status } = useBtcWS()
+      
+      await connect()
+      
+      // Wait for WebSocket onopen to fire
+      await new Promise(resolve => setTimeout(resolve, 10))
+      
       expect(status.value).toBe('connected')
     })
-
-    it('should reset reconnect attempts on successful connection', () => {
-      let reconnectAttempts = 3
-
-      // Simulate successful connection
-      reconnectAttempts = 0
-
-      expect(reconnectAttempts).toBe(0)
+    
+    it('should load historical data when connecting', async () => {
+      const { useBtcWS } = await import('../useBtcWS')
+      const { connect } = useBtcWS()
+      
+      await connect()
+      
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('api.binance.com/api/v3/klines')
+      )
     })
-  })
-
-  describe('message handling', () => {
-    it('should parse incoming price data correctly', () => {
-      const priceData = ref<BtcPriceData | null>(null)
-
-      const mockMessage = {
-        c: '96000.50',
-        p: '1500.00',
-        P: '1.58',
-        h: '97000.00',
-        l: '94000.00',
-        E: 1700000000000,
-      }
-
-      // Simulate message parsing
-      priceData.value = {
-        price: parseFloat(mockMessage.c),
-        priceChange24h: parseFloat(mockMessage.p),
-        priceChangePercent24h: parseFloat(mockMessage.P),
-        high24h: parseFloat(mockMessage.h),
-        low24h: parseFloat(mockMessage.l),
-        timestamp: mockMessage.E,
-      }
-
-      expect(priceData.value).toEqual({
-        price: 96000.50,
-        priceChange24h: 1500.00,
-        priceChangePercent24h: 1.58,
-        high24h: 97000.00,
-        low24h: 94000.00,
-        timestamp: 1700000000000,
+    
+    it('should update priceData when receiving a message', async () => {
+      const { useBtcWS } = await import('../useBtcWS')
+      const { connect, priceData } = useBtcWS()
+      
+      await connect()
+      await new Promise(resolve => setTimeout(resolve, 10))
+      
+      // Simulate a ticker message
+      mockWebSocketInstance?.simulateMessage({
+        e: '24hrTicker',
+        E: Date.now(),
+        s: 'BTCUSDT',
+        c: '50000.00',
+        o: '49000.00',
+        h: '51000.00',
+        l: '48000.00',
+        v: '1000.00',
+        q: '50000000.00',
+        P: '2.04',
+        p: '1000.00',
       })
+      
+      expect(priceData.value).toBeTruthy()
+      expect(priceData.value?.price).toBe(50000)
     })
-
-    it('should handle negative price changes', () => {
-      const priceData = ref<BtcPriceData | null>(null)
-
-      const mockMessage = {
-        c: '94500.00',
-        p: '-1500.00',
-        P: '-1.56',
-        h: '96000.00',
-        l: '94000.00',
-        E: 1700000000000,
-      }
-
-      priceData.value = {
-        price: parseFloat(mockMessage.c),
-        priceChange24h: parseFloat(mockMessage.p),
-        priceChangePercent24h: parseFloat(mockMessage.P),
-        high24h: parseFloat(mockMessage.h),
-        low24h: parseFloat(mockMessage.l),
-        timestamp: mockMessage.E,
-      }
-
-      expect(priceData.value.priceChange24h).toBe(-1500.00)
-      expect(priceData.value.priceChangePercent24h).toBe(-1.56)
+    
+    it('should compute price from priceData', async () => {
+      const { useBtcWS } = await import('../useBtcWS')
+      const { connect, price } = useBtcWS()
+      
+      await connect()
+      await new Promise(resolve => setTimeout(resolve, 10))
+      
+      mockWebSocketInstance?.simulateMessage({
+        e: '24hrTicker',
+        E: Date.now(),
+        s: 'BTCUSDT',
+        c: '42500.50',
+        o: '42000.00',
+        h: '43000.00',
+        l: '41000.00',
+        v: '500.00',
+        q: '21000000.00',
+        P: '1.19',
+        p: '500.50',
+      })
+      
+      expect(price.value).toBe(42500.5)
+    })
+    
+    it('should set isConnected to true when connected', async () => {
+      const { useBtcWS } = await import('../useBtcWS')
+      const { connect, isConnected } = useBtcWS()
+      
+      expect(isConnected.value).toBe(false)
+      
+      await connect()
+      await new Promise(resolve => setTimeout(resolve, 10))
+      
+      expect(isConnected.value).toBe(true)
+    })
+    
+    it('should not connect again if already connected', async () => {
+      const { useBtcWS } = await import('../useBtcWS')
+      const { connect, status } = useBtcWS()
+      
+      await connect()
+      await new Promise(resolve => setTimeout(resolve, 10))
+      
+      expect(status.value).toBe('connected')
+      
+      // Try connecting again
+      const initialFetchCount = mockFetch.mock.calls.length
+      await connect()
+      
+      // fetch should not be called again
+      expect(mockFetch.mock.calls.length).toBe(initialFetchCount)
     })
   })
-
+  
+  describe('disconnect', () => {
+    it('should set status to disconnected', async () => {
+      const { useBtcWS } = await import('../useBtcWS')
+      const { connect, disconnect, status } = useBtcWS()
+      
+      await connect()
+      await new Promise(resolve => setTimeout(resolve, 10))
+      
+      expect(status.value).toBe('connected')
+      
+      disconnect()
+      
+      expect(status.value).toBe('disconnected')
+    })
+    
+    it('should set isConnected to false after disconnect', async () => {
+      const { useBtcWS } = await import('../useBtcWS')
+      const { connect, disconnect, isConnected } = useBtcWS()
+      
+      await connect()
+      await new Promise(resolve => setTimeout(resolve, 10))
+      
+      expect(isConnected.value).toBe(true)
+      
+      disconnect()
+      
+      expect(isConnected.value).toBe(false)
+    })
+  })
+  
   describe('error handling', () => {
-    it('should set status to error on WebSocket error', () => {
-      const status = ref<WebSocketStatus>('connected')
-      const error = ref<string | null>(null)
-
-      // Simulate error
-      status.value = 'error'
-      error.value = 'WebSocket connection error'
-
+    it('should set error status on WebSocket error', async () => {
+      const { useBtcWS } = await import('../useBtcWS')
+      const { connect, status, error } = useBtcWS()
+      
+      await connect()
+      await new Promise(resolve => setTimeout(resolve, 10))
+      
+      mockWebSocketInstance?.simulateError()
+      
       expect(status.value).toBe('error')
       expect(error.value).toBe('WebSocket connection error')
     })
+    
+    it('should handle malformed message data gracefully', async () => {
+      const { useBtcWS } = await import('../useBtcWS')
+      const { connect, priceData } = useBtcWS()
+      
+      await connect()
+      await new Promise(resolve => setTimeout(resolve, 10))
+      
+      // Send invalid JSON - use the raw onmessage
+      mockWebSocketInstance?.onmessage?.({ data: 'not valid json' })
+      
+      // Should not crash, priceData should remain null
+      expect(priceData.value).toBeNull()
+    })
   })
-
-  describe('disconnect', () => {
-    it('should set status to disconnected', () => {
-      const status = ref<WebSocketStatus>('connected')
-
-      // Simulate disconnect
-      status.value = 'disconnected'
-
+  
+  describe('reconnection', () => {
+    it('should schedule reconnection on unexpected close', async () => {
+      const { useBtcWS } = await import('../useBtcWS')
+      const { connect, status } = useBtcWS()
+      
+      await connect()
+      await new Promise(resolve => setTimeout(resolve, 10))
+      expect(status.value).toBe('connected')
+      
+      // Store the current WebSocket instance
+      const wsInstance = mockWebSocketInstance
+      
+      // Simulate unexpected close (code 1006)
+      wsInstance?.onclose?.({ code: 1006, reason: 'Abnormal closure' })
+      
+      // Status should be disconnected immediately
+      expect(status.value).toBe('disconnected')
+      
+      // We can't easily test the reconnection scheduling without mocking setTimeout
+      // but we've verified the onclose handler runs and sets the status
+    })
+    
+    it('should not reconnect on manual disconnect (code 1000)', async () => {
+      const { useBtcWS } = await import('../useBtcWS')
+      const { connect, disconnect, status } = useBtcWS()
+      
+      await connect()
+      await new Promise(resolve => setTimeout(resolve, 10))
+      
+      disconnect()
+      
+      expect(status.value).toBe('disconnected')
+      
+      // Wait to ensure no reconnection happens
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Should still be disconnected
       expect(status.value).toBe('disconnected')
     })
-
-    it('should clear reconnect timeout on manual disconnect', () => {
-      let reconnectTimeout: ReturnType<typeof setTimeout> | null = setTimeout(() => {}, 1000)
-
-      // Simulate disconnect cleanup
-      if (reconnectTimeout) {
-        clearTimeout(reconnectTimeout)
-        reconnectTimeout = null
-      }
-
-      expect(reconnectTimeout).toBeNull()
-    })
-
-    it('should prevent auto-reconnect after manual disconnect', () => {
-      let reconnectAttempts = 0
-      const MAX_RECONNECT_ATTEMPTS = 5
-
-      // Simulate manual disconnect
-      reconnectAttempts = MAX_RECONNECT_ATTEMPTS
-
-      // Simulate close event - should not attempt reconnect
-      const closeCode: number = 1006 // Abnormal closure
-      const shouldReconnect = closeCode !== 1000 && reconnectAttempts < MAX_RECONNECT_ATTEMPTS
-
-      expect(shouldReconnect).toBe(false)
-    })
   })
-
-  describe('reconnection logic', () => {
-    it('should attempt reconnect on abnormal closure', () => {
-      let reconnectAttempts = 0
-      const MAX_RECONNECT_ATTEMPTS = 5
-      const closeCode: number = 1006 // Abnormal closure
-
-      const shouldReconnect = closeCode !== 1000 && reconnectAttempts < MAX_RECONNECT_ATTEMPTS
-
-      expect(shouldReconnect).toBe(true)
+  
+  describe('state reactivity', () => {
+    it('should return reactive refs', async () => {
+      const { useBtcWS } = await import('../useBtcWS')
+      const { priceData, status, error, price, isConnected } = useBtcWS()
+      
+      // All should be refs or computed
+      expect(isRef(priceData)).toBe(true)
+      expect(isRef(status)).toBe(true)
+      expect(isRef(error)).toBe(true)
+      expect(isRef(price) || isComputed(price)).toBe(true)
+      expect(isRef(isConnected) || isComputed(isConnected)).toBe(true)
     })
-
-    it('should not attempt reconnect on normal closure (1000)', () => {
-      let reconnectAttempts = 0
-      const MAX_RECONNECT_ATTEMPTS = 5
-      const closeCode: number = 1000 // Normal closure
-
-      const shouldReconnect = closeCode !== 1000 && reconnectAttempts < MAX_RECONNECT_ATTEMPTS
-
-      expect(shouldReconnect).toBe(false)
-    })
-
-    it('should stop reconnecting after max attempts', () => {
-      let reconnectAttempts = 5
-      const MAX_RECONNECT_ATTEMPTS = 5
-      const closeCode: number = 1006
-
-      const shouldReconnect = closeCode !== 1000 && reconnectAttempts < MAX_RECONNECT_ATTEMPTS
-
-      expect(shouldReconnect).toBe(false)
-    })
-
-    it('should increment reconnect attempts on each attempt', () => {
-      let reconnectAttempts = 0
-
-      // Simulate reconnect attempts
-      reconnectAttempts++
-      expect(reconnectAttempts).toBe(1)
-
-      reconnectAttempts++
-      expect(reconnectAttempts).toBe(2)
-
-      reconnectAttempts++
-      expect(reconnectAttempts).toBe(3)
-    })
-  })
-
-  describe('computed properties', () => {
-    it('price should return current price from priceData', () => {
-      const priceData = ref<BtcPriceData | null>({
-        price: 96000.50,
-        priceChange24h: 1500.00,
-        priceChangePercent24h: 1.58,
-        high24h: 97000.00,
-        low24h: 94000.00,
-        timestamp: 1700000000000,
-      })
-
-      const price = computed(() => priceData.value?.price ?? null)
-
-      expect(price.value).toBe(96000.50)
-    })
-
-    it('price should return null when priceData is null', () => {
-      const priceData = ref<BtcPriceData | null>(null)
-
-      const price = computed(() => priceData.value?.price ?? null)
-
+    
+    it('should have correct initial state', async () => {
+      // Fresh module import
+      vi.resetModules()
+      vi.stubGlobal('fetch', mockFetch)
+      vi.stubGlobal('WebSocket', Object.assign(
+        class extends MockWebSocket {
+          constructor(url: string) {
+            super(url)
+            mockWebSocketInstance = this
+          }
+        },
+        { OPEN: 1, CLOSED: 3 }
+      ))
+      
+      const { useBtcWS } = await import('../useBtcWS')
+      const { priceData, status, error, price, isConnected } = useBtcWS()
+      
+      expect(priceData.value).toBeNull()
+      expect(status.value).toBe('disconnected')
+      expect(error.value).toBeNull()
       expect(price.value).toBeNull()
-    })
-
-    it('isConnected should return true when status is connected', () => {
-      const status = ref<WebSocketStatus>('connected')
-
-      const isConnected = computed(() => status.value === 'connected')
-
-      expect(isConnected.value).toBe(true)
-    })
-
-    it('isConnected should return false for other statuses', () => {
-      const status = ref<WebSocketStatus>('disconnected')
-      const isConnected = computed(() => status.value === 'connected')
-
-      expect(isConnected.value).toBe(false)
-
-      status.value = 'connecting'
-      expect(isConnected.value).toBe(false)
-
-      status.value = 'error'
       expect(isConnected.value).toBe(false)
     })
   })
 })
+
+// Helper to check if something is a computed ref
+function isComputed(value: unknown): boolean {
+  return isRef(value) && '_getter' in (value as object)
+}

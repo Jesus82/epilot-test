@@ -1,201 +1,369 @@
-import { describe, expect, it, vi } from 'vitest'
-import { computed, ref } from 'vue'
-import type { BtcPriceData, WebSocketStatus } from '~/types/btc'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { ref, computed, isRef } from 'vue'
 
-// Mock the dependent composables
-vi.mock('../useBtcWS', () => ({
-  useBtcWS: () => ({
-    priceData: ref<BtcPriceData | null>(null),
-    price: computed(() => null),
-    status: ref<WebSocketStatus>('disconnected'),
-    error: ref<string | null>(null),
-    isConnected: computed(() => false),
-    connect: vi.fn(),
-    disconnect: vi.fn(),
-  }),
-}))
-
-vi.mock('../useBtcHistory', () => ({
-  useBtcHistory: () => ({
-    priceHistory: ref([]),
-    isLoadingHistory: ref(false),
-    loadHistoricalData: vi.fn(),
-  }),
-}))
+// Mock WebSocket
+class MockWebSocket {
+  static OPEN = 1
+  static CLOSED = 3
+  
+  readyState = MockWebSocket.CLOSED
+  onopen: (() => void) | null = null
+  onmessage: ((event: { data: string }) => void) | null = null
+  onerror: ((event: Event) => void) | null = null
+  onclose: ((event: { code: number; reason: string }) => void) | null = null
+  
+  constructor(public url: string) {
+    setTimeout(() => {
+      this.readyState = MockWebSocket.OPEN
+      this.onopen?.()
+    }, 0)
+  }
+  
+  close(code?: number, reason?: string) {
+    this.readyState = MockWebSocket.CLOSED
+    this.onclose?.({ code: code ?? 1000, reason: reason ?? '' })
+  }
+  
+  simulateMessage(data: unknown) {
+    this.onmessage?.({ data: JSON.stringify(data) })
+  }
+}
 
 describe('useBtcPrice', () => {
-  describe('bidPrice state', () => {
-    it('should initialize with null', () => {
-      const bidPrice = ref<number | null>(null)
+  let mockFetch: ReturnType<typeof vi.fn>
+  let mockWebSocketInstance: MockWebSocket | null = null
+  
+  const setupGlobals = () => {
+    // Re-stub Vue reactivity (needed after resetModules)
+    vi.stubGlobal('ref', ref)
+    vi.stubGlobal('computed', computed)
+    vi.stubGlobal('isRef', isRef)
+  }
+  
+  beforeEach(async () => {
+    vi.resetModules()
+    setupGlobals()
+    
+    // Mock fetch for loadHistoricalData
+    mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve([
+        [1704067200000, '42000', '42500', '41500', '42200', '100'],
+        [1704067260000, '42200', '42600', '42100', '42400', '150'],
+      ]),
+    })
+    vi.stubGlobal('fetch', mockFetch)
+    
+    // Import useBtcHistory first and stub it globally
+    const { useBtcHistory } = await import('../useBtcHistory')
+    vi.stubGlobal('useBtcHistory', useBtcHistory)
+    
+    // Mock WebSocket
+    vi.stubGlobal('WebSocket', Object.assign(
+      class extends MockWebSocket {
+        constructor(url: string) {
+          super(url)
+          mockWebSocketInstance = this
+        }
+      },
+      { OPEN: 1, CLOSED: 3 }
+    ))
+    
+    // Import useBtcWS after useBtcHistory is stubbed
+    const { useBtcWS } = await import('../useBtcWS')
+    vi.stubGlobal('useBtcWS', useBtcWS)
+  })
+  
+  afterEach(() => {
+    mockWebSocketInstance = null
+    vi.unstubAllGlobals()
+  })
+  
+  describe('integration with useBtcWS', () => {
+    it('should expose price from useBtcWS', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { price, connect } = useBtcPrice()
+      
+      expect(price.value).toBeNull()
+      
+      await connect()
+      await new Promise(resolve => setTimeout(resolve, 10))
+      
+      mockWebSocketInstance?.simulateMessage({
+        e: '24hrTicker',
+        E: Date.now(),
+        s: 'BTCUSDT',
+        c: '45000.00',
+        o: '44000.00',
+        h: '46000.00',
+        l: '43000.00',
+        v: '1000.00',
+        q: '45000000.00',
+        P: '2.27',
+        p: '1000.00',
+      })
+      
+      expect(price.value).toBe(45000)
+    })
+    
+    it('should expose priceData from useBtcWS', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { priceData, connect } = useBtcPrice()
+      
+      expect(priceData.value).toBeNull()
+      
+      await connect()
+      await new Promise(resolve => setTimeout(resolve, 10))
+      
+      mockWebSocketInstance?.simulateMessage({
+        e: '24hrTicker',
+        E: Date.now(),
+        s: 'BTCUSDT',
+        c: '50000.00',
+        o: '49000.00',
+        h: '51000.00',
+        l: '48000.00',
+        v: '2000.00',
+        q: '100000000.00',
+        P: '2.04',
+        p: '1000.00',
+      })
+      
+      expect(priceData.value).toBeTruthy()
+      expect(priceData.value?.price).toBe(50000)
+      expect(priceData.value?.high24h).toBe(51000)
+      expect(priceData.value?.low24h).toBe(48000)
+    })
+    
+    it('should expose status and connection state', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { status, isConnected, connect, disconnect } = useBtcPrice()
+      
+      expect(status.value).toBe('disconnected')
+      expect(isConnected.value).toBe(false)
+      
+      await connect()
+      await new Promise(resolve => setTimeout(resolve, 10))
+      
+      expect(status.value).toBe('connected')
+      expect(isConnected.value).toBe(true)
+      
+      disconnect()
+      
+      expect(status.value).toBe('disconnected')
+      expect(isConnected.value).toBe(false)
+    })
+    
+    it('should expose error state', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { error } = useBtcPrice()
+      
+      expect(error.value).toBeNull()
+    })
+  })
+  
+  describe('integration with useBtcHistory', () => {
+    it('should expose priceHistory from useBtcHistory', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { priceHistory, loadHistoricalData } = useBtcPrice()
+      
+      expect(priceHistory.value).toEqual([])
+      
+      await loadHistoricalData(5)
+      
+      expect(priceHistory.value.length).toBe(2)
+      expect(priceHistory.value[0].price).toBe(42200)
+    })
+    
+    it('should expose isLoadingHistory from useBtcHistory', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { isLoadingHistory } = useBtcPrice()
+      
+      expect(isLoadingHistory.value).toBe(false)
+    })
+    
+    it('should expose loadHistoricalData from useBtcHistory', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { loadHistoricalData, priceHistory } = useBtcPrice()
+      
+      expect(typeof loadHistoricalData).toBe('function')
+      
+      await loadHistoricalData(15)
+      
+      // Verify fetch was called (API uses different limit logic based on interval)
+      expect(mockFetch).toHaveBeenCalled()
+      expect(priceHistory.value.length).toBeGreaterThan(0)
+    })
+  })
+  
+  describe('bidPrice', () => {
+    it('should have null initial bidPrice', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { bidPrice } = useBtcPrice()
+      
       expect(bidPrice.value).toBeNull()
     })
-
-    it('should update when setBidPrice is called', () => {
-      const bidPrice = ref<number | null>(null)
-
-      const setBidPrice = (price: number | null) => {
-        bidPrice.value = price
-      }
-
-      setBidPrice(96000.50)
-      expect(bidPrice.value).toBe(96000.50)
+    
+    it('should set bidPrice via setBidPrice', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { bidPrice, setBidPrice } = useBtcPrice()
+      
+      expect(bidPrice.value).toBeNull()
+      
+      setBidPrice(42000)
+      
+      expect(bidPrice.value).toBe(42000)
     })
-
-    it('should allow setting back to null', () => {
-      const bidPrice = ref<number | null>(96000.50)
-
-      const setBidPrice = (price: number | null) => {
-        bidPrice.value = price
-      }
-
+    
+    it('should clear bidPrice by setting to null', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { bidPrice, setBidPrice } = useBtcPrice()
+      
+      setBidPrice(50000)
+      expect(bidPrice.value).toBe(50000)
+      
       setBidPrice(null)
       expect(bidPrice.value).toBeNull()
     })
-  })
-
-  describe('formattedPrice computed', () => {
-    it('should format price as USD currency', () => {
-      const priceData = ref<BtcPriceData | null>({
-        price: 96000.50,
-        priceChange24h: 1500.00,
-        priceChangePercent24h: 1.58,
-        high24h: 97000.00,
-        low24h: 94000.00,
-        timestamp: 1700000000000,
-      })
-
-      const formattedPrice = computed(() => {
-        if (!priceData.value) return null
-        return new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-        }).format(priceData.value.price)
-      })
-
-      expect(formattedPrice.value).toBe('$96,000.50')
+    
+    it('should share bidPrice state across multiple calls', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      
+      const instance1 = useBtcPrice()
+      const instance2 = useBtcPrice()
+      
+      instance1.setBidPrice(55000)
+      
+      expect(instance2.bidPrice.value).toBe(55000)
     })
-
-    it('should return null when priceData is null', () => {
-      const priceData = ref<BtcPriceData | null>(null)
-
-      const formattedPrice = computed(() => {
-        if (!priceData.value) return null
-        return new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-        }).format(priceData.value.price)
-      })
-
+  })
+  
+  describe('formattedPrice', () => {
+    it('should return null when priceData is null', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { formattedPrice } = useBtcPrice()
+      
       expect(formattedPrice.value).toBeNull()
     })
-
-    it('should format large numbers with commas', () => {
-      const priceData = ref<BtcPriceData | null>({
-        price: 1234567.89,
-        priceChange24h: 0,
-        priceChangePercent24h: 0,
-        high24h: 0,
-        low24h: 0,
-        timestamp: 0,
+    
+    it('should format price as USD currency', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { formattedPrice, connect } = useBtcPrice()
+      
+      await connect()
+      await new Promise(resolve => setTimeout(resolve, 10))
+      
+      mockWebSocketInstance?.simulateMessage({
+        e: '24hrTicker',
+        E: Date.now(),
+        s: 'BTCUSDT',
+        c: '42123.45',
+        o: '42000.00',
+        h: '43000.00',
+        l: '41000.00',
+        v: '500.00',
+        q: '21000000.00',
+        P: '0.29',
+        p: '123.45',
       })
-
-      const formattedPrice = computed(() => {
-        if (!priceData.value) return null
-        return new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-        }).format(priceData.value.price)
-      })
-
-      expect(formattedPrice.value).toBe('$1,234,567.89')
+      
+      expect(formattedPrice.value).toBe('$42,123.45')
     })
-
-    it('should format small decimal values correctly', () => {
-      const priceData = ref<BtcPriceData | null>({
-        price: 0.01,
-        priceChange24h: 0,
-        priceChangePercent24h: 0,
-        high24h: 0,
-        low24h: 0,
-        timestamp: 0,
+    
+    it('should update formattedPrice when price changes', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { formattedPrice, connect } = useBtcPrice()
+      
+      await connect()
+      await new Promise(resolve => setTimeout(resolve, 10))
+      
+      mockWebSocketInstance?.simulateMessage({
+        e: '24hrTicker',
+        E: Date.now(),
+        s: 'BTCUSDT',
+        c: '50000.00',
+        o: '49000.00',
+        h: '51000.00',
+        l: '48000.00',
+        v: '1000.00',
+        q: '50000000.00',
+        P: '2.04',
+        p: '1000.00',
       })
-
-      const formattedPrice = computed(() => {
-        if (!priceData.value) return null
-        return new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency: 'USD',
-        }).format(priceData.value.price)
+      
+      expect(formattedPrice.value).toBe('$50,000.00')
+      
+      // Send another price update
+      mockWebSocketInstance?.simulateMessage({
+        e: '24hrTicker',
+        E: Date.now(),
+        s: 'BTCUSDT',
+        c: '51234.56',
+        o: '49000.00',
+        h: '52000.00',
+        l: '48000.00',
+        v: '1000.00',
+        q: '50000000.00',
+        P: '4.56',
+        p: '2234.56',
       })
-
-      expect(formattedPrice.value).toBe('$0.01')
+      
+      expect(formattedPrice.value).toBe('$51,234.56')
     })
   })
-
-  describe('re-exports from other composables', () => {
-    it('should provide access to priceData', () => {
-      const priceData = ref<BtcPriceData | null>(null)
-      expect(priceData.value).toBeNull()
+  
+  describe('state reactivity', () => {
+    it('should return reactive refs and computed properties', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const {
+        priceData,
+        price,
+        status,
+        error,
+        isConnected,
+        priceHistory,
+        isLoadingHistory,
+        bidPrice,
+        formattedPrice,
+      } = useBtcPrice()
+      
+      // All should be refs or computed
+      expect(isRef(priceData)).toBe(true)
+      expect(isRef(price) || isComputed(price)).toBe(true)
+      expect(isRef(status)).toBe(true)
+      expect(isRef(error)).toBe(true)
+      expect(isRef(isConnected) || isComputed(isConnected)).toBe(true)
+      expect(isRef(priceHistory)).toBe(true)
+      expect(isRef(isLoadingHistory)).toBe(true)
+      expect(isRef(bidPrice)).toBe(true)
+      expect(isRef(formattedPrice) || isComputed(formattedPrice)).toBe(true)
     })
-
-    it('should provide access to price', () => {
-      const priceData = ref<BtcPriceData | null>({
-        price: 96000.50,
-        priceChange24h: 0,
-        priceChangePercent24h: 0,
-        high24h: 0,
-        low24h: 0,
-        timestamp: 0,
-      })
-
-      const price = computed(() => priceData.value?.price ?? null)
-      expect(price.value).toBe(96000.50)
-    })
-
-    it('should provide access to status', () => {
-      const status = ref<WebSocketStatus>('disconnected')
-      expect(status.value).toBe('disconnected')
-    })
-
-    it('should provide access to error', () => {
-      const error = ref<string | null>(null)
-      expect(error.value).toBeNull()
-    })
-
-    it('should provide access to isConnected', () => {
-      const status = ref<WebSocketStatus>('connected')
-      const isConnected = computed(() => status.value === 'connected')
-      expect(isConnected.value).toBe(true)
-    })
-
-    it('should provide access to priceHistory', () => {
-      const priceHistory = ref<{ timestamp: number; price: number }[]>([])
-      expect(priceHistory.value).toEqual([])
-    })
-
-    it('should provide access to isLoadingHistory', () => {
-      const isLoadingHistory = ref(false)
-      expect(isLoadingHistory.value).toBe(false)
-    })
-  })
-
-  describe('connect and disconnect functions', () => {
-    it('should provide connect function', () => {
-      const connect = vi.fn()
-      expect(connect).toBeDefined()
+    
+    it('should expose connect and disconnect functions', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { connect, disconnect } = useBtcPrice()
+      
       expect(typeof connect).toBe('function')
-    })
-
-    it('should provide disconnect function', () => {
-      const disconnect = vi.fn()
-      expect(disconnect).toBeDefined()
       expect(typeof disconnect).toBe('function')
     })
-
-    it('should provide loadHistoricalData function', () => {
-      const loadHistoricalData = vi.fn()
-      expect(loadHistoricalData).toBeDefined()
+    
+    it('should expose setBidPrice function', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { setBidPrice } = useBtcPrice()
+      
+      expect(typeof setBidPrice).toBe('function')
+    })
+    
+    it('should expose loadHistoricalData function', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { loadHistoricalData } = useBtcPrice()
+      
       expect(typeof loadHistoricalData).toBe('function')
     })
   })
 })
+
+// Helper to check if something is a computed ref
+function isComputed(value: unknown): boolean {
+  return isRef(value) && '_getter' in (value as object)
+}

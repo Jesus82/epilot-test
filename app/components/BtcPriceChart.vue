@@ -12,7 +12,6 @@ const { priceHistory, bidPrice, loadHistoricalData, isLoadingHistory } = useBtcP
 
 const selectedRange = ref(5) // Default 5 minutes
 
-// Hover state (received from chart renderer)
 const hoveredData = ref<PricePoint | null>(null)
 
 const filteredPriceHistory = computed(() =>
