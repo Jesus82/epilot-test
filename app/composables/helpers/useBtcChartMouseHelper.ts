@@ -1,4 +1,5 @@
 import type { PricePoint } from './useBtcChartUpdateHelper'
+import { calculatePriceLabelPosition } from '~/helpers/btcChartHelpers'
 
 export interface MouseHelperParams {
   d3Module: typeof import('d3') | null
@@ -57,32 +58,19 @@ export const useBtcChartMouseHelper = () => {
       .attr('cy', yPos)
   }
 
-  const calculatePriceLabelPosition = (
+  const getAdjustedPriceLabelY = (
     yPos: number,
     yScale: d3.ScaleLinear<number, number>,
     averagePrice: number | null,
     bidPrice: number | null,
     height: number,
   ): number => {
-    const labelHeight = 20
-    const collisionThreshold = labelHeight + 4
+    const otherLabelYPositions: number[] = []
 
-    let adjustedYPos = yPos
-    const labelsToCheck: number[] = []
+    if (averagePrice) otherLabelYPositions.push(yScale(averagePrice))
+    if (bidPrice) otherLabelYPositions.push(yScale(bidPrice))
 
-    if (averagePrice) labelsToCheck.push(yScale(averagePrice))
-    if (bidPrice) labelsToCheck.push(yScale(bidPrice))
-
-    for (const labelY of labelsToCheck) {
-      const distance = Math.abs(adjustedYPos - labelY)
-      if (distance < collisionThreshold) {
-        adjustedYPos = adjustedYPos < labelY
-          ? labelY - collisionThreshold
-          : labelY + collisionThreshold
-      }
-    }
-
-    return Math.max(10, Math.min(height - 10, adjustedYPos))
+    return calculatePriceLabelPosition(yPos, otherLabelYPositions, height)
   }
 
   const updatePriceLabel = (
@@ -141,7 +129,7 @@ export const useBtcChartMouseHelper = () => {
   return {
     findClosestPoint,
     updateCrosshairPosition,
-    calculatePriceLabelPosition,
+    getAdjustedPriceLabelY,
     updatePriceLabel,
     updateTimeLabel,
     hideCrosshair,

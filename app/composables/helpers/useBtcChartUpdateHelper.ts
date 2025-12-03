@@ -1,5 +1,11 @@
 import { interpolatePath } from 'd3-interpolate-path'
 import type { PricePoint } from '~/types/btc'
+import {
+  calculateNiceStep,
+  calculateLabelCollision,
+  findMinMaxPoints,
+  calculateMinMaxLabelPosition,
+} from '~/helpers/btcChartHelpers'
 
 export type { PricePoint }
 
@@ -17,7 +23,6 @@ export interface ChartElements {
 export const useBtcChartUpdateHelper = () => {
   const TRANSITION_DURATION = 300
 
-  // Get D3 time interval for axis ticks and grid lines based on time range
   const getTimeInterval = (d3: typeof import('d3'), rangeMinutes: number) => {
     if (rangeMinutes <= 10) return d3.timeMinute.every(1)
     if (rangeMinutes <= 60) return d3.timeMinute.every(5)
@@ -25,23 +30,6 @@ export const useBtcChartUpdateHelper = () => {
     return d3.timeHour.every(2)
   }
 
-  // Calculate "nice" step value for Y axis ticks
-  // Rounds to values like 1, 2, 5, 10, 20, 50, 100, etc.
-  const calculateNiceStep = (range: number, targetTicks: number): number => {
-    const rawStep = range / targetTicks
-    const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)))
-    const normalized = rawStep / magnitude
-
-    let nice: number
-    if (normalized <= 1) nice = 1
-    else if (normalized <= 2) nice = 2
-    else if (normalized <= 5) nice = 5
-    else nice = 10
-
-    return Math.max(1, nice * magnitude) // Minimum $1 step
-  }
-
-  // Update scales based on current data
   const updateScales = (
     d3: typeof import('d3'),
     data: PricePoint[],
@@ -74,7 +62,6 @@ export const useBtcChartUpdateHelper = () => {
     return { x, y, yTickValues, xTicks }
   }
 
-  // Update grid lines
   const updateGridLines = (
     gridGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null,
     x: d3.ScaleTime<number, number>,
@@ -113,46 +100,20 @@ export const useBtcChartUpdateHelper = () => {
     })
   }
 
-  // Calculate label positions with collision detection
-  const calculateLabelCollision = (
+  const getLabelPositions = (
     y: d3.ScaleLinear<number, number>,
     averagePrice: number | null,
     bidPrice: number | null,
     height: number,
   ) => {
-    const labelHeight = 18
-    const labelCollisionThreshold = labelHeight + 2
-
     const avgY = averagePrice ? y(averagePrice) : null
     const bidY = bidPrice ? y(bidPrice) : null
 
-    let adjustedAvgY = avgY
-    let adjustedBidY = bidY
-
-    if (avgY !== null && bidY !== null) {
-      const distance = Math.abs(avgY - bidY)
-      if (distance < labelCollisionThreshold) {
-        const midpoint = (avgY + bidY) / 2
-        const halfSpread = labelCollisionThreshold / 2
-
-        if (avgY < bidY) {
-          adjustedAvgY = midpoint - halfSpread
-          adjustedBidY = midpoint + halfSpread
-        }
-        else {
-          adjustedBidY = midpoint - halfSpread
-          adjustedAvgY = midpoint + halfSpread
-        }
-
-        adjustedAvgY = Math.max(9, Math.min(height - 9, adjustedAvgY))
-        adjustedBidY = Math.max(9, Math.min(height - 9, adjustedBidY))
-      }
-    }
+    const { adjustedAvgY, adjustedBidY } = calculateLabelCollision(avgY, bidY, height)
 
     return { avgY, bidY, adjustedAvgY, adjustedBidY }
   }
 
-  // Update average line and label
   const updateAverageLine = (
     d3: typeof import('d3'),
     avgLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null,
@@ -212,7 +173,6 @@ export const useBtcChartUpdateHelper = () => {
     }
   }
 
-  // Update bid line and label
   const updateBidLine = (
     d3: typeof import('d3'),
     bidLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null,
@@ -272,7 +232,6 @@ export const useBtcChartUpdateHelper = () => {
     }
   }
 
-  // Create line generator for price path
   const createLineGenerator = (
     d3: typeof import('d3'),
     x: d3.ScaleTime<number, number>,
@@ -284,7 +243,6 @@ export const useBtcChartUpdateHelper = () => {
       .curve(d3.curveMonotoneX)
   }
 
-  // Animate price line transition
   const animatePriceLine = (
     d3: typeof import('d3'),
     priceLine: d3.Selection<SVGPathElement, unknown, null, undefined> | null,
@@ -306,7 +264,6 @@ export const useBtcChartUpdateHelper = () => {
     }
   }
 
-  // Update chart axes
   const updateAxes = (
     d3: typeof import('d3'),
     xAxisGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null,
@@ -329,22 +286,6 @@ export const useBtcChartUpdateHelper = () => {
     )
   }
 
-  // Find min and max price points from data
-  const findMinMaxPoints = (data: PricePoint[]) => {
-    if (data.length === 0) return { minPoint: null, maxPoint: null }
-
-    let minPoint = data[0]!
-    let maxPoint = data[0]!
-
-    for (const point of data) {
-      if (point.price < minPoint.price) minPoint = point
-      if (point.price > maxPoint.price) maxPoint = point
-    }
-
-    return { minPoint, maxPoint }
-  }
-
-  // Update min/max labels positioned at the data points
   const updateMinMaxLabels = (
     d3: typeof import('d3'),
     maxLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null,
@@ -368,17 +309,15 @@ export const useBtcChartUpdateHelper = () => {
       const priceTextWidth = (maxLabel.select('.max-price-text').node() as SVGTextElement)?.getBBox().width || 60
       const totalWidth = nameWidth + priceTextWidth + 16
 
-      // Position label: prefer right side of point, but flip to left if near edge
-      let labelX = maxX + 8
-      if (labelX + totalWidth > width) {
-        labelX = maxX - totalWidth - 8
-      }
-
-      // Position above the point, but ensure it stays within bounds
-      let labelY = maxY - 12
-      if (labelY < 9) {
-        labelY = maxY + 12
-      }
+      // Use pure function to calculate position
+      const { labelX, labelY } = calculateMinMaxLabelPosition(
+        maxX,
+        maxY,
+        totalWidth,
+        width,
+        height,
+        'max',
+      )
 
       maxLabel
         .transition()
@@ -422,17 +361,14 @@ export const useBtcChartUpdateHelper = () => {
       const priceTextWidth = (minLabel.select('.min-price-text').node() as SVGTextElement)?.getBBox().width || 60
       const totalWidth = nameWidth + priceTextWidth + 16
 
-      // Position label: prefer right side of point, but flip to left if near edge
-      let labelX = minX + 8
-      if (labelX + totalWidth > width) {
-        labelX = minX - totalWidth - 8
-      }
-
-      // Position below the point, but ensure it stays within bounds
-      let labelY = minY + 12
-      if (labelY > height - 9) {
-        labelY = minY - 12
-      }
+      const { labelX, labelY } = calculateMinMaxLabelPosition(
+        minX,
+        minY,
+        totalWidth,
+        width,
+        height,
+        'min',
+      )
 
       minLabel
         .transition()
@@ -470,13 +406,12 @@ export const useBtcChartUpdateHelper = () => {
     TRANSITION_DURATION,
     updateScales,
     updateGridLines,
-    calculateLabelCollision,
+    getLabelPositions,
     updateAverageLine,
     updateBidLine,
     createLineGenerator,
     animatePriceLine,
     updateAxes,
-    findMinMaxPoints,
     updateMinMaxLabels,
   }
 }

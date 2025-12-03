@@ -6,7 +6,7 @@ import {
   klinesToPricePoints,
   takeRecentPoints,
   trimOldPoints,
-} from '~/composables/helpers/useBtcHistoryHelpers'
+} from '~/helpers/btcHistoryHelpers'
 
 const BINANCE_KLINE_API = 'https://api.binance.com/api/v3/klines'
 

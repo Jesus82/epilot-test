@@ -4,7 +4,7 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     globals: true,
-    include: ['test/unit/**/*.{test,spec}.ts'],
+    include: ['test/unit/**/*.{test,spec}.ts', 'app/**/__tests__/**/*.{test,spec}.ts'],
     environment: 'node',
   },
   resolve: {

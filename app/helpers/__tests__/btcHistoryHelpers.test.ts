@@ -5,11 +5,11 @@ import {
   klinesToPricePoints,
   takeRecentPoints,
   trimOldPoints,
-} from '~/composables/helpers/useBtcHistoryHelpers'
+} from '~/helpers/btcHistoryHelpers'
 import type { BinanceKline } from '~/types/binance'
 import type { PricePoint } from '~/types/btc'
 
-describe('useBtcHistoryHelpers', () => {
+describe('btcHistoryHelpers', () => {
   describe('getMaxPointsForRange', () => {
     it('returns 400 for 5 minutes or less', () => {
       expect(getMaxPointsForRange(1)).toBe(400)

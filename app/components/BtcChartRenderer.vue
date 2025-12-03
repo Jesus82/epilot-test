@@ -15,7 +15,7 @@ const emit = defineEmits<{
 const {
   updateScales,
   updateGridLines,
-  calculateLabelCollision,
+  getLabelPositions,
   updateAverageLine,
   updateBidLine,
   createLineGenerator,
@@ -27,7 +27,7 @@ const {
 const {
   findClosestPoint,
   updateCrosshairPosition,
-  calculatePriceLabelPosition,
+  getAdjustedPriceLabelY,
   updatePriceLabel,
   updateTimeLabel,
   hideCrosshair,
@@ -155,7 +155,7 @@ const handleMouseMove = (event: MouseEvent) => {
 
   updateCrosshairPosition(crosshairGroup, xPos, yPos, currentWidth, currentHeight)
 
-  const adjustedYPos = calculatePriceLabelPosition(
+  const adjustedYPos = getAdjustedPriceLabelY(
     yPos,
     currentYScale,
     props.averagePrice,
@@ -198,7 +198,7 @@ const updateChart = () => {
   const line = createLineGenerator(d3, x, y)
   animatePriceLine(d3, priceLine, line, props.data)
 
-  const { avgY, bidY, adjustedAvgY, adjustedBidY } = calculateLabelCollision(y, props.averagePrice, props.bidPrice, height)
+  const { avgY, bidY, adjustedAvgY, adjustedBidY } = getLabelPositions(y, props.averagePrice, props.bidPrice, height)
   updateAverageLine(d3, avgLine, avgLabel, props.averagePrice, width, avgY, adjustedAvgY)
   updateBidLine(d3, bidLine, bidLabel, props.bidPrice, width, bidY, adjustedBidY)
 

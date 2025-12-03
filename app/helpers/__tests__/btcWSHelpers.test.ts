@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { parseTickerMessage, shouldAttemptReconnect } from '~/composables/helpers/useBtcWSHelpers'
+import { parseTickerMessage, shouldAttemptReconnect } from '~/helpers/btcWSHelpers'
 import type { BinanceTickerMessage } from '~/types/binance'
 
-describe('useBtcWSHelpers', () => {
+describe('btcWSHelpers', () => {
   describe('shouldAttemptReconnect', () => {
     it('returns false when close code is 1000 (manual disconnect)', () => {
       expect(shouldAttemptReconnect(1000, 0)).toBe(false)
