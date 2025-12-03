@@ -1,4 +1,6 @@
-export { useBtcHelpers } from './helpers/useBtcHelpers'
+export { useBtcChartUpdateHelper } from './helpers/useBtcChartUpdateHelper'
+export { useBtcChartMouseHelper } from './helpers/useBtcChartMouseHelper'
+export { useBtcChartInitHelper } from './helpers/useBtcChartInitHelper'
 
 export { useBtcHistory } from './services/useBtcHistory'
 export { useBtcWS } from './services/useBtcWS'
