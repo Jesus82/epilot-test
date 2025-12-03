@@ -202,7 +202,7 @@ describe('useBtcWS', () => {
       reconnectAttempts = MAX_RECONNECT_ATTEMPTS
 
       // Simulate close event - should not attempt reconnect
-      const closeCode = 1006 // Abnormal closure
+      const closeCode: number = 1006 // Abnormal closure
       const shouldReconnect = closeCode !== 1000 && reconnectAttempts < MAX_RECONNECT_ATTEMPTS
 
       expect(shouldReconnect).toBe(false)
@@ -213,7 +213,7 @@ describe('useBtcWS', () => {
     it('should attempt reconnect on abnormal closure', () => {
       let reconnectAttempts = 0
       const MAX_RECONNECT_ATTEMPTS = 5
-      const closeCode = 1006 // Abnormal closure
+      const closeCode: number = 1006 // Abnormal closure
 
       const shouldReconnect = closeCode !== 1000 && reconnectAttempts < MAX_RECONNECT_ATTEMPTS
 
@@ -223,7 +223,7 @@ describe('useBtcWS', () => {
     it('should not attempt reconnect on normal closure (1000)', () => {
       let reconnectAttempts = 0
       const MAX_RECONNECT_ATTEMPTS = 5
-      const closeCode = 1000 // Normal closure
+      const closeCode: number = 1000 // Normal closure
 
       const shouldReconnect = closeCode !== 1000 && reconnectAttempts < MAX_RECONNECT_ATTEMPTS
 
@@ -233,7 +233,7 @@ describe('useBtcWS', () => {
     it('should stop reconnecting after max attempts', () => {
       let reconnectAttempts = 5
       const MAX_RECONNECT_ATTEMPTS = 5
-      const closeCode = 1006
+      const closeCode: number = 1006
 
       const shouldReconnect = closeCode !== 1000 && reconnectAttempts < MAX_RECONNECT_ATTEMPTS
 

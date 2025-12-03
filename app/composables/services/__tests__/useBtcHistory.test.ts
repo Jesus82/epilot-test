@@ -16,10 +16,13 @@ vi.mock('~/helpers/btcHistoryHelpers', () => ({
     return 400
   }),
   klinesToPricePoints: vi.fn((klines: unknown[]) =>
-    klines.map((k: unknown) => ({
-      timestamp: (k as number[])[0],
-      price: parseFloat((k as string[])[4]),
-    })),
+    klines.map((k: unknown) => {
+      const kline = k as (number | string)[]
+      return {
+        timestamp: kline[0] as number,
+        price: parseFloat(kline[4] as string),
+      }
+    }),
   ),
   takeRecentPoints: vi.fn((points: unknown[], maxPoints: number) =>
     points.slice(-maxPoints),

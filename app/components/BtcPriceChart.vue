@@ -1,47 +1,23 @@
 <script setup lang="ts">
 import type { PricePoint } from '~/types/btc'
+import {
+  TIME_RANGES,
+  bucketDataByInterval,
+  calculateAveragePrice,
+  filterByTimeRange,
+  getSampleInterval,
+} from '~/helpers/btcPriceChartHelpers'
 
 const { priceHistory, bidPrice, loadHistoricalData, isLoadingHistory } = useBtcPrice()
-
-// Get sample interval for downsampling price data (in milliseconds)
-// Must match API intervals for consistency across historical and live data
-const getSampleInterval = (rangeMinutes: number): number => {
-  if (rangeMinutes <= 5) return 1000           // 1s -> 300 points
-  if (rangeMinutes <= 10) return 2000          // 2s -> 300 points
-  if (rangeMinutes <= 60) return 60 * 1000     // 1m -> 60 points (matches API 1m candles)
-  if (rangeMinutes <= 360) return 60 * 1000    // 1m -> 360 points
-  return 5 * 60 * 1000                          // 5m -> 288 points (24h)
-}
-
-const bucketDataByInterval = (data: PricePoint[], intervalMs: number): PricePoint[] => {
-  const buckets = new Map<number, PricePoint>()
-
-  for (const point of data) {
-    const bucketKey = Math.floor(point.timestamp / intervalMs)
-    buckets.set(bucketKey, point)
-  }
-
-  return Array.from(buckets.values()).sort((a, b) => a.timestamp - b.timestamp)
-}
-
-const timeRanges = [
-  { label: '5m', minutes: 5 },
-  { label: '10m', minutes: 10 },
-  { label: '1h', minutes: 60 },
-  { label: '6h', minutes: 360 },
-  { label: '24h', minutes: 1440 },
-] as const
 
 const selectedRange = ref(5) // Default 5 minutes
 
 // Hover state (received from chart renderer)
 const hoveredData = ref<PricePoint | null>(null)
 
-const filteredPriceHistory = computed(() => {
-  const now = Date.now()
-  const cutoff = now - selectedRange.value * 60 * 1000
-  return priceHistory.value.filter(p => p.timestamp >= cutoff)
-})
+const filteredPriceHistory = computed(() =>
+  filterByTimeRange(priceHistory.value, selectedRange.value),
+)
 
 // Downsample data for consistent density across time ranges
 const sampledPriceHistory = computed(() => {
@@ -52,11 +28,9 @@ const sampledPriceHistory = computed(() => {
   return bucketDataByInterval(data, sampleIntervalMs)
 })
 
-const averagePrice = computed(() => {
-  if (filteredPriceHistory.value.length === 0) return null
-  const sum = filteredPriceHistory.value.reduce((acc, p) => acc + p.price, 0)
-  return sum / filteredPriceHistory.value.length
-})
+const averagePrice = computed(() =>
+  calculateAveragePrice(filteredPriceHistory.value),
+)
 
 watch(selectedRange, async (newRange) => {
   await loadHistoricalData(newRange)
@@ -74,7 +48,7 @@ const handleHover = (data: PricePoint | null) => {
       <div class="chart-controls">
         <div class="time-range-selector">
           <button
-            v-for="range in timeRanges"
+            v-for="range in TIME_RANGES"
             :key="range.minutes"
             :class="['range-btn', { active: selectedRange === range.minutes }]"
             @click="selectedRange = range.minutes"
