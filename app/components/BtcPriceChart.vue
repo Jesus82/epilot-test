@@ -44,7 +44,14 @@ const handleHover = (data: PricePoint | null) => {
   <div class="btc-price-chart">
     <div class="chart-header">
       <h2>Live BTC Price Chart</h2>
-      <div class="chart-controls">
+      <div class="flex gap-eighth">
+        <div class="flex gap-fourth items-center">
+          <p v-if="isLoadingHistory" class="text-xs font-sans">Loading...</p>
+          <div v-if="hoveredData" class="flex gap-eighth">
+            <p class="text-xs font-sans text-gray-dark">${{ hoveredData.price.toFixed(2) }}</p>
+            <p class="text-xs font-sans text-gray-dark">{{ new Date(hoveredData.timestamp).toLocaleTimeString() }}</p>
+          </div>
+        </div>
         <div class="time-range-selector">
           <button
             v-for="range in TIME_RANGES"
@@ -54,13 +61,6 @@ const handleHover = (data: PricePoint | null) => {
           >
             {{ range.label }}
           </button>
-        </div>
-        <div class="flex gap-eighth">
-          <p v-if="isLoadingHistory" class="text-xs font-sans">Loading...</p>
-          <div v-if="hoveredData" class="flex gap-eighth">
-            <span class="text-xs font-sans text-gray-dark">${{ hoveredData.price.toFixed(2) }}</span>
-            <span class="text-xs font-sans text-gray-dark">{{ new Date(hoveredData.timestamp).toLocaleTimeString() }}</span>
-          </div>
         </div>
       </div>
     </div>
@@ -83,32 +83,6 @@ const handleHover = (data: PricePoint | null) => {
 </template>
 
 <style scoped>
-.btc-price-chart {
-  margin: 20px 0;
-}
-
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.chart-header h2 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #374151;
-}
-
-.chart-controls {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
 
 .time-range-selector {
   display: flex;
@@ -163,21 +137,5 @@ const handleHover = (data: PricePoint | null) => {
   color: #6b7280;
   font-size: 14px;
   z-index: 10;
-}
-
-.chart-container :deep(.x-axis),
-.chart-container :deep(.y-axis) {
-  font-size: var(--text-2xs);
-  color: var(--color-gray-dark);
-}
-
-.chart-container :deep(.x-axis path),
-.chart-container :deep(.y-axis path) {
-  stroke: #e0e0e0;
-}
-
-.chart-container :deep(.x-axis .tick line),
-.chart-container :deep(.y-axis .tick line) {
-  stroke: #e0e0e0;
 }
 </style>

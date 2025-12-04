@@ -22,7 +22,6 @@ const {
   getLabelPositions,
   updateAverageLine,
   updateBidLine,
-  updateBidMarkerLine,
   updateBidArea,
   createLineGenerator,
   createAreaGenerator,
@@ -66,13 +65,15 @@ let priceLine: d3.Selection<SVGPathElement, unknown, null, undefined> | null = n
 let priceArea: d3.Selection<SVGPathElement, unknown, null, undefined> | null = null
 let bidArea: d3.Selection<SVGPathElement, unknown, null, undefined> | null = null
 let bidPriceLine: d3.Selection<SVGPathElement, unknown, null, undefined> | null = null
-let bidMarkerLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = null
 let avgLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = null
 let avgLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let bidLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = null
 let bidLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
+let bidDot: d3.Selection<SVGCircleElement, unknown, null, undefined> | null = null
 let maxLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let minLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
+let maxDot: d3.Selection<SVGCircleElement, unknown, null, undefined> | null = null
+let minDot: d3.Selection<SVGCircleElement, unknown, null, undefined> | null = null
 let xAxisGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let yAxisGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let crosshairGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
@@ -139,7 +140,6 @@ const initChart = async () => {
   
   const bidAreaResult = createBidAreaElements(svg)
   bidArea = bidAreaResult.bidArea
-  bidMarkerLine = bidAreaResult.bidMarkerLine
   
   priceLine = createPriceLine(svg)
   
@@ -153,10 +153,13 @@ const initChart = async () => {
   const bidResult = createBidLineElements(svg)
   bidLine = bidResult.bidLine
   bidLabel = bidResult.bidLabel
+  bidDot = bidResult.bidDot
 
   const minMaxResult = createMinMaxLabelElements(svg)
   maxLabel = minMaxResult.maxLabel
   minLabel = minMaxResult.minLabel
+  maxDot = minMaxResult.maxDot
+  minDot = minMaxResult.minDot
 
   crosshairGroup = createCrosshairGroup(svg)
 
@@ -227,14 +230,13 @@ const updateChart = () => {
   animatePriceArea(d3, priceArea, area, props.data)
   animatePriceLine(d3, priceLine, line, props.data)
 
-  const { avgY, bidY, adjustedAvgY, adjustedBidY } = getLabelPositions(y, props.averagePrice, props.bidPrice, height)
+  const { avgY, adjustedAvgY } = getLabelPositions(y, props.averagePrice, height)
   updateAverageLine(d3, avgLine, avgLabel, props.averagePrice, width, avgY, adjustedAvgY)
-  updateBidLine(d3, bidLine, bidLabel, props.bidPrice, width, bidY, adjustedBidY)
+  updateBidLine(d3, bidLine, bidLabel, bidDot, props.bidPrice, props.bidTimestamp, props.currentPrice, props.guessDirection, x, y, width, height)
 
-  updateBidMarkerLine(d3, bidMarkerLine, props.bidTimestamp, x, height)
   updateBidArea(d3, bidArea, bidPriceLine, props.data, props.bidTimestamp, props.bidPrice, props.guessDirection, x, y, height)
 
-  updateMinMaxLabels(d3, maxLabel, minLabel, props.data, x, y, width, height)
+  updateMinMaxLabels(d3, maxLabel, minLabel, maxDot, minDot, props.data, x, y, width, height)
 
   updateAxes(d3, xAxisGroup, yAxisGroup, x, y, xTicks!, yTickValues)
 }
@@ -277,6 +279,11 @@ onUnmounted(() => {
   stroke: var(--color-gray-lightest);
 }
 
+:deep(.btc-chart-renderer__grid-line) {
+  stroke: var(--color-gray-lightest);
+  stroke-width: 1;
+}
+
 .btc-chart-renderer :deep(text) {
   font-size: var(--text-xs);
   fill: var(--color-gray-dark);
@@ -300,19 +307,27 @@ onUnmounted(() => {
 }
 
 :deep(.btc-chart-renderer__label[data-label-variant="average"] rect) {
-  fill: var(--color-gray-darkest);
+  fill: var(--color-blue);
 }
 
 :deep(.btc-chart-renderer__label[data-label-variant="bid"] rect) {
-  fill: var(--color-gray-darkest);
+  fill: var(--color-blue);
 }
 
-:deep(.btc-chart-renderer__label[data-label-variant="max"] rect) {
+:deep(.btc-chart-renderer__label[data-label-variant="bid-win"] rect) {
+  fill: var(--color-green);
+}
+
+:deep(.btc-chart-renderer__label[data-label-variant="bid-lose"] rect) {
   fill: var(--color-red);
 }
 
+:deep(.btc-chart-renderer__label[data-label-variant="max"] rect) {
+  fill: var(--color-gray-darkest);
+}
+
 :deep(.btc-chart-renderer__label[data-label-variant="min"] rect) {
-  fill: var(--color-blue);
+  fill: var(--color-gray-dark);
 }
 
 :deep(.btc-chart-renderer__label[data-label-variant="crosshair-time"] text) {
@@ -363,13 +378,6 @@ onUnmounted(() => {
   opacity: 0;
 }
 
-:deep(.btc-chart-renderer__bid-marker) {
-  stroke: var(--color-gray-dark);
-  stroke-width: 2;
-  stroke-dasharray: 2 4;
-  opacity: 0;
-}
-
 :deep(.btc-chart-renderer__bid-price-line) {
   fill: none;
   stroke-width: 2;
@@ -392,12 +400,17 @@ onUnmounted(() => {
   stroke-dasharray: 2 4;
 }
 
-:deep(.btc-chart-renderer__line[data-line-variant="average"]) {
-  stroke: var(--color-gray-darkest);
+:deep(.btc-chart-renderer__line[data-line-variant="average"]),
+:deep(.btc-chart-renderer__line[data-line-variant="bid"]) {
+  stroke: var(--color-blue);
 }
 
-:deep(.btc-chart-renderer__line[data-line-variant="bid"]) {
-  stroke: var(--color-gray-darkest);
+:deep(.btc-chart-renderer__line[data-line-variant="bid-win"]) {
+  stroke: var(--color-green);
+}
+
+:deep(.btc-chart-renderer__line[data-line-variant="bid-lose"]) {
+  stroke: var(--color-red);
 }
 
 :deep(.btc-chart-renderer__crosshair-line) {
@@ -406,15 +419,38 @@ onUnmounted(() => {
   stroke-dasharray: 1 2;
 }
 
+:deep(.btc-chart-renderer__hover-overlay) {
+  fill: transparent;
+  cursor: crosshair;
+}
+
+/* Shared dot styles */
+:deep(.btc-chart-renderer__min-max-dot),
+:deep(.btc-chart-renderer__bid-dot),
 :deep(.btc-chart-renderer__crosshair-dot) {
-  r: 4;
-  fill: var(--color-blue);
+  r: 4px;
   stroke: var(--color-white);
   stroke-width: 2;
 }
 
-:deep(.btc-chart-renderer__hover-overlay) {
-  fill: transparent;
-  cursor: crosshair;
+:deep(.btc-chart-renderer__crosshair-dot),
+:deep(.btc-chart-renderer__bid-dot[data-dot-variant="bid"]) {
+  fill: var(--color-blue);
+}
+
+:deep(.btc-chart-renderer__bid-dot[data-dot-variant="bid-win"]) {
+  fill: var(--color-green);
+}
+
+:deep(.btc-chart-renderer__bid-dot[data-dot-variant="bid-lose"]) {
+  fill: var(--color-red);
+}
+
+:deep(.btc-chart-renderer__min-max-dot[data-dot-variant="min"]) {
+  fill: var(--color-gray-dark);
+}
+
+:deep(.btc-chart-renderer__min-max-dot[data-dot-variant="max"]) {
+  fill: var(--color-gray-darkest);
 }
 </style>

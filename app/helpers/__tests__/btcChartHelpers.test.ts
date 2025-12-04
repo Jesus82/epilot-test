@@ -238,13 +238,13 @@ describe('btcChartHelpers', () => {
       it('positions label to the right of point by default', () => {
         const result = calculateMinMaxLabelPosition(400, 100, labelWidth, chartWidth, chartHeight, 'max')
 
-        expect(result.labelX).toBe(408) // pointX + 8
+        expect(result.labelX).toBe(404) // pointX + 4
       })
 
       it('flips label to left when near right edge', () => {
         const result = calculateMinMaxLabelPosition(750, 100, labelWidth, chartWidth, chartHeight, 'max')
 
-        expect(result.labelX).toBe(750 - labelWidth - 8) // flip to left
+        expect(result.labelX).toBe(750 - labelWidth - 4) // flip to left
       })
 
       it('positions label above the point', () => {
@@ -264,13 +264,13 @@ describe('btcChartHelpers', () => {
       it('positions label to the right of point by default', () => {
         const result = calculateMinMaxLabelPosition(400, 200, labelWidth, chartWidth, chartHeight, 'min')
 
-        expect(result.labelX).toBe(408) // pointX + 8
+        expect(result.labelX).toBe(404) // pointX + 4
       })
 
       it('flips label to left when near right edge', () => {
         const result = calculateMinMaxLabelPosition(750, 200, labelWidth, chartWidth, chartHeight, 'min')
 
-        expect(result.labelX).toBe(750 - labelWidth - 8)
+        expect(result.labelX).toBe(750 - labelWidth - 4)
       })
 
       it('positions label below the point', () => {

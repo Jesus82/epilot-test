@@ -2,23 +2,12 @@ import { interpolatePath } from 'd3-interpolate-path'
 import type { PricePoint } from '~/types/btc'
 import {
   calculateNiceStep,
-  calculateLabelCollision,
   findMinMaxPoints,
   calculateMinMaxLabelPosition,
+  getTimeIntervalMinutes,
 } from '~/helpers/btcChartHelpers'
 
 export type { PricePoint }
-
-export interface ChartElements {
-  gridGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null
-  priceLine: d3.Selection<SVGPathElement, unknown, null, undefined> | null
-  avgLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null
-  avgLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null
-  bidLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null
-  bidLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null
-  xAxisGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null
-  yAxisGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null
-}
 
 // Padding for width calculation (must match CSS --label-padding-x)
 const LABEL_PADDING_X = 5
@@ -40,10 +29,9 @@ export const useBtcChartUpdateHelper = () => {
   }
 
   const getTimeInterval = (d3: typeof import('d3'), rangeMinutes: number) => {
-    if (rangeMinutes <= 10) return d3.timeMinute.every(1)
-    if (rangeMinutes <= 60) return d3.timeMinute.every(5)
-    if (rangeMinutes <= 360) return d3.timeMinute.every(30)
-    return d3.timeHour.every(2)
+    const minutes = getTimeIntervalMinutes(rangeMinutes)
+    if (minutes >= 60) return d3.timeHour.every(minutes / 60)
+    return d3.timeMinute.every(minutes)
   }
 
   const updateScales = (
@@ -93,41 +81,37 @@ export const useBtcChartUpdateHelper = () => {
 
     yTickValues.forEach((tickValue) => {
       gridGroup.append('line')
-        .attr('class', 'grid-line-h')
+        .attr('class', 'btc-chart-renderer__grid-line')
         .attr('x1', 0)
         .attr('x2', width)
         .attr('y1', y(tickValue))
         .attr('y2', y(tickValue))
-        .attr('stroke', '#e0e0e0')
-        .attr('stroke-width', 1)
     })
 
     const timeExtent = x.domain() as [Date, Date]
     const timeTicks = xTicks.range(timeExtent[0], timeExtent[1])
     timeTicks.forEach((tickTime) => {
       gridGroup.append('line')
-        .attr('class', 'grid-line-v')
+        .attr('class', 'btc-chart-renderer__grid-line')
         .attr('x1', x(tickTime))
         .attr('x2', x(tickTime))
         .attr('y1', 0)
         .attr('y2', height)
-        .attr('stroke', '#e0e0e0')
-        .attr('stroke-width', 1)
     })
   }
 
   const getLabelPositions = (
     y: d3.ScaleLinear<number, number>,
     averagePrice: number | null,
-    bidPrice: number | null,
     height: number,
   ) => {
     const avgY = averagePrice ? y(averagePrice) : null
-    const bidY = bidPrice ? y(bidPrice) : null
+    // Clamp to chart bounds
+    const adjustedAvgY = avgY !== null
+      ? Math.max(9, Math.min(height - 9, avgY))
+      : null
 
-    const { adjustedAvgY, adjustedBidY } = calculateLabelCollision(avgY, bidY, height)
-
-    return { avgY, bidY, adjustedAvgY, adjustedBidY }
+    return { avgY, adjustedAvgY }
   }
 
   const updateAverageLine = (
@@ -159,7 +143,7 @@ export const useBtcChartUpdateHelper = () => {
         ?.transition()
         .duration(TRANSITION_DURATION)
         .ease(d3.easeCubicOut)
-        .attr('transform', `translate(${width - 25}, ${adjustedAvgY})`)
+        .attr('transform', `translate(0, ${adjustedAvgY})`)
         .style('opacity', 1)
 
       setLabelWidth(avgLabel, '[data-js="avg-bg"]', textWidth)
@@ -174,32 +158,75 @@ export const useBtcChartUpdateHelper = () => {
     d3: typeof import('d3'),
     bidLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null,
     bidLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null,
+    bidDot: d3.Selection<SVGCircleElement, unknown, null, undefined> | null,
     bidPrice: number | null,
+    bidTimestamp: number | null,
+    currentPrice: number | null,
+    guessDirection: 'up' | 'down' | null,
+    x: d3.ScaleTime<number, number>,
+    y: d3.ScaleLinear<number, number>,
     width: number,
-    bidY: number | null,
-    adjustedBidY: number | null,
+    height: number,
   ) => {
-    if (bidPrice && adjustedBidY !== null) {
+    if (bidPrice && bidTimestamp) {
+      const bidX = x(new Date(bidTimestamp))
+      const bidY = y(bidPrice)
+
+      // Add arrow indicator based on guess direction
+      const arrow = guessDirection === 'up' ? ' ⬆' : guessDirection === 'down' ? ' ⬇' : ''
+      const priceText = `${d3.format(',.2f')(bidPrice)}${arrow}`
+      bidLabel?.select('[data-js="bid-text"]').text(priceText)
+
+      const textWidth = (bidLabel?.select('[data-js="bid-text"]').node() as SVGTextElement)?.getBBox().width || 80
+      const totalWidth = textWidth + 10
+
+      // Determine label variant based on win/lose state
+      let labelVariant = 'bid'
+      if (currentPrice && guessDirection) {
+        const isWinning = guessDirection === 'up'
+          ? currentPrice > bidPrice
+          : currentPrice < bidPrice
+        labelVariant = isWinning ? 'bid-win' : 'bid-lose'
+      }
+      bidLabel?.attr('data-label-variant', labelVariant)
+      bidLine?.attr('data-line-variant', labelVariant)
+      bidDot?.attr('data-dot-variant', labelVariant)
+
+      // Update horizontal bid line
       bidLine
         ?.transition()
         .duration(TRANSITION_DURATION)
         .ease(d3.easeCubicOut)
         .attr('x1', 0)
         .attr('x2', width)
-        .attr('y1', bidY!)
-        .attr('y2', bidY!)
+        .attr('y1', bidY)
+        .attr('y2', bidY)
         .style('opacity', 1)
 
-      const priceText = `Bid: ${d3.format(',.2f')(bidPrice)}`
-      bidLabel?.select('[data-js="bid-text"]').text(priceText)
+      // Update bid dot position
+      bidDot
+        ?.transition()
+        .duration(TRANSITION_DURATION)
+        .ease(d3.easeCubicOut)
+        .attr('cx', bidX)
+        .attr('cy', bidY)
+        .style('opacity', 1)
 
-      const textWidth = (bidLabel?.select('[data-js="bid-text"]').node() as SVGTextElement)?.getBBox().width || 80
+      // Position label at the bid point (like min/max labels)
+      const { labelX, labelY } = calculateMinMaxLabelPosition(
+        bidX,
+        bidY,
+        totalWidth,
+        width,
+        height,
+        guessDirection === 'up' ? 'min' : 'max', // Position below for up, above for down
+      )
 
       bidLabel
         ?.transition()
         .duration(TRANSITION_DURATION)
         .ease(d3.easeCubicOut)
-        .attr('transform', `translate(${width - 25}, ${adjustedBidY})`)
+        .attr('transform', `translate(${labelX}, ${labelY})`)
         .style('opacity', 1)
 
       setLabelWidth(bidLabel, '[data-js="bid-bg"]', textWidth)
@@ -207,6 +234,7 @@ export const useBtcChartUpdateHelper = () => {
     else {
       bidLine?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
       bidLabel?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
+      bidDot?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
     }
   }
 
@@ -302,6 +330,8 @@ export const useBtcChartUpdateHelper = () => {
     d3: typeof import('d3'),
     maxLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null,
     minLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null,
+    maxDot: d3.Selection<SVGCircleElement, unknown, null, undefined> | null,
+    minDot: d3.Selection<SVGCircleElement, unknown, null, undefined> | null,
     data: PricePoint[],
     x: d3.ScaleTime<number, number>,
     y: d3.ScaleLinear<number, number>,
@@ -313,6 +343,15 @@ export const useBtcChartUpdateHelper = () => {
     if (maxPoint && maxLabel) {
       const maxX = x(new Date(maxPoint.timestamp))
       const maxY = y(maxPoint.price)
+
+      // Update max dot position
+      maxDot
+        ?.transition()
+        .duration(TRANSITION_DURATION)
+        .ease(d3.easeCubicOut)
+        .attr('cx', maxX)
+        .attr('cy', maxY)
+        .style('opacity', 1)
 
       const priceText = `Max: ${d3.format(',.2f')(maxPoint.price)}`
       maxLabel.select('[data-js="max-text"]').text(priceText)
@@ -341,11 +380,21 @@ export const useBtcChartUpdateHelper = () => {
     }
     else {
       maxLabel?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
+      maxDot?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
     }
 
     if (minPoint && minLabel) {
       const minX = x(new Date(minPoint.timestamp))
       const minY = y(minPoint.price)
+
+      // Update min dot position
+      minDot
+        ?.transition()
+        .duration(TRANSITION_DURATION)
+        .ease(d3.easeCubicOut)
+        .attr('cx', minX)
+        .attr('cy', minY)
+        .style('opacity', 1)
 
       const priceText = `Min: ${d3.format(',.2f')(minPoint.price)}`
       minLabel.select('[data-js="min-text"]').text(priceText)
@@ -373,31 +422,7 @@ export const useBtcChartUpdateHelper = () => {
     }
     else {
       minLabel?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
-    }
-  }
-
-  const updateBidMarkerLine = (
-    d3: typeof import('d3'),
-    bidMarkerLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null,
-    bidTimestamp: number | null,
-    x: d3.ScaleTime<number, number>,
-    height: number,
-  ) => {
-    if (bidTimestamp && bidMarkerLine) {
-      const bidX = x(new Date(bidTimestamp))
-
-      bidMarkerLine
-        .transition()
-        .duration(TRANSITION_DURATION)
-        .ease(d3.easeCubicOut)
-        .attr('x1', bidX)
-        .attr('x2', bidX)
-        .attr('y1', 0)
-        .attr('y2', height)
-        .style('opacity', 1)
-    }
-    else {
-      bidMarkerLine?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
+      minDot?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
     }
   }
 
@@ -419,8 +444,14 @@ export const useBtcChartUpdateHelper = () => {
       return
     }
 
-    // Filter data points after bid timestamp
-    const bidData = data.filter((d) => d.timestamp >= bidTimestamp)
+    // Filter data points after bid timestamp and prepend exact bid point
+    const filteredData = data.filter((d) => d.timestamp >= bidTimestamp)
+    
+    // Prepend the exact bid point to ensure the line/area starts at the bid price
+    const bidData: PricePoint[] = [
+      { timestamp: bidTimestamp, price: bidPrice },
+      ...filteredData,
+    ]
 
     if (bidData.length === 0) {
       bidArea?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
@@ -508,7 +539,6 @@ export const useBtcChartUpdateHelper = () => {
     getLabelPositions,
     updateAverageLine,
     updateBidLine,
-    updateBidMarkerLine,
     updateBidArea,
     createLineGenerator,
     createAreaGenerator,

@@ -115,9 +115,9 @@ export const calculateMinMaxLabelPosition = (
   type: 'min' | 'max',
 ): { labelX: number; labelY: number } => {
   // Position label: prefer right side of point, but flip to left if near edge
-  let labelX = pointX + 8
+  let labelX = pointX + 4
   if (labelX + totalLabelWidth > width) {
-    labelX = pointX - totalLabelWidth - 8
+    labelX = pointX - totalLabelWidth - 4
   }
 
   let labelY: number

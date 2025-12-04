@@ -1,18 +1,3 @@
-export interface ChartSelections {
-  svg: d3.Selection<SVGGElement, unknown, null, undefined> | null
-  svgElement: d3.Selection<SVGSVGElement, unknown, null, undefined> | null
-  gridGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null
-  priceLine: d3.Selection<SVGPathElement, unknown, null, undefined> | null
-  avgLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null
-  avgLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null
-  bidLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null
-  bidLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null
-  xAxisGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null
-  yAxisGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null
-  crosshairGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null
-  hoverOverlay: d3.Selection<SVGRectElement, unknown, null, undefined> | null
-}
-
 export interface ChartMargin {
   top: number
   right: number
@@ -135,17 +120,12 @@ export const useBtcChartInitHelper = () => {
   const createBidAreaElements = (
     svg: d3.Selection<SVGGElement, unknown, null, undefined>,
   ) => {
-    // Vertical line marking when bid was placed
-    const bidMarkerLine = svg.append('line')
-      .attr('class', 'btc-chart-renderer__bid-marker')
-      .style('opacity', 0)
-
     // Area path for the bid period (after bid timestamp)
     const bidArea = svg.append('path')
       .attr('class', 'btc-chart-renderer__bid-area')
       .style('opacity', 0)
 
-    return { bidMarkerLine, bidArea }
+    return { bidArea }
   }
 
   const createBidPriceLine = (
@@ -188,6 +168,11 @@ export const useBtcChartInitHelper = () => {
       .attr('data-line-variant', 'bid')
       .style('opacity', 0)
 
+    const bidDot = svg.append('circle')
+      .attr('class', 'btc-chart-renderer__bid-dot')
+      .attr('data-dot-variant', 'bid')
+      .style('opacity', 0)
+
     const bidLabel = svg.append('g')
       .attr('class', 'btc-chart-renderer__label')
       .attr('data-label-variant', 'bid')
@@ -199,12 +184,18 @@ export const useBtcChartInitHelper = () => {
       .attr('data-js', 'bid-text')
       .attr('dx', 5)
 
-    return { bidLine, bidLabel }
+    return { bidLine, bidLabel, bidDot }
   }
 
   const createMinMaxLabelElements = (
     svg: d3.Selection<SVGGElement, unknown, null, undefined>,
   ) => {
+    // Max point dot
+    const maxDot = svg.append('circle')
+      .attr('class', 'btc-chart-renderer__min-max-dot')
+      .attr('data-dot-variant', 'max')
+      .style('opacity', 0)
+
     // Max price label
     const maxLabel = svg.append('g')
       .attr('class', 'btc-chart-renderer__label')
@@ -216,6 +207,12 @@ export const useBtcChartInitHelper = () => {
     maxLabel.append('text')
       .attr('data-js', 'max-text')
       .attr('dx', 5)
+
+    // Min point dot
+    const minDot = svg.append('circle')
+      .attr('class', 'btc-chart-renderer__min-max-dot')
+      .attr('data-dot-variant', 'min')
+      .style('opacity', 0)
 
     // Min price label
     const minLabel = svg.append('g')
@@ -229,7 +226,7 @@ export const useBtcChartInitHelper = () => {
       .attr('data-js', 'min-text')
       .attr('dx', 5)
 
-    return { maxLabel, minLabel }
+    return { maxLabel, minLabel, maxDot, minDot }
   }
 
   const createCrosshairGroup = (

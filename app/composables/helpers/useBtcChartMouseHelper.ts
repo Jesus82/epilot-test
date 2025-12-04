@@ -4,18 +4,6 @@ import { calculatePriceLabelPosition } from '~/helpers/btcChartHelpers'
 // Padding for width calculation (must match CSS --label-padding-x)
 const LABEL_PADDING_X = 5
 
-export interface MouseHelperParams {
-  d3Module: typeof import('d3') | null
-  crosshairGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null
-  currentXScale: d3.ScaleTime<number, number> | null
-  currentYScale: d3.ScaleLinear<number, number> | null
-  currentWidth: number
-  currentHeight: number
-  data: PricePoint[]
-  averagePrice: number | null
-  bidPrice: number | null
-}
-
 export const useBtcChartMouseHelper = () => {
 
   // Helper to set label background width (height/y/text position handled by CSS)
