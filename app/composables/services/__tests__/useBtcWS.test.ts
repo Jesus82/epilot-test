@@ -292,6 +292,32 @@ describe('useBtcWS', () => {
       // Should still be disconnected
       expect(status.value).toBe('disconnected')
     })
+
+    it('should clear pending reconnect timeout on disconnect', async () => {
+      vi.useFakeTimers()
+      
+      const { useBtcWS } = await import('../useBtcWS')
+      const { connect, disconnect, status } = useBtcWS()
+      
+      await connect()
+      await vi.advanceTimersByTimeAsync(10)
+      expect(status.value).toBe('connected')
+      
+      // Simulate unexpected close to trigger reconnection scheduling
+      mockWebSocketInstance?.onclose?.({ code: 1006, reason: 'Abnormal closure' })
+      expect(status.value).toBe('disconnected')
+      
+      // Disconnect should clear the pending reconnect timeout
+      disconnect()
+      
+      // Advance timers past the reconnect delay (5000ms)
+      await vi.advanceTimersByTimeAsync(6000)
+      
+      // Should still be disconnected, no reconnect happened
+      expect(status.value).toBe('disconnected')
+      
+      vi.useRealTimers()
+    })
   })
   
   describe('state reactivity', () => {

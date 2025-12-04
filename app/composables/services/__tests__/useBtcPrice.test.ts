@@ -237,6 +237,94 @@ describe('useBtcPrice', () => {
       expect(instance2.bidPrice.value).toBe(55000)
     })
   })
+
+  describe('setBid and clearBid', () => {
+    it('should have null initial bidTimestamp and guessDirection', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { bidTimestamp, guessDirection } = useBtcPrice()
+
+      expect(bidTimestamp.value).toBeNull()
+      expect(guessDirection.value).toBeNull()
+    })
+
+    it('should set bidPrice, bidTimestamp, and guessDirection via setBid', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { bidPrice, bidTimestamp, guessDirection, setBid } = useBtcPrice()
+
+      const beforeTime = Date.now()
+      setBid(42000, 'up')
+      const afterTime = Date.now()
+
+      expect(bidPrice.value).toBe(42000)
+      expect(bidTimestamp.value).toBeGreaterThanOrEqual(beforeTime)
+      expect(bidTimestamp.value).toBeLessThanOrEqual(afterTime)
+      expect(guessDirection.value).toBe('up')
+    })
+
+    it('should set guessDirection to down', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { guessDirection, setBid } = useBtcPrice()
+
+      setBid(50000, 'down')
+
+      expect(guessDirection.value).toBe('down')
+    })
+
+    it('should set bidTimestamp to null when price is null', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { bidPrice, bidTimestamp, setBid } = useBtcPrice()
+
+      setBid(42000, 'up')
+      expect(bidTimestamp.value).not.toBeNull()
+
+      setBid(null, null)
+      expect(bidPrice.value).toBeNull()
+      expect(bidTimestamp.value).toBeNull()
+    })
+
+    it('should clear all bid state via clearBid', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { bidPrice, bidTimestamp, guessDirection, setBid, clearBid } = useBtcPrice()
+
+      setBid(55000, 'up')
+      expect(bidPrice.value).toBe(55000)
+      expect(bidTimestamp.value).not.toBeNull()
+      expect(guessDirection.value).toBe('up')
+
+      clearBid()
+
+      expect(bidPrice.value).toBeNull()
+      expect(bidTimestamp.value).toBeNull()
+      expect(guessDirection.value).toBeNull()
+    })
+
+    it('should share bid state across multiple instances', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+
+      const instance1 = useBtcPrice()
+      const instance2 = useBtcPrice()
+
+      instance1.setBid(60000, 'down')
+
+      expect(instance2.bidPrice.value).toBe(60000)
+      expect(instance2.bidTimestamp.value).not.toBeNull()
+      expect(instance2.guessDirection.value).toBe('down')
+
+      instance2.clearBid()
+
+      expect(instance1.bidPrice.value).toBeNull()
+      expect(instance1.bidTimestamp.value).toBeNull()
+      expect(instance1.guessDirection.value).toBeNull()
+    })
+
+    it('should expose setBid and clearBid functions', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { setBid, clearBid } = useBtcPrice()
+
+      expect(typeof setBid).toBe('function')
+      expect(typeof clearBid).toBe('function')
+    })
+  })
   
   describe('formattedPrice', () => {
     it('should return null when priceData is null', async () => {
@@ -324,6 +412,8 @@ describe('useBtcPrice', () => {
         priceHistory,
         isLoadingHistory,
         bidPrice,
+        bidTimestamp,
+        guessDirection,
         formattedPrice,
       } = useBtcPrice()
       
@@ -336,6 +426,8 @@ describe('useBtcPrice', () => {
       expect(isRef(priceHistory)).toBe(true)
       expect(isRef(isLoadingHistory)).toBe(true)
       expect(isRef(bidPrice)).toBe(true)
+      expect(isRef(bidTimestamp)).toBe(true)
+      expect(isRef(guessDirection)).toBe(true)
       expect(isRef(formattedPrice) || isComputed(formattedPrice)).toBe(true)
     })
     
