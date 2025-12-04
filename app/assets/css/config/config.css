@@ -20,27 +20,27 @@
 
 
 :root {
-  --font-size-2xs: var(--step--2);
-  --font-size-xs: var(--step--1);
-  --font-size-sm: var(--step--0_5);
-  --font-size-base: var(--step-0);
-  --font-size-md: var(--step-1);
-  --font-size-lg: var(--step-1_5);
-  --font-size-xl: var(--step-2);
-  --font-size-2xl: var(--step-3_5);
-  --font-size-3xl: var(--step-4);
-  --font-size-4xl: var(--step-5);
-  --font-size-5xl: var(--step-6);
+  --config-font-size-2xs: var(--step--2);  /* 8.35px  → 10.09px */
+  --config-font-size-xs: var(--step--1);   /* 10.09px → 12.58px */
+  --config-font-size-sm: var(--step--0_5); /* 11.01px → 14.18px */
+  --config-font-size-base: var(--step-0);  /* 14px    → 16px    */
+  --config-font-size-md: var(--step-1);    /* 16.63px → 20.36px */
+  --config-font-size-lg: var(--step-1_5);  /* 18.13px → 22.96px */
+  --config-font-size-xl: var(--step-2);    /* 19.76px → 25.90px */
+  --config-font-size-2xl: var(--step-3_5); /* 25.59px → 37.17px */
+  --config-font-size-3xl: var(--step-4);   /* 27.89px → 41.93px */
+  --config-font-size-4xl: var(--step-5);   /* 33.14px → 53.35px */
+  --config-font-size-5xl: var(--step-6);   /* 39.37px → 67.88px */
 
-  --spacing-sixteenth: var(--step--4);
-  --spacing-eighth: var(--step--3);
-  --spacing-quarter: var(--step--2);
-  --spacing-half: var(--step-0);
-  --spacing-base: var(--step-2);
-  --spacing-second: var(--step-4);
-  --spacing-third: var(--step-6);
-  --spacing-fourth: var(--step-8);
-  --spacing-fifth: var(--step-9);
+  --config-spacing-sixteenth: var(--step--4); /* 4.95px  → 3.78px   */
+  --config-spacing-eighth: var(--step--3);    /* 7.00px  → 6.11px   */
+  --config-spacing-quarter: var(--step--2);   /* 8.35px  → 10.09px  */
+  --config-spacing-half: var(--step-0);       /* 14px    → 16px     */
+  --config-spacing-base: var(--step-2);       /* 19.76px → 25.90px  */
+  --config-spacing-second: var(--step-4);     /* 27.90px → 41.94px  */
+  --config-spacing-third: var(--step-6);      /* 39.37px → 67.88px  */
+  --config-spacing-fourth: var(--step-8);     /* 55.97px → 109.66px */
+  --config-spacing-fifth: var(--step-9);      /* 79.14px → 177.42px */
 
   /* Step -4: 4.952px → 3.7773px */
   --step--4: clamp(0.2361rem, 0.3462rem + -0.1468vw, 0.3095rem);
@@ -131,35 +131,35 @@
     --fluid-quarter-step: pow(var(--fluid-step), 0.25);
 
 
-    --font-size-2xs: calc(var(--font-size-xs) / var(--fluid-quarter-step));
-    --font-size-xs: calc(var(--font-size-sm) / var(--fluid-quarter-step));
-    --font-size-sm: calc(var(--fluid-base-size) / var(--fluid-quarter-step));
-    --font-size-base: var(--fluid-base-size);
-    --font-size-md: calc(var(--font-size-base) * var(--fluid-step-half));
-    --font-size-lg: calc(var(--font-size-md) * var(--fluid-quarter-step));
-    --font-size-xl: calc(var(--font-size-lg) * var(--fluid-quarter-step));
-    --font-size-2xl: calc(var(--font-size-xl) * var(--fluid-step-half) * var(--fluid-quarter-step));
-    --font-size-3xl: calc(var(--font-size-2xl) * var(--fluid-quarter-step));
-    --font-size-4xl: calc(var(--font-size-3xl) * var(--fluid-step-half));
-    --font-size-5xl: calc(var(--font-size-4xl) * var(--fluid-step-half));
+    --config-font-size-2xs: calc(var(--config-font-size-xs) / var(--fluid-quarter-step));
+    --config-font-size-xs: calc(var(--config-font-size-sm) / var(--fluid-quarter-step));
+    --config-font-size-sm: calc(var(--fluid-base-size) / var(--fluid-quarter-step));
+    --config-font-size-base: var(--fluid-base-size);
+    --config-font-size-md: calc(var(--config-font-size-base) * var(--fluid-step-half));
+    --config-font-size-lg: calc(var(--config-font-size-md) * var(--fluid-quarter-step));
+    --config-font-size-xl: calc(var(--config-font-size-lg) * var(--fluid-quarter-step));
+    --config-font-size-2xl: calc(var(--config-font-size-xl) * var(--fluid-step-half) * var(--fluid-quarter-step));
+    --config-font-size-3xl: calc(var(--config-font-size-2xl) * var(--fluid-quarter-step));
+    --config-font-size-4xl: calc(var(--config-font-size-3xl) * var(--fluid-step-half));
+    --config-font-size-5xl: calc(var(--config-font-size-4xl) * var(--fluid-step-half));
 
-    --spacing-sixteenth: calc(var(--spacing-eighth) / var(--fluid-step));
+    --config-spacing-sixteenth: calc(var(--config-spacing-eighth) / var(--fluid-step));
     /* 4px */
-    --spacing-eighth: calc(var(--spacing-quarter) / var(--fluid-step));
+    --config-spacing-eighth: calc(var(--config-spacing-quarter) / var(--fluid-step));
     /* 6px */
-    --spacing-quarter: calc(var(--font-size-base) / var(--fluid-step));
+    --config-spacing-quarter: calc(var(--config-font-size-base) / var(--fluid-step));
     /* 10px */
-    --spacing-half: calc(var(--font-size-base));
+    --config-spacing-half: calc(var(--config-font-size-base));
     /* 16px */
-    --spacing-base: calc(var(--font-size-base) * var(--fluid-step));
+    --config-spacing-base: calc(var(--config-font-size-base) * var(--fluid-step));
     /* 26px */
-    --spacing-second: calc(var(--spacing-base) * var(--fluid-step));
+    --config-spacing-second: calc(var(--config-spacing-base) * var(--fluid-step));
     /* 42px */
-    --spacing-third: calc(var(--spacing-second) * var(--fluid-step));
+    --config-spacing-third: calc(var(--config-spacing-second) * var(--fluid-step));
     /* 68px */
-    --spacing-fourth: calc(var(--spacing-third) * var(--fluid-step));
+    --config-spacing-fourth: calc(var(--config-spacing-third) * var(--fluid-step));
     /* 110px */
-    --spacing-fifth: calc(var(--spacing-fourth) * var(--fluid-step));
+    --config-spacing-fifth: calc(var(--config-spacing-fourth) * var(--fluid-step));
     /* 178px */
   }
 }
@@ -221,4 +221,41 @@
   size-adjust: 80%;
 }
 
-/* Inter fonts are now handled by next/font/local in layout.tsx */
+@font-face {
+  font-family: 'JustMyType';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+
+  text-rendering: optimizeLegibility;
+  src: url('/fonts/JustMyType.woff2') format('woff2'),
+    url('/fonts/JustMyType.woff') format('woff'),
+    url('/fonts/JustMyType.ttf') format('truetype'),
+    url('/fonts/JustMyType.svg#JustMyType') format('svg');
+}
+
+@font-face {
+  font-family: "Roboto";
+  font-weight: 300;
+  font-style: normal;
+  font-display: block;
+
+  text-rendering: optimizeLegibility;
+  src: url("/fonts/Roboto-Light.woff2") format("woff2"),
+    url("/fonts/Roboto-Light.woff") format("woff"),
+    url("/fonts/Roboto-Light.ttf") format("truetype"),
+    url("/fonts/Roboto-Light.svg#Roboto-Light") format("svg");
+}
+
+@font-face {
+  font-family: "Roboto";
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+
+  text-rendering: optimizeLegibility;
+  src: url("/fonts/Roboto-Regular.woff2") format("woff2"),
+    url("/fonts/Roboto-Regular.woff") format("woff"),
+    url("/fonts/Roboto-Regular.ttf") format("truetype"),
+    url("/fonts/Roboto-Regular.svg#Roboto-Regular") format("svg");
+}

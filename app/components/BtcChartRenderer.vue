@@ -226,28 +226,64 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="chartRef" class="chart-renderer" />
+  <div ref="chartRef" class="btc-chart-renderer" />
 </template>
 
 <style scoped>
-.chart-renderer {
+.btc-chart-renderer {
   width: 100%;
   min-height: 300px;
 }
 
-.chart-renderer :deep(.x-axis),
-.chart-renderer :deep(.y-axis) {
-  font-size: 11px;
-  color: #666;
+.btc-chart-renderer :deep(.x-axis path),
+.btc-chart-renderer :deep(.y-axis path) {
+  stroke: var(--color-gray-lightest);
 }
 
-.chart-renderer :deep(.x-axis path),
-.chart-renderer :deep(.y-axis path) {
-  stroke: #e0e0e0;
+.btc-chart-renderer :deep(.x-axis .tick line),
+.btc-chart-renderer :deep(.y-axis .tick line) {
+  stroke: var(--color-gray-lightest);
 }
 
-.chart-renderer :deep(.x-axis .tick line),
-.chart-renderer :deep(.y-axis .tick line) {
-  stroke: #e0e0e0;
+.btc-chart-renderer :deep(text) {
+  font-size: var(--text-xs);
+  fill: var(--color-gray-dark);
+  dominant-baseline: central;
+}
+
+:deep(.btc-chart-renderer__label text) {
+  fill: var(--color-white);
+}
+
+:deep(.btc-chart-renderer__label) {
+  --label-height: calc(var(--config-spacing-half) * 1.5);
+  --label-padding-y: calc(var(--label-height) / 2);
+}
+
+:deep(.btc-chart-renderer__label rect) {
+  height: var(--label-height);
+  y: calc(-1 * var(--label-padding-y));
+  rx: 2px;
+  ry: 2px;
+}
+
+:deep(.btc-chart-renderer__label[data-label-variant="average"] rect) {
+  fill: var(--color-blue);
+}
+
+:deep(.btc-chart-renderer__label[data-label-variant="bid"] rect) {
+  fill: var(--color-orange);
+}
+
+:deep(.btc-chart-renderer__label[data-label-variant="max"] rect) {
+  fill: var(--color-red);
+}
+
+:deep(.btc-chart-renderer__label[data-label-variant="min"] rect) {
+  fill: var(--color-green);
+}
+
+:deep(.btc-chart-renderer__label[data-label-variant="crosshair-time"] text) {
+  text-anchor: middle;
 }
 </style>

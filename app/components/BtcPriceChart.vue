@@ -41,7 +41,7 @@ const handleHover = (data: PricePoint | null) => {
 </script>
 
 <template>
-  <div class="btc-chart">
+  <div class="btc-price-chart">
     <div class="chart-header">
       <h2>Live BTC Price Chart</h2>
       <div class="chart-controls">
@@ -81,7 +81,7 @@ const handleHover = (data: PricePoint | null) => {
 </template>
 
 <style scoped>
-.btc-chart {
+.btc-price-chart {
   margin: 20px 0;
 }
 
@@ -196,8 +196,8 @@ const handleHover = (data: PricePoint | null) => {
 
 .chart-container :deep(.x-axis),
 .chart-container :deep(.y-axis) {
-  font-size: 11px;
-  color: #666;
+  font-size: var(--text-2xs);
+  color: var(--color-gray-dark);
 }
 
 .chart-container :deep(.x-axis path),

@@ -16,6 +16,8 @@
 
   --color-red: hsl(9.4, 100%, 68.6%);
 
+  --color-green: hsl(141.4, 70.1%, 48.2%);
+
   --color-orange: hsl(38, 92%, 50%);
 
   --color-black: hsl(0, 0%, 0%);
@@ -23,47 +25,35 @@
   --color-transparent: transparent;
 
   /* Font Families */
-  --font-sans: var(--font-inter), 'Adjusted HelveticaNeue', 'Adjusted Helvetica', 'Adjusted Arial', 'Adjusted sans-serif';
+  --font-sans: 'Roboto', 'Adjusted HelveticaNeue', 'Adjusted Helvetica', 'Adjusted Arial', 'Adjusted sans-serif';
+
+  --font-display: 'JustMyType', 'System', 'Adjusted sans-serif';
+
+
 
   /* Font Sizes - use --text-* for text-* utilities */
-  --text-2xs: 0.625rem;           /* 10px */
-  --text-xs: 0.875rem;            /* 14px */
-  --text-sm: 0.9375rem;           /* 15px */
-  --text-base: 1rem;              /* 16px */
-  --text-md: 1.125rem;            /* 18px */
-  --text-lg: 1.25rem;             /* 20px */
-  --text-xl: 1.5rem;              /* 24px */
-  --text-2xl: 2rem;               /* 32px */
-  --text-3xl: 2.25rem;            /* 36px */
-  --text-4xl: 3rem;               /* 48px */
-  --text-5xl: 3.75rem;            /* 60px */
+  --text-2xs: var(--config-font-size-2xs);       /* 8.35px  → 10.09px */    
+  --text-xs: var(--config-font-size-xs);         /* 10.09px → 12.58px */  
+  --text-sm: var(--config-font-size-sm);         /* 11.01px → 14.18px */
+  --text-base: var(--config-font-size-base);     /* 14px    → 16px    */
+  --text-md: var(--config-font-size-md);         /* 16.63px → 20.36px */  
+  --text-lg: var(--config-font-size-lg);         /* 18.13px → 22.96px */  
+  --text-xl: var(--config-font-size-xl);         /* 19.76px → 25.90px */   
+  --text-2xl: var(--config-font-size-2xl);       /* 25.59px → 37.17px */
+  --text-3xl: var(--config-font-size-3xl);       /* 27.89px → 41.93px */
+  --text-4xl: var(--config-font-size-4xl);       /* 33.14px → 53.35px */
+  --text-5xl: var(--config-font-size-5xl);       /* 39.37px → 67.88px */
 
   /* Spacing */
-  --spacing-0: 0;                 /* 0px */
-  --spacing-px: 1px;              /* 1px */
-  --spacing-0_5: 0.125rem;        /* 2px */
-  --spacing-1: 0.25rem;           /* 4px */
-  --spacing-1_5: 0.375rem;        /* 6px */
-  --spacing-2: 0.5rem;            /* 8px */
-  --spacing-2_5: 0.625rem;        /* 10px */
-  --spacing-3: 0.75rem;           /* 12px */
-  --spacing-3_5: 0.875rem;        /* 14px */
-  --spacing-4: 1rem;              /* 16px */
-  --spacing-5: 1.25rem;           /* 20px */
-  --spacing-6: 1.5rem;            /* 24px */
-  --spacing-7: 1.75rem;           /* 28px */
-  --spacing-8: 2rem;              /* 32px */
-  --spacing-9: 2.25rem;           /* 36px */
-  --spacing-10: 2.5rem;           /* 40px */
-  --spacing-11: 2.75rem;          /* 44px */
-  --spacing-12: 3rem;             /* 48px */
-  --spacing-14: 3.5rem;           /* 56px */
-  --spacing-16: 4rem;             /* 64px */
-  --spacing-18: 4.5rem;           /* 72px */
-  --spacing-20: 5rem;             /* 80px */
-  --spacing-24: 6rem;             /* 96px */
-  --spacing-28: 7rem;             /* 112px */
-  --spacing-32: 8rem;             /* 128px */
+  --spacing-sixteenth: var(--config-spacing-sixteenth); /* 4.95px  → 3.78px   */
+  --spacing-eighth: var(--config-spacing-eighth);       /* 7.00px  → 6.11px   */
+  --spacing-quarter: var(--config-spacing-quarter);     /* 8.35px  → 10.09px  */
+  --spacing-half: var(--config-spacing-half);           /* 14px    → 16px     */
+  --spacing-base: var(--config-spacing-base);           /* 19.76px → 25.90px  */
+  --spacing-second: var(--config-spacing-second);       /* 27.90px → 41.94px  */
+  --spacing-third: var(--config-spacing-third);         /* 39.37px → 67.88px  */
+  --spacing-fourth: var(--config-spacing-fourth);       /* 55.97px → 109.66px */
+  --spacing-fifth: var(--config-spacing-fifth);         /* 79.14px → 177.42px */
 
   /* Border Radius */
   --radius-none: 0;

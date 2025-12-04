@@ -20,8 +20,24 @@ export interface ChartElements {
   yAxisGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null
 }
 
+// Padding for width calculation (must match CSS --label-padding-x)
+const LABEL_PADDING_X = 5
+
 export const useBtcChartUpdateHelper = () => {
   const TRANSITION_DURATION = 300
+
+  // Helper to set label background width (height/y/text position handled by CSS)
+  const setLabelWidth = (
+    label: d3.Selection<SVGGElement, unknown, null, undefined> | null,
+    bgSelector: string,
+    textWidth: number,
+    centered = false,
+  ) => {
+    const width = textWidth + LABEL_PADDING_X * 2
+    const bgX = centered ? -width / 2 : 0
+
+    label?.select(bgSelector).attr('x', bgX).attr('width', width)
+  }
 
   const getTimeInterval = (d3: typeof import('d3'), rangeMinutes: number) => {
     if (rangeMinutes <= 10) return d3.timeMinute.every(1)
@@ -134,38 +150,19 @@ export const useBtcChartUpdateHelper = () => {
         .attr('y2', avgY!)
         .style('opacity', 1)
 
-      const priceText = d3.format(',.2f')(averagePrice)
-      avgLabel?.select('.avg-price-text').text(priceText)
+      const priceText = `Avg: ${d3.format(',.2f')(averagePrice)}`
+      avgLabel?.select('[data-js="avg-text"]').text(priceText)
 
-      const nameWidth = 28
-      const priceTextWidth = (avgLabel?.select('.avg-price-text').node() as SVGTextElement)?.getBBox().width || 60
+      const textWidth = (avgLabel?.select('[data-js="avg-text"]').node() as SVGTextElement)?.getBBox().width || 80
 
       avgLabel
         ?.transition()
         .duration(TRANSITION_DURATION)
         .ease(d3.easeCubicOut)
-        .attr('transform', `translate(${width - nameWidth - 2}, ${adjustedAvgY})`)
+        .attr('transform', `translate(${width - 25}, ${adjustedAvgY})`)
         .style('opacity', 1)
 
-      avgLabel?.select('.avg-name-bg')
-        .attr('x', 3)
-        .attr('y', -9)
-        .attr('width', nameWidth)
-        .attr('height', 18)
-
-      avgLabel?.select('.avg-name-text')
-        .attr('x', 8)
-        .attr('y', 0)
-
-      avgLabel?.select('.avg-price-bg')
-        .attr('x', nameWidth + 6)
-        .attr('y', -9)
-        .attr('width', priceTextWidth + 10)
-        .attr('height', 18)
-
-      avgLabel?.select('.avg-price-text')
-        .attr('x', nameWidth + 11)
-        .attr('y', 0)
+      setLabelWidth(avgLabel, '[data-js="avg-bg"]', textWidth)
     }
     else {
       avgLine?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
@@ -193,38 +190,19 @@ export const useBtcChartUpdateHelper = () => {
         .attr('y2', bidY!)
         .style('opacity', 1)
 
-      const priceText = d3.format(',.2f')(bidPrice)
-      bidLabel?.select('.bid-price-text').text(priceText)
+      const priceText = `Bid: ${d3.format(',.2f')(bidPrice)}`
+      bidLabel?.select('[data-js="bid-text"]').text(priceText)
 
-      const nameWidth = 26
-      const priceTextWidth = (bidLabel?.select('.bid-price-text').node() as SVGTextElement)?.getBBox().width || 60
+      const textWidth = (bidLabel?.select('[data-js="bid-text"]').node() as SVGTextElement)?.getBBox().width || 80
 
       bidLabel
         ?.transition()
         .duration(TRANSITION_DURATION)
         .ease(d3.easeCubicOut)
-        .attr('transform', `translate(${width - nameWidth - 2}, ${adjustedBidY})`)
+        .attr('transform', `translate(${width - 25}, ${adjustedBidY})`)
         .style('opacity', 1)
 
-      bidLabel?.select('.bid-name-bg')
-        .attr('x', 0)
-        .attr('y', -9)
-        .attr('width', nameWidth)
-        .attr('height', 18)
-
-      bidLabel?.select('.bid-name-text')
-        .attr('x', 5)
-        .attr('y', 0)
-
-      bidLabel?.select('.bid-price-bg')
-        .attr('x', nameWidth + 6)
-        .attr('y', -9)
-        .attr('width', priceTextWidth + 10)
-        .attr('height', 18)
-
-      bidLabel?.select('.bid-price-text')
-        .attr('x', nameWidth + 11)
-        .attr('y', 0)
+      setLabelWidth(bidLabel, '[data-js="bid-bg"]', textWidth)
     }
     else {
       bidLine?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
@@ -302,12 +280,11 @@ export const useBtcChartUpdateHelper = () => {
       const maxX = x(new Date(maxPoint.timestamp))
       const maxY = y(maxPoint.price)
 
-      const priceText = d3.format(',.2f')(maxPoint.price)
-      maxLabel.select('.max-price-text').text(priceText)
+      const priceText = `Max: ${d3.format(',.2f')(maxPoint.price)}`
+      maxLabel.select('[data-js="max-text"]').text(priceText)
 
-      const nameWidth = 32
-      const priceTextWidth = (maxLabel.select('.max-price-text').node() as SVGTextElement)?.getBBox().width || 60
-      const totalWidth = nameWidth + priceTextWidth + 16
+      const textWidth = (maxLabel.select('[data-js="max-text"]').node() as SVGTextElement)?.getBBox().width || 80
+      const totalWidth = textWidth + 10
 
       // Use pure function to calculate position
       const { labelX, labelY } = calculateMinMaxLabelPosition(
@@ -326,25 +303,7 @@ export const useBtcChartUpdateHelper = () => {
         .attr('transform', `translate(${labelX}, ${labelY})`)
         .style('opacity', 1)
 
-      maxLabel.select('.max-name-bg')
-        .attr('x', 0)
-        .attr('y', -9)
-        .attr('width', nameWidth)
-        .attr('height', 18)
-
-      maxLabel.select('.max-name-text')
-        .attr('x', 5)
-        .attr('y', 0)
-
-      maxLabel.select('.max-price-bg')
-        .attr('x', nameWidth + 3)
-        .attr('y', -9)
-        .attr('width', priceTextWidth + 10)
-        .attr('height', 18)
-
-      maxLabel.select('.max-price-text')
-        .attr('x', nameWidth + 8)
-        .attr('y', 0)
+      setLabelWidth(maxLabel, '[data-js="max-bg"]', textWidth)
     }
     else {
       maxLabel?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
@@ -354,12 +313,11 @@ export const useBtcChartUpdateHelper = () => {
       const minX = x(new Date(minPoint.timestamp))
       const minY = y(minPoint.price)
 
-      const priceText = d3.format(',.2f')(minPoint.price)
-      minLabel.select('.min-price-text').text(priceText)
+      const priceText = `Min: ${d3.format(',.2f')(minPoint.price)}`
+      minLabel.select('[data-js="min-text"]').text(priceText)
 
-      const nameWidth = 28
-      const priceTextWidth = (minLabel.select('.min-price-text').node() as SVGTextElement)?.getBBox().width || 60
-      const totalWidth = nameWidth + priceTextWidth + 16
+      const textWidth = (minLabel.select('[data-js="min-text"]').node() as SVGTextElement)?.getBBox().width || 80
+      const totalWidth = textWidth + 10
 
       const { labelX, labelY } = calculateMinMaxLabelPosition(
         minX,
@@ -377,25 +335,7 @@ export const useBtcChartUpdateHelper = () => {
         .attr('transform', `translate(${labelX}, ${labelY})`)
         .style('opacity', 1)
 
-      minLabel.select('.min-name-bg')
-        .attr('x', 0)
-        .attr('y', -9)
-        .attr('width', nameWidth)
-        .attr('height', 18)
-
-      minLabel.select('.min-name-text')
-        .attr('x', 5)
-        .attr('y', 0)
-
-      minLabel.select('.min-price-bg')
-        .attr('x', nameWidth + 3)
-        .attr('y', -9)
-        .attr('width', priceTextWidth + 10)
-        .attr('height', 18)
-
-      minLabel.select('.min-price-text')
-        .attr('x', nameWidth + 8)
-        .attr('y', 0)
+      setLabelWidth(minLabel, '[data-js="min-bg"]', textWidth)
     }
     else {
       minLabel?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)

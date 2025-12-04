@@ -1,6 +1,9 @@
 import type { PricePoint } from './useBtcChartUpdateHelper'
 import { calculatePriceLabelPosition } from '~/helpers/btcChartHelpers'
 
+// Padding for width calculation (must match CSS --label-padding-x)
+const LABEL_PADDING_X = 5
+
 export interface MouseHelperParams {
   d3Module: typeof import('d3') | null
   crosshairGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null
@@ -14,6 +17,19 @@ export interface MouseHelperParams {
 }
 
 export const useBtcChartMouseHelper = () => {
+
+  // Helper to set label background width (height/y/text position handled by CSS)
+  const setLabelWidth = (
+    label: d3.Selection<Element, unknown, null, undefined>,
+    bgSelector: string,
+    textWidth: number,
+    centered = false,
+  ) => {
+    const width = textWidth + LABEL_PADDING_X * 2
+    const bgX = centered ? -width / 2 : 0
+
+    label.select(bgSelector).attr('x', bgX).attr('width', width)
+  }
 
   const findClosestPoint = (
     d3: typeof import('d3'),
@@ -41,19 +57,19 @@ export const useBtcChartMouseHelper = () => {
   ) => {
     crosshairGroup.style('display', null)
 
-    crosshairGroup.select('.crosshair-v')
+    crosshairGroup.select('[data-js="crosshair-v"]')
       .attr('x1', xPos)
       .attr('x2', xPos)
       .attr('y1', 0)
       .attr('y2', height)
 
-    crosshairGroup.select('.crosshair-h')
+    crosshairGroup.select('[data-js="crosshair-h"]')
       .attr('x1', 0)
       .attr('x2', width)
       .attr('y1', yPos)
       .attr('y2', yPos)
 
-    crosshairGroup.select('.crosshair-dot')
+    crosshairGroup.select('[data-js="crosshair-dot"]')
       .attr('cx', xPos)
       .attr('cy', yPos)
   }
@@ -81,19 +97,12 @@ export const useBtcChartMouseHelper = () => {
     width: number,
   ) => {
     const priceText = d3.format(',.2f')(price)
-    const priceLabelGroup = crosshairGroup.select('.crosshair-price-label')
-    const priceLabelText = priceLabelGroup.select('text').text(priceText)
+    const priceLabelGroup = crosshairGroup.select('[data-label-variant="crosshair-price"]')
+    const priceLabelText = priceLabelGroup.select('[data-js="crosshair-price-text"]').text(priceText)
     const priceLabelWidth = (priceLabelText.node() as SVGTextElement)?.getBBox().width || 60
 
     priceLabelGroup.attr('transform', `translate(${width + 5}, ${adjustedYPos})`)
-    priceLabelGroup.select('rect')
-      .attr('x', 0)
-      .attr('y', -10)
-      .attr('width', priceLabelWidth + 10)
-      .attr('height', 20)
-    priceLabelGroup.select('text')
-      .attr('x', 5)
-      .attr('y', 0)
+    setLabelWidth(priceLabelGroup, '[data-js="crosshair-price-bg"]', priceLabelWidth)
   }
 
   const updateTimeLabel = (
@@ -104,18 +113,12 @@ export const useBtcChartMouseHelper = () => {
     height: number,
   ) => {
     const timeText = d3.timeFormat('%H:%M:%S')(new Date(timestamp))
-    const timeLabelGroup = crosshairGroup.select('.crosshair-time-label')
-    const timeLabelText = timeLabelGroup.select('text').text(timeText)
+    const timeLabelGroup = crosshairGroup.select('[data-label-variant="crosshair-time"]')
+    const timeLabelText = timeLabelGroup.select('[data-js="crosshair-time-text"]').text(timeText)
     const timeLabelWidth = (timeLabelText.node() as SVGTextElement)?.getBBox().width || 50
 
     timeLabelGroup.attr('transform', `translate(${xPos}, ${height + 15})`)
-    timeLabelGroup.select('rect')
-      .attr('x', -timeLabelWidth / 2 - 5)
-      .attr('y', -10)
-      .attr('width', timeLabelWidth + 10)
-      .attr('height', 20)
-    timeLabelGroup.select('text')
-      .attr('y', 0)
+    setLabelWidth(timeLabelGroup, '[data-js="crosshair-time-bg"]', timeLabelWidth, true)
   }
 
   const hideCrosshair = (

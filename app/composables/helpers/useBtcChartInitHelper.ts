@@ -83,35 +83,15 @@ export const useBtcChartInitHelper = () => {
       .style('opacity', 0)
 
     const avgLabel = svg.append('g')
-      .attr('class', 'avg-label')
-      .style('opacity', 0)
+      .attr('class', 'btc-chart-renderer__label')
+      .attr('data-label-variant', 'average')
 
     avgLabel.append('rect')
-      .attr('class', 'avg-name-bg')
-      .attr('fill', '#10b981')
-      .attr('rx', 2)
-      .attr('ry', 2)
+      .attr('data-js', 'avg-bg')
 
     avgLabel.append('text')
-      .attr('class', 'avg-name-text')
-      .attr('fill', '#ffffff')
-      .attr('font-size', '10px')
-      .attr('font-weight', '500')
-      .attr('dominant-baseline', 'middle')
-      .text('Avg')
-
-    avgLabel.append('rect')
-      .attr('class', 'avg-price-bg')
-      .attr('fill', '#10b981')
-      .attr('rx', 2)
-      .attr('ry', 2)
-
-    avgLabel.append('text')
-      .attr('class', 'avg-price-text')
-      .attr('fill', '#ffffff')
-      .attr('font-size', '11px')
-      .attr('font-weight', '500')
-      .attr('dominant-baseline', 'middle')
+      .attr('data-js', 'avg-text')
+      .attr('dx', 5)
 
     return { avgLine, avgLabel }
   }
@@ -127,35 +107,15 @@ export const useBtcChartInitHelper = () => {
       .style('opacity', 0)
 
     const bidLabel = svg.append('g')
-      .attr('class', 'bid-label')
-      .style('opacity', 0)
+      .attr('class', 'btc-chart-renderer__label')
+      .attr('data-label-variant', 'bid')
 
     bidLabel.append('rect')
-      .attr('class', 'bid-name-bg')
-      .attr('fill', '#f59e0b')
-      .attr('rx', 2)
-      .attr('ry', 2)
+      .attr('data-js', 'bid-bg')
 
     bidLabel.append('text')
-      .attr('class', 'bid-name-text')
-      .attr('fill', '#ffffff')
-      .attr('font-size', '10px')
-      .attr('font-weight', '500')
-      .attr('dominant-baseline', 'middle')
-      .text('Bid')
-
-    bidLabel.append('rect')
-      .attr('class', 'bid-price-bg')
-      .attr('fill', '#f59e0b')
-      .attr('rx', 2)
-      .attr('ry', 2)
-
-    bidLabel.append('text')
-      .attr('class', 'bid-price-text')
-      .attr('fill', '#ffffff')
-      .attr('font-size', '11px')
-      .attr('font-weight', '500')
-      .attr('dominant-baseline', 'middle')
+      .attr('data-js', 'bid-text')
+      .attr('dx', 5)
 
     return { bidLine, bidLabel }
   }
@@ -165,67 +125,27 @@ export const useBtcChartInitHelper = () => {
   ) => {
     // Max price label
     const maxLabel = svg.append('g')
-      .attr('class', 'max-label')
-      .style('opacity', 0)
+      .attr('class', 'btc-chart-renderer__label')
+      .attr('data-label-variant', 'max')
 
     maxLabel.append('rect')
-      .attr('class', 'max-name-bg')
-      .attr('fill', '#22c55e')
-      .attr('rx', 2)
-      .attr('ry', 2)
+      .attr('data-js', 'max-bg')
 
     maxLabel.append('text')
-      .attr('class', 'max-name-text')
-      .attr('fill', '#ffffff')
-      .attr('font-size', '10px')
-      .attr('font-weight', '500')
-      .attr('dominant-baseline', 'middle')
-      .text('Max')
-
-    maxLabel.append('rect')
-      .attr('class', 'max-price-bg')
-      .attr('fill', '#22c55e')
-      .attr('rx', 2)
-      .attr('ry', 2)
-
-    maxLabel.append('text')
-      .attr('class', 'max-price-text')
-      .attr('fill', '#ffffff')
-      .attr('font-size', '11px')
-      .attr('font-weight', '500')
-      .attr('dominant-baseline', 'middle')
+      .attr('data-js', 'max-text')
+      .attr('dx', 5)
 
     // Min price label
     const minLabel = svg.append('g')
-      .attr('class', 'min-label')
-      .style('opacity', 0)
+      .attr('class', 'btc-chart-renderer__label')
+      .attr('data-label-variant', 'min')
 
     minLabel.append('rect')
-      .attr('class', 'min-name-bg')
-      .attr('fill', '#ef4444')
-      .attr('rx', 2)
-      .attr('ry', 2)
+      .attr('data-js', 'min-bg')
 
     minLabel.append('text')
-      .attr('class', 'min-name-text')
-      .attr('fill', '#ffffff')
-      .attr('font-size', '10px')
-      .attr('font-weight', '500')
-      .attr('dominant-baseline', 'middle')
-      .text('Min')
-
-    minLabel.append('rect')
-      .attr('class', 'min-price-bg')
-      .attr('fill', '#ef4444')
-      .attr('rx', 2)
-      .attr('ry', 2)
-
-    minLabel.append('text')
-      .attr('class', 'min-price-text')
-      .attr('fill', '#ffffff')
-      .attr('font-size', '11px')
-      .attr('font-weight', '500')
-      .attr('dominant-baseline', 'middle')
+      .attr('data-js', 'min-text')
+      .attr('dx', 5)
 
     return { maxLabel, minLabel }
   }
@@ -238,52 +158,37 @@ export const useBtcChartInitHelper = () => {
       .style('display', 'none')
 
     crosshairGroup.append('line')
-      .attr('class', 'crosshair-v')
-      .attr('stroke', '#999')
-      .attr('stroke-width', 1)
-      .attr('stroke-dasharray', '3,3')
+      .attr('data-js', 'crosshair-v')
 
     crosshairGroup.append('line')
-      .attr('class', 'crosshair-h')
-      .attr('stroke', '#999')
-      .attr('stroke-width', 1)
-      .attr('stroke-dasharray', '3,3')
+      .attr('data-js', 'crosshair-h')
 
     crosshairGroup.append('circle')
-      .attr('class', 'crosshair-dot')
+      .attr('data-js', 'crosshair-dot')
       .attr('r', 4)
-      .attr('fill', '#2563eb')
-      .attr('stroke', '#fff')
-      .attr('stroke-width', 2)
 
     // Price label
-    crosshairGroup.append('g')
-      .attr('class', 'crosshair-price-label')
-      .append('rect')
-      .attr('fill', '#374151')
-      .attr('rx', 2)
-      .attr('ry', 2)
+    const priceLabel = crosshairGroup.append('g')
+      .attr('class', 'btc-chart-renderer__label')
+      .attr('data-label-variant', 'crosshair-price')
 
-    crosshairGroup.select('.crosshair-price-label')
-      .append('text')
-      .attr('fill', '#fff')
-      .attr('font-size', '11px')
-      .attr('dominant-baseline', 'middle')
+    priceLabel.append('rect')
+      .attr('data-js', 'crosshair-price-bg')
+
+    priceLabel.append('text')
+      .attr('data-js', 'crosshair-price-text')
+      .attr('dx', 5)
 
     // Time label
-    crosshairGroup.append('g')
-      .attr('class', 'crosshair-time-label')
-      .append('rect')
-      .attr('fill', '#374151')
-      .attr('rx', 2)
-      .attr('ry', 2)
+    const timeLabel = crosshairGroup.append('g')
+      .attr('class', 'btc-chart-renderer__label')
+      .attr('data-label-variant', 'crosshair-time')
 
-    crosshairGroup.select('.crosshair-time-label')
-      .append('text')
-      .attr('fill', '#fff')
-      .attr('font-size', '11px')
-      .attr('text-anchor', 'middle')
-      .attr('dominant-baseline', 'middle')
+    timeLabel.append('rect')
+      .attr('data-js', 'crosshair-time-bg')
+
+    timeLabel.append('text')
+      .attr('data-js', 'crosshair-time-text')
 
     return crosshairGroup
   }
