@@ -66,20 +66,104 @@ export const useBtcChartInitHelper = () => {
     svg: d3.Selection<SVGGElement, unknown, null, undefined>,
   ) => {
     return svg.append('path')
-      .attr('class', 'price-line')
-      .attr('fill', 'none')
-      .attr('stroke', '#2563eb')
-      .attr('stroke-width', 2)
+      .attr('class', 'btc-chart-renderer__price-line')
+  }
+
+  const createPriceAreaGradient = (
+    svgElement: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+  ) => {
+    const defs = svgElement.append('defs')
+
+    // Default blue gradient
+    const gradient = defs.append('linearGradient')
+      .attr('id', 'price-area-gradient')
+      .attr('x1', '0%')
+      .attr('y1', '0%')
+      .attr('x2', '0%')
+      .attr('y2', '100%')
+
+    gradient.append('stop')
+      .attr('class', 'btc-chart-renderer__gradient-stop--top')
+      .attr('offset', '0%')
+
+    gradient.append('stop')
+      .attr('class', 'btc-chart-renderer__gradient-stop--bottom')
+      .attr('offset', '100%')
+
+    // Winning (green) gradient for bid area
+    const winGradient = defs.append('linearGradient')
+      .attr('id', 'bid-area-gradient-win')
+      .attr('x1', '0%')
+      .attr('y1', '0%')
+      .attr('x2', '0%')
+      .attr('y2', '100%')
+
+    winGradient.append('stop')
+      .attr('class', 'btc-chart-renderer__gradient-stop--win-top')
+      .attr('offset', '0%')
+
+    winGradient.append('stop')
+      .attr('class', 'btc-chart-renderer__gradient-stop--win-bottom')
+      .attr('offset', '100%')
+
+    // Losing (red) gradient for bid area
+    const loseGradient = defs.append('linearGradient')
+      .attr('id', 'bid-area-gradient-lose')
+      .attr('x1', '0%')
+      .attr('y1', '0%')
+      .attr('x2', '0%')
+      .attr('y2', '100%')
+
+    loseGradient.append('stop')
+      .attr('class', 'btc-chart-renderer__gradient-stop--lose-top')
+      .attr('offset', '0%')
+
+    loseGradient.append('stop')
+      .attr('class', 'btc-chart-renderer__gradient-stop--lose-bottom')
+      .attr('offset', '100%')
+
+    return defs
+  }
+
+  const createPriceArea = (
+    svg: d3.Selection<SVGGElement, unknown, null, undefined>,
+  ) => {
+    return svg.append('path')
+      .attr('class', 'btc-chart-renderer__price-area')
+  }
+
+  const createBidAreaElements = (
+    svg: d3.Selection<SVGGElement, unknown, null, undefined>,
+  ) => {
+    // Vertical line marking when bid was placed
+    const bidMarkerLine = svg.append('line')
+      .attr('class', 'btc-chart-renderer__bid-marker')
+      .style('opacity', 0)
+
+    // Area path for the bid period (after bid timestamp)
+    const bidArea = svg.append('path')
+      .attr('class', 'btc-chart-renderer__bid-area')
+      .style('opacity', 0)
+
+    return { bidMarkerLine, bidArea }
+  }
+
+  const createBidPriceLine = (
+    svg: d3.Selection<SVGGElement, unknown, null, undefined>,
+  ) => {
+    // Line path for the bid period (green/red based on win/lose)
+    // Created separately so it can be layered on top of the main price line
+    return svg.append('path')
+      .attr('class', 'btc-chart-renderer__bid-price-line')
+      .style('opacity', 0)
   }
 
   const createAverageLineElements = (
     svg: d3.Selection<SVGGElement, unknown, null, undefined>,
   ) => {
     const avgLine = svg.append('line')
-      .attr('class', 'avg-line')
-      .attr('stroke', '#10b981')
-      .attr('stroke-width', 2)
-      .attr('stroke-dasharray', '4,4')
+      .attr('class', 'btc-chart-renderer__line btc-chart-renderer__line--dashed')
+      .attr('data-line-variant', 'average')
       .style('opacity', 0)
 
     const avgLabel = svg.append('g')
@@ -100,10 +184,8 @@ export const useBtcChartInitHelper = () => {
     svg: d3.Selection<SVGGElement, unknown, null, undefined>,
   ) => {
     const bidLine = svg.append('line')
-      .attr('class', 'bid-line')
-      .attr('stroke', '#f59e0b')
-      .attr('stroke-width', 2)
-      .attr('stroke-dasharray', '4,4')
+      .attr('class', 'btc-chart-renderer__line btc-chart-renderer__line--dashed')
+      .attr('data-line-variant', 'bid')
       .style('opacity', 0)
 
     const bidLabel = svg.append('g')
@@ -154,18 +236,20 @@ export const useBtcChartInitHelper = () => {
     svg: d3.Selection<SVGGElement, unknown, null, undefined>,
   ) => {
     const crosshairGroup = svg.append('g')
-      .attr('class', 'crosshair')
+      .attr('class', 'btc-chart-renderer__crosshair')
       .style('display', 'none')
 
     crosshairGroup.append('line')
+      .attr('class', 'btc-chart-renderer__crosshair-line')
       .attr('data-js', 'crosshair-v')
 
     crosshairGroup.append('line')
+      .attr('class', 'btc-chart-renderer__crosshair-line')
       .attr('data-js', 'crosshair-h')
 
     crosshairGroup.append('circle')
+      .attr('class', 'btc-chart-renderer__crosshair-dot')
       .attr('data-js', 'crosshair-dot')
-      .attr('r', 4)
 
     // Price label
     const priceLabel = crosshairGroup.append('g')
@@ -201,11 +285,9 @@ export const useBtcChartInitHelper = () => {
     onMouseLeave: () => void,
   ) => {
     return svg.append('rect')
-      .attr('class', 'hover-overlay')
+      .attr('class', 'btc-chart-renderer__hover-overlay')
       .attr('width', width)
       .attr('height', height)
-      .attr('fill', 'transparent')
-      .style('cursor', 'crosshair')
       .on('mousemove', onMouseMove)
       .on('mouseleave', onMouseLeave)
   }
@@ -214,6 +296,10 @@ export const useBtcChartInitHelper = () => {
     createSvgElement,
     createAxisGroups,
     createPriceLine,
+    createPriceAreaGradient,
+    createPriceArea,
+    createBidAreaElements,
+    createBidPriceLine,
     createAverageLineElements,
     createBidLineElements,
     createMinMaxLabelElements,

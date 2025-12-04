@@ -221,6 +221,19 @@ export const useBtcChartUpdateHelper = () => {
       .curve(d3.curveMonotoneX)
   }
 
+  const createAreaGenerator = (
+    d3: typeof import('d3'),
+    x: d3.ScaleTime<number, number>,
+    y: d3.ScaleLinear<number, number>,
+    height: number,
+  ) => {
+    return d3.area<PricePoint>()
+      .x((d) => x(new Date(d.timestamp)))
+      .y0(height)
+      .y1((d) => y(d.price))
+      .curve(d3.curveMonotoneX)
+  }
+
   const animatePriceLine = (
     d3: typeof import('d3'),
     priceLine: d3.Selection<SVGPathElement, unknown, null, undefined> | null,
@@ -239,6 +252,27 @@ export const useBtcChartUpdateHelper = () => {
     }
     else {
       priceLine?.attr('d', newPath)
+    }
+  }
+
+  const animatePriceArea = (
+    d3: typeof import('d3'),
+    priceArea: d3.Selection<SVGPathElement, unknown, null, undefined> | null,
+    area: d3.Area<PricePoint>,
+    data: PricePoint[],
+  ) => {
+    const newPath = area(data) || ''
+    const currentPath = priceArea?.attr('d') || ''
+
+    if (currentPath && currentPath !== newPath) {
+      priceArea
+        ?.transition()
+        .duration(TRANSITION_DURATION)
+        .ease(d3.easeCubicOut)
+        .attrTween('d', () => interpolatePath(currentPath, newPath))
+    }
+    else {
+      priceArea?.attr('d', newPath)
     }
   }
 
@@ -342,6 +376,131 @@ export const useBtcChartUpdateHelper = () => {
     }
   }
 
+  const updateBidMarkerLine = (
+    d3: typeof import('d3'),
+    bidMarkerLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null,
+    bidTimestamp: number | null,
+    x: d3.ScaleTime<number, number>,
+    height: number,
+  ) => {
+    if (bidTimestamp && bidMarkerLine) {
+      const bidX = x(new Date(bidTimestamp))
+
+      bidMarkerLine
+        .transition()
+        .duration(TRANSITION_DURATION)
+        .ease(d3.easeCubicOut)
+        .attr('x1', bidX)
+        .attr('x2', bidX)
+        .attr('y1', 0)
+        .attr('y2', height)
+        .style('opacity', 1)
+    }
+    else {
+      bidMarkerLine?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
+    }
+  }
+
+  const updateBidArea = (
+    d3: typeof import('d3'),
+    bidArea: d3.Selection<SVGPathElement, unknown, null, undefined> | null,
+    bidPriceLine: d3.Selection<SVGPathElement, unknown, null, undefined> | null,
+    data: PricePoint[],
+    bidTimestamp: number | null,
+    bidPrice: number | null,
+    guessDirection: 'up' | 'down' | null,
+    x: d3.ScaleTime<number, number>,
+    y: d3.ScaleLinear<number, number>,
+    height: number,
+  ) => {
+    if (!bidTimestamp || !bidPrice || !guessDirection || !bidArea) {
+      bidArea?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
+      bidPriceLine?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
+      return
+    }
+
+    // Filter data points after bid timestamp
+    const bidData = data.filter((d) => d.timestamp >= bidTimestamp)
+
+    if (bidData.length === 0) {
+      bidArea?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
+      bidPriceLine?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
+      return
+    }
+
+    // Determine if winning based on current price vs bid price and guess direction
+    const lastPoint = bidData[bidData.length - 1]
+    if (!lastPoint) {
+      bidArea?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
+      bidPriceLine?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
+      return
+    }
+    
+    const currentPrice = lastPoint.price
+    const isWinning = guessDirection === 'up'
+      ? currentPrice > bidPrice
+      : currentPrice < bidPrice
+
+    // Create area generator for bid data
+    const areaGenerator = d3.area<PricePoint>()
+      .x((d) => x(new Date(d.timestamp)))
+      .y0(height)
+      .y1((d) => y(d.price))
+      .curve(d3.curveMonotoneX)
+
+    const newPath = areaGenerator(bidData) || ''
+    const currentPath = bidArea?.attr('d') || ''
+
+    // Update gradient based on winning/losing state
+    const gradientUrl = isWinning
+      ? 'url(#bid-area-gradient-win)'
+      : 'url(#bid-area-gradient-lose)'
+
+    bidArea?.attr('fill', gradientUrl)
+
+    if (currentPath && currentPath !== newPath) {
+      bidArea
+        ?.transition()
+        .duration(TRANSITION_DURATION)
+        .ease(d3.easeCubicOut)
+        .attrTween('d', () => interpolatePath(currentPath, newPath))
+        .style('opacity', 1)
+    }
+    else {
+      bidArea?.attr('d', newPath).style('opacity', 1)
+    }
+
+    // Update bid price line with matching color
+    if (bidPriceLine) {
+      const lineGenerator = d3.line<PricePoint>()
+        .x((d) => x(new Date(d.timestamp)))
+        .y((d) => y(d.price))
+        .curve(d3.curveMonotoneX)
+
+      const newLinePath = lineGenerator(bidData) || ''
+      const currentLinePath = bidPriceLine.attr('d') || ''
+
+      // Update line class based on winning/losing state
+      const lineClass = isWinning
+        ? 'btc-chart-renderer__bid-price-line btc-chart-renderer__bid-price-line--win'
+        : 'btc-chart-renderer__bid-price-line btc-chart-renderer__bid-price-line--lose'
+
+      bidPriceLine.attr('class', lineClass)
+
+      if (currentLinePath && currentLinePath !== newLinePath) {
+        bidPriceLine
+          .transition()
+          .duration(TRANSITION_DURATION)
+          .ease(d3.easeCubicOut)
+          .attrTween('d', () => interpolatePath(currentLinePath, newLinePath))
+          .style('opacity', 1)
+      }
+      else {
+        bidPriceLine.attr('d', newLinePath).style('opacity', 1)
+      }
+    }
+  }
+
   return {
     TRANSITION_DURATION,
     updateScales,
@@ -349,8 +508,12 @@ export const useBtcChartUpdateHelper = () => {
     getLabelPositions,
     updateAverageLine,
     updateBidLine,
+    updateBidMarkerLine,
+    updateBidArea,
     createLineGenerator,
+    createAreaGenerator,
     animatePriceLine,
+    animatePriceArea,
     updateAxes,
     updateMinMaxLabels,
   }

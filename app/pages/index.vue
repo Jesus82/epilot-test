@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { priceData, formattedPrice, status, bidPrice, connect, disconnect } = useBtcPrice()
+const { priceData, formattedPrice, status, setBid, clearBid, connect, disconnect } = useBtcPrice()
 
 // Game logic composable
 const {
@@ -10,7 +10,7 @@ const {
   guessPrice,
   makeGuess,
   cleanup,
-} = useGameLogic(priceData, bidPrice)
+} = useGameLogic(priceData, setBid, clearBid)
 
 onMounted(() => {
   connect()

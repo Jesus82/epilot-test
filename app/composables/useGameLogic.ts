@@ -12,7 +12,8 @@ export interface GameState {
 
 export const useGameLogic = (
   priceData: Ref<BtcPriceData | null>,
-  bidPrice: Ref<number | null>,
+  setBid: (price: number | null, direction: GuessDirection) => void,
+  clearBid: () => void,
 ) => {
   // Game state
   const score = ref(0)
@@ -47,7 +48,7 @@ export const useGameLogic = (
     isLocked.value = false
     guess.value = null
     guessPrice.value = null
-    bidPrice.value = null
+    clearBid()
     countdown.value = 0
   }
 
@@ -80,7 +81,7 @@ export const useGameLogic = (
     isLocked.value = true
     guess.value = direction
     guessPrice.value = priceData.value.price
-    bidPrice.value = priceData.value.price // Set bid marker
+    setBid(priceData.value.price, direction) // Set bid marker with direction
     countdown.value = countdownSeconds
 
     // Start countdown

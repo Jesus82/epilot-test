@@ -8,7 +8,7 @@ import {
   getSampleInterval,
 } from '~/helpers/btcPriceChartHelpers'
 
-const { priceHistory, bidPrice, loadHistoricalData, isLoadingHistory } = useBtcPrice()
+const { priceHistory, price, bidPrice, bidTimestamp, guessDirection, loadHistoricalData, isLoadingHistory } = useBtcPrice()
 
 const selectedRange = ref(5) // Default 5 minutes
 
@@ -55,13 +55,12 @@ const handleHover = (data: PricePoint | null) => {
             {{ range.label }}
           </button>
         </div>
-        <div class="chart-info">
-          <span v-if="isLoadingHistory" class="loading-indicator">Loading...</span>
-          <span class="data-points">{{ sampledPriceHistory.length }} points</span>
-          <span v-if="hoveredData" class="hovered-info">
-            <span class="hovered-price">${{ hoveredData.price.toFixed(2) }}</span>
-            <span class="hovered-time">{{ new Date(hoveredData.timestamp).toLocaleTimeString() }}</span>
-          </span>
+        <div class="flex gap-eighth">
+          <p v-if="isLoadingHistory" class="text-xs font-sans">Loading...</p>
+          <div v-if="hoveredData" class="flex gap-eighth">
+            <span class="text-xs font-sans text-gray-dark">${{ hoveredData.price.toFixed(2) }}</span>
+            <span class="text-xs font-sans text-gray-dark">{{ new Date(hoveredData.timestamp).toLocaleTimeString() }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -70,6 +69,9 @@ const handleHover = (data: PricePoint | null) => {
         :data="sampledPriceHistory"
         :average-price="averagePrice"
         :bid-price="bidPrice"
+        :bid-timestamp="bidTimestamp"
+        :guess-direction="guessDirection"
+        :current-price="price"
         :selected-range="selectedRange"
         @hover="handleHover"
       />
@@ -137,37 +139,6 @@ const handleHover = (data: PricePoint | null) => {
   background: #ffffff;
   color: #2563eb;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-
-.chart-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  font-size: 13px;
-}
-
-.loading-indicator {
-  color: #f59e0b;
-  font-weight: 500;
-}
-
-.data-points {
-  color: #6b7280;
-}
-
-.hovered-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.hovered-price {
-  font-weight: 600;
-  color: #2563eb;
-}
-
-.hovered-time {
-  color: #6b7280;
 }
 
 .chart-container {

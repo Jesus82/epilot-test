@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import type { PricePoint } from '~/types/btc'
+import type { GuessDirection } from '~/composables/useGameLogic'
 
 const props = defineProps<{
   data: PricePoint[]
   averagePrice: number | null
   bidPrice: number | null
+  bidTimestamp: number | null
+  guessDirection: GuessDirection
+  currentPrice: number | null
   selectedRange: number
 }>()
 
@@ -18,8 +22,12 @@ const {
   getLabelPositions,
   updateAverageLine,
   updateBidLine,
+  updateBidMarkerLine,
+  updateBidArea,
   createLineGenerator,
+  createAreaGenerator,
   animatePriceLine,
+  animatePriceArea,
   updateAxes,
   updateMinMaxLabels,
 } = useBtcChartUpdateHelper()
@@ -37,6 +45,10 @@ const {
   createSvgElement,
   createAxisGroups,
   createPriceLine,
+  createPriceAreaGradient,
+  createPriceArea,
+  createBidAreaElements,
+  createBidPriceLine,
   createAverageLineElements,
   createBidLineElements,
   createMinMaxLabelElements,
@@ -51,6 +63,10 @@ const isChartReady = ref(false)
 let svg: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let gridGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let priceLine: d3.Selection<SVGPathElement, unknown, null, undefined> | null = null
+let priceArea: d3.Selection<SVGPathElement, unknown, null, undefined> | null = null
+let bidArea: d3.Selection<SVGPathElement, unknown, null, undefined> | null = null
+let bidPriceLine: d3.Selection<SVGPathElement, unknown, null, undefined> | null = null
+let bidMarkerLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = null
 let avgLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = null
 let avgLabel: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
 let bidLine: d3.Selection<SVGLineElement, unknown, null, undefined> | null = null
@@ -87,6 +103,11 @@ watch([() => props.bidPrice, () => props.averagePrice], () => {
   updateChart()
 })
 
+watch([() => props.bidTimestamp, () => props.guessDirection, () => props.currentPrice], () => {
+  if (!isChartReady.value) return
+  updateChart()
+})
+
 const initChart = async () => {
   if (!chartRef.value) return
 
@@ -102,19 +123,28 @@ const initChart = async () => {
   currentWidth = width
   currentHeight = height
 
-  // Create SVG structure
   const svgResult = createSvgElement(d3, container, containerWidth, containerHeight, margin)
   svgElement = svgResult.svgElement
   svg = svgResult.svg
 
-  // Create axis groups
+
+  createPriceAreaGradient(svgElement)
+
   const axisResult = createAxisGroups(svg, height)
   gridGroup = axisResult.gridGroup
   xAxisGroup = axisResult.xAxisGroup
   yAxisGroup = axisResult.yAxisGroup
 
-  // Create chart elements
+  priceArea = createPriceArea(svg)
+  
+  const bidAreaResult = createBidAreaElements(svg)
+  bidArea = bidAreaResult.bidArea
+  bidMarkerLine = bidAreaResult.bidMarkerLine
+  
   priceLine = createPriceLine(svg)
+  
+  // Create bid price line (green/red) ON TOP of the blue line
+  bidPriceLine = createBidPriceLine(svg)
 
   const avgResult = createAverageLineElements(svg)
   avgLine = avgResult.avgLine
@@ -124,15 +154,12 @@ const initChart = async () => {
   bidLine = bidResult.bidLine
   bidLabel = bidResult.bidLabel
 
-  // Create min/max labels
   const minMaxResult = createMinMaxLabelElements(svg)
   maxLabel = minMaxResult.maxLabel
   minLabel = minMaxResult.minLabel
 
-  // Create crosshair
   crosshairGroup = createCrosshairGroup(svg)
 
-  // Create hover overlay
   hoverOverlay = createHoverOverlay(svg, width, height, handleMouseMove, handleMouseLeave)
 
   isChartReady.value = true
@@ -196,11 +223,16 @@ const updateChart = () => {
   updateGridLines(gridGroup, x, y, yTickValues, xTicks!, width, height)
 
   const line = createLineGenerator(d3, x, y)
+  const area = createAreaGenerator(d3, x, y, height)
+  animatePriceArea(d3, priceArea, area, props.data)
   animatePriceLine(d3, priceLine, line, props.data)
 
   const { avgY, bidY, adjustedAvgY, adjustedBidY } = getLabelPositions(y, props.averagePrice, props.bidPrice, height)
   updateAverageLine(d3, avgLine, avgLabel, props.averagePrice, width, avgY, adjustedAvgY)
   updateBidLine(d3, bidLine, bidLabel, props.bidPrice, width, bidY, adjustedBidY)
+
+  updateBidMarkerLine(d3, bidMarkerLine, props.bidTimestamp, x, height)
+  updateBidArea(d3, bidArea, bidPriceLine, props.data, props.bidTimestamp, props.bidPrice, props.guessDirection, x, y, height)
 
   updateMinMaxLabels(d3, maxLabel, minLabel, props.data, x, y, width, height)
 
@@ -268,11 +300,11 @@ onUnmounted(() => {
 }
 
 :deep(.btc-chart-renderer__label[data-label-variant="average"] rect) {
-  fill: var(--color-blue);
+  fill: var(--color-gray-darkest);
 }
 
 :deep(.btc-chart-renderer__label[data-label-variant="bid"] rect) {
-  fill: var(--color-orange);
+  fill: var(--color-gray-darkest);
 }
 
 :deep(.btc-chart-renderer__label[data-label-variant="max"] rect) {
@@ -280,10 +312,109 @@ onUnmounted(() => {
 }
 
 :deep(.btc-chart-renderer__label[data-label-variant="min"] rect) {
-  fill: var(--color-green);
+  fill: var(--color-blue);
 }
 
 :deep(.btc-chart-renderer__label[data-label-variant="crosshair-time"] text) {
   text-anchor: middle;
+}
+
+:deep(.btc-chart-renderer__price-line) {
+  fill: none;
+  stroke: var(--color-blue);
+  stroke-width: 2;
+}
+
+:deep(.btc-chart-renderer__price-area) {
+  fill: url(#price-area-gradient);
+}
+
+:deep(.btc-chart-renderer__gradient-stop--top) {
+  stop-color: var(--color-blue);
+  stop-opacity: 0.4;
+}
+
+:deep(.btc-chart-renderer__gradient-stop--bottom) {
+  stop-color: var(--color-blue);
+  stop-opacity: 0;
+}
+
+:deep(.btc-chart-renderer__gradient-stop--win-top) {
+  stop-color: var(--color-green);
+  stop-opacity: 0.6;
+}
+
+:deep(.btc-chart-renderer__gradient-stop--win-bottom) {
+  stop-color: var(--color-green);
+  stop-opacity: 0;
+}
+
+:deep(.btc-chart-renderer__gradient-stop--lose-top) {
+  stop-color: var(--color-red);
+  stop-opacity: 0.6;
+}
+
+:deep(.btc-chart-renderer__gradient-stop--lose-bottom) {
+  stop-color: var(--color-red);
+  stop-opacity: 0;
+}
+
+:deep(.btc-chart-renderer__bid-area) {
+  opacity: 0;
+}
+
+:deep(.btc-chart-renderer__bid-marker) {
+  stroke: var(--color-gray-dark);
+  stroke-width: 2;
+  stroke-dasharray: 2 4;
+  opacity: 0;
+}
+
+:deep(.btc-chart-renderer__bid-price-line) {
+  fill: none;
+  stroke-width: 2;
+  opacity: 0;
+}
+
+:deep(.btc-chart-renderer__bid-price-line--win) {
+  stroke: var(--color-green);
+}
+
+:deep(.btc-chart-renderer__bid-price-line--lose) {
+  stroke: var(--color-red);
+}
+
+:deep(.btc-chart-renderer__line) {
+  stroke-width: 2;
+}
+
+:deep(.btc-chart-renderer__line--dashed) {
+  stroke-dasharray: 2 4;
+}
+
+:deep(.btc-chart-renderer__line[data-line-variant="average"]) {
+  stroke: var(--color-gray-darkest);
+}
+
+:deep(.btc-chart-renderer__line[data-line-variant="bid"]) {
+  stroke: var(--color-gray-darkest);
+}
+
+:deep(.btc-chart-renderer__crosshair-line) {
+  stroke: var(--color-gray-dark);
+  stroke-width: 1;
+  stroke-dasharray: 1 2;
+}
+
+:deep(.btc-chart-renderer__crosshair-dot) {
+  r: 4;
+  fill: var(--color-blue);
+  stroke: var(--color-white);
+  stroke-width: 2;
+}
+
+:deep(.btc-chart-renderer__hover-overlay) {
+  fill: transparent;
+  cursor: crosshair;
 }
 </style>

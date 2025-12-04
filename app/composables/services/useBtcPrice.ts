@@ -1,11 +1,15 @@
 /**
  * Unified BTC price composable
  * Re-exports useBtcWS and useBtcHistory for backward compatibility
- * Also provides shared bidPrice state for the chart
+ * Also provides shared bid state for the chart
  */
 
-// Shared bid price state (used for chart marker)
+import type { GuessDirection } from '~/composables/useGameLogic'
+
+// Shared bid state (used for chart marker)
 const bidPrice = ref<number | null>(null)
+const bidTimestamp = ref<number | null>(null)
+const guessDirection = ref<GuessDirection>(null)
 
 export const useBtcPrice = () => {
   const { priceData, price, status, error, isConnected, connect, disconnect } = useBtcWS()
@@ -13,6 +17,18 @@ export const useBtcPrice = () => {
 
   const setBidPrice = (price: number | null) => {
     bidPrice.value = price
+  }
+
+  const setBid = (price: number | null, direction: GuessDirection = null) => {
+    bidPrice.value = price
+    bidTimestamp.value = price ? Date.now() : null
+    guessDirection.value = direction
+  }
+
+  const clearBid = () => {
+    bidPrice.value = null
+    bidTimestamp.value = null
+    guessDirection.value = null
   }
 
   const formattedPrice = computed(() => {
@@ -40,7 +56,11 @@ export const useBtcPrice = () => {
 
     // Local state
     bidPrice,
+    bidTimestamp,
+    guessDirection,
     setBidPrice,
+    setBid,
+    clearBid,
     formattedPrice,
   }
 }
