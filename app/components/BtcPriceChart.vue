@@ -45,7 +45,7 @@ watch(selectedRange, async (newRange) => {
       </div>
       <TimeRangeSelector v-model="selectedRange" />
     </div>
-    <div class="chart-container">
+    <div class="btc-price-chart__wrapper">
       <BtcChartRenderer
         :data="sampledPriceHistory"
         :average-price="averagePrice"
@@ -73,11 +73,12 @@ watch(selectedRange, async (newRange) => {
   gap: var(--spacing-quarter);
 }
 
-.chart-container {
+.btc-price-chart__wrapper {
   position: relative;
   width: 100%;
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-lightest);
+  padding: var(--spacing-quarter) 0;
   border-radius: 4px;
 }
 

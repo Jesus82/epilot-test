@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
+import { flushPromises } from '@vue/test-utils'
 import type { BtcPriceData } from '~/types/btc'
 import { useGameLogic } from '../useGameLogic'
 import type { GuessDirection } from '../useGameLogic'
@@ -172,6 +173,102 @@ describe('useGameLogic', () => {
 
       vi.advanceTimersByTime(3000)
       expect(countdown.value).toBe(6)
+    })
+  })
+
+  describe('price change requirement', () => {
+    it('should not resolve guess if price has not changed after countdown', () => {
+      priceData.value = createPriceData(50000)
+      const { makeGuess, score, isLocked, isMinimumTimePassed, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
+
+      makeGuess('up', 5)
+
+      // Price stays the same
+      vi.advanceTimersByTime(5000)
+
+      // Countdown finished but price hasn't changed
+      expect(isMinimumTimePassed.value).toBe(true)
+      expect(isLocked.value).toBe(true) // Still locked, waiting for price change
+      expect(score.value).toBe(0) // Score not updated yet
+
+      cleanup()
+    })
+
+    it('should resolve guess when price changes after minimum time passed', async () => {
+      priceData.value = createPriceData(50000)
+      const { makeGuess, score, isLocked, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
+
+      makeGuess('up', 5)
+
+      // Countdown finishes, price still same
+      vi.advanceTimersByTime(5000)
+      expect(isLocked.value).toBe(true)
+      expect(score.value).toBe(0)
+
+      // Now price changes - should trigger resolution
+      priceData.value = createPriceData(50100)
+      await flushPromises()
+
+      expect(isLocked.value).toBe(false)
+      expect(score.value).toBe(1)
+
+      cleanup()
+    })
+
+    it('should resolve immediately if price already changed when countdown ends', () => {
+      priceData.value = createPriceData(50000)
+      const { makeGuess, score, isLocked, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
+
+      makeGuess('up', 5)
+
+      // Price changes before countdown ends
+      priceData.value = createPriceData(50100)
+
+      // Countdown finishes
+      vi.advanceTimersByTime(5000)
+
+      // Should resolve immediately since price already changed
+      expect(isLocked.value).toBe(false)
+      expect(score.value).toBe(1)
+
+      cleanup()
+    })
+
+    it('should correctly calculate earnings when price changes after countdown', async () => {
+      priceData.value = createPriceData(50000)
+      const { makeGuess, totalEarnings, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
+
+      makeGuess('up', 5)
+
+      // Countdown finishes with no price change
+      vi.advanceTimersByTime(5000)
+
+      // Price changes after countdown
+      priceData.value = createPriceData(50300)
+      await flushPromises()
+
+      expect(totalEarnings.value).toBe(300)
+
+      cleanup()
+    })
+
+    it('should handle hasPriceChanged correctly', () => {
+      priceData.value = createPriceData(50000)
+      const { makeGuess, hasPriceChanged, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
+
+      // No active bid
+      expect(hasPriceChanged()).toBe(false)
+
+      makeGuess('up', 5)
+
+      // Price same as bid
+      expect(hasPriceChanged()).toBe(false)
+
+      // Price changes
+      priceData.value = createPriceData(50100)
+      expect(hasPriceChanged()).toBe(true)
+
+      cleanup()
     })
   })
 
@@ -477,6 +574,234 @@ describe('useGameLogic', () => {
       }
 
       expect(score.value).toBe(-3)
+      cleanup()
+    })
+  })
+
+  describe('calculateEarnings', () => {
+    it('should return positive earnings for correct UP guess', () => {
+      const { calculateEarnings } = useGameLogic(priceData, setBidMock, clearBidMock)
+      // Guessed up, price went from 50000 to 50200 = +200
+      expect(calculateEarnings('up', 50000, 50200)).toBe(200)
+    })
+
+    it('should return negative earnings for incorrect UP guess', () => {
+      const { calculateEarnings } = useGameLogic(priceData, setBidMock, clearBidMock)
+      // Guessed up, price went from 50000 to 49700 = -300
+      expect(calculateEarnings('up', 50000, 49700)).toBe(-300)
+    })
+
+    it('should return positive earnings for correct DOWN guess', () => {
+      const { calculateEarnings } = useGameLogic(priceData, setBidMock, clearBidMock)
+      // Guessed down, price went from 50000 to 49700 = +300
+      expect(calculateEarnings('down', 50000, 49700)).toBe(300)
+    })
+
+    it('should return negative earnings for incorrect DOWN guess', () => {
+      const { calculateEarnings } = useGameLogic(priceData, setBidMock, clearBidMock)
+      // Guessed down, price went from 50000 to 50200 = -200
+      expect(calculateEarnings('down', 50000, 50200)).toBe(-200)
+    })
+
+    it('should return 0 when price stays the same', () => {
+      const { calculateEarnings } = useGameLogic(priceData, setBidMock, clearBidMock)
+      expect(calculateEarnings('up', 50000, 50000)).toBe(0)
+      expect(calculateEarnings('down', 50000, 50000)).toBe(-0) // -0 is mathematically equal to 0
+    })
+  })
+
+  describe('stats tracking', () => {
+    it('should have initial stats at 0', () => {
+      const { currentStreak, longestStreak, totalWins, totalLosses, totalEarnings } = useGameLogic(priceData, setBidMock, clearBidMock)
+
+      expect(currentStreak.value).toBe(0)
+      expect(longestStreak.value).toBe(0)
+      expect(totalWins.value).toBe(0)
+      expect(totalLosses.value).toBe(0)
+      expect(totalEarnings.value).toBe(0)
+    })
+
+    it('should update streak on consecutive wins', () => {
+      priceData.value = createPriceData(50000)
+      const { makeGuess, currentStreak, longestStreak, totalWins, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
+
+      // Win 1
+      makeGuess('up', 1)
+      priceData.value = createPriceData(50100)
+      vi.advanceTimersByTime(1000)
+
+      expect(currentStreak.value).toBe(1)
+      expect(longestStreak.value).toBe(1)
+      expect(totalWins.value).toBe(1)
+
+      // Win 2
+      priceData.value = createPriceData(50000)
+      makeGuess('up', 1)
+      priceData.value = createPriceData(50100)
+      vi.advanceTimersByTime(1000)
+
+      expect(currentStreak.value).toBe(2)
+      expect(longestStreak.value).toBe(2)
+      expect(totalWins.value).toBe(2)
+
+      cleanup()
+    })
+
+    it('should reset current streak on loss but keep longest streak', () => {
+      priceData.value = createPriceData(50000)
+      const { makeGuess, currentStreak, longestStreak, totalLosses, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
+
+      // Win 3 times to build streak
+      for (let i = 0; i < 3; i++) {
+        priceData.value = createPriceData(50000)
+        makeGuess('up', 1)
+        priceData.value = createPriceData(50100)
+        vi.advanceTimersByTime(1000)
+      }
+
+      expect(currentStreak.value).toBe(3)
+      expect(longestStreak.value).toBe(3)
+
+      // Lose once
+      priceData.value = createPriceData(50000)
+      makeGuess('up', 1)
+      priceData.value = createPriceData(49900) // Price goes down
+      vi.advanceTimersByTime(1000)
+
+      expect(currentStreak.value).toBe(0)
+      expect(longestStreak.value).toBe(3) // Longest streak preserved
+      expect(totalLosses.value).toBe(1)
+
+      cleanup()
+    })
+
+    it('should accumulate total earnings', () => {
+      priceData.value = createPriceData(50000)
+      const { makeGuess, totalEarnings, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
+
+      // Win +200
+      makeGuess('up', 1)
+      priceData.value = createPriceData(50200)
+      vi.advanceTimersByTime(1000)
+
+      expect(totalEarnings.value).toBe(200)
+
+      // Lose -300
+      priceData.value = createPriceData(50000)
+      makeGuess('up', 1)
+      priceData.value = createPriceData(49700)
+      vi.advanceTimersByTime(1000)
+
+      expect(totalEarnings.value).toBe(-100) // 200 - 300 = -100
+
+      cleanup()
+    })
+
+    it('should create lastBidResult on bid completion', () => {
+      priceData.value = createPriceData(50000)
+      const { makeGuess, lastBidResult, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
+
+      makeGuess('up', 1)
+      priceData.value = createPriceData(50200)
+      vi.advanceTimersByTime(1000)
+
+      expect(lastBidResult.value).not.toBeNull()
+      expect(lastBidResult.value?.direction).toBe('up')
+      expect(lastBidResult.value?.bidPrice).toBe(50000)
+      expect(lastBidResult.value?.finalPrice).toBe(50200)
+      expect(lastBidResult.value?.earnings).toBe(200)
+      expect(lastBidResult.value?.won).toBe(true)
+      expect(lastBidResult.value?.timestamp).toBeGreaterThan(0)
+
+      cleanup()
+    })
+
+    it('should call onBidComplete callback when provided', () => {
+      priceData.value = createPriceData(50000)
+      const onBidComplete = vi.fn()
+      const { makeGuess, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock, onBidComplete)
+
+      makeGuess('up', 1)
+      priceData.value = createPriceData(50200)
+      vi.advanceTimersByTime(1000)
+
+      expect(onBidComplete).toHaveBeenCalledTimes(1)
+      expect(onBidComplete).toHaveBeenCalledWith(expect.objectContaining({
+        direction: 'up',
+        bidPrice: 50000,
+        finalPrice: 50200,
+        earnings: 200,
+        won: true,
+      }))
+
+      cleanup()
+    })
+  })
+
+  describe('potentialEarnings', () => {
+    it('should return 0 when no active bid', () => {
+      priceData.value = createPriceData(50000)
+      const { potentialEarnings } = useGameLogic(priceData, setBidMock, clearBidMock)
+
+      expect(potentialEarnings.value).toBe(0)
+    })
+
+    it('should calculate potential earnings during active bid', () => {
+      priceData.value = createPriceData(50000)
+      const { makeGuess, potentialEarnings, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
+
+      makeGuess('up', 10)
+
+      // Price goes up
+      priceData.value = createPriceData(50150)
+      expect(potentialEarnings.value).toBe(150)
+
+      // Price goes down
+      priceData.value = createPriceData(49800)
+      expect(potentialEarnings.value).toBe(-200)
+
+      cleanup()
+    })
+  })
+
+  describe('loadStats and getStats', () => {
+    it('should load stats from external source', () => {
+      const { loadStats, currentStreak, longestStreak, totalWins, totalLosses, totalEarnings } = useGameLogic(priceData, setBidMock, clearBidMock)
+
+      loadStats({
+        currentStreak: 5,
+        longestStreak: 10,
+        totalWins: 25,
+        totalLosses: 15,
+        totalEarnings: 5000,
+      })
+
+      expect(currentStreak.value).toBe(5)
+      expect(longestStreak.value).toBe(10)
+      expect(totalWins.value).toBe(25)
+      expect(totalLosses.value).toBe(15)
+      expect(totalEarnings.value).toBe(5000)
+    })
+
+    it('should get stats as plain object', () => {
+      priceData.value = createPriceData(50000)
+      const { makeGuess, getStats, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
+
+      // Make a winning bet
+      makeGuess('up', 1)
+      priceData.value = createPriceData(50100)
+      vi.advanceTimersByTime(1000)
+
+      const stats = getStats()
+
+      expect(stats).toEqual({
+        currentStreak: 1,
+        longestStreak: 1,
+        totalWins: 1,
+        totalLosses: 0,
+        totalEarnings: 100,
+      })
+
       cleanup()
     })
   })
