@@ -92,9 +92,9 @@ describe('useGameLogic', () => {
   describe('makeGuess', () => {
     it('should not make guess if priceData is null', () => {
       const { makeGuess, isLocked, guess } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up')
-      
+
       expect(isLocked.value).toBe(false)
       expect(guess.value).toBeNull()
     })
@@ -102,10 +102,10 @@ describe('useGameLogic', () => {
     it('should not make guess if already locked', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, isLocked, guess } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up')
       expect(guess.value).toBe('up')
-      
+
       // Try to make another guess while locked
       makeGuess('down')
       expect(guess.value).toBe('up') // Should still be 'up'
@@ -114,7 +114,7 @@ describe('useGameLogic', () => {
     it('should lock the game when guess is made', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, isLocked } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       expect(isLocked.value).toBe(false)
       makeGuess('up')
       expect(isLocked.value).toBe(true)
@@ -123,7 +123,7 @@ describe('useGameLogic', () => {
     it('should set guess direction', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, guess } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('down')
       expect(guess.value).toBe('down')
     })
@@ -131,7 +131,7 @@ describe('useGameLogic', () => {
     it('should record the current price as guessPrice', () => {
       priceData.value = createPriceData(42500)
       const { makeGuess, guessPrice } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up')
       expect(guessPrice.value).toBe(42500)
     })
@@ -139,7 +139,7 @@ describe('useGameLogic', () => {
     it('should call setBid with current price and direction', () => {
       priceData.value = createPriceData(42500)
       const { makeGuess } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up')
       expect(setBidMock).toHaveBeenCalledWith(42500, 'up')
     })
@@ -147,7 +147,7 @@ describe('useGameLogic', () => {
     it('should set countdown to specified seconds', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, countdown } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up', 30)
       expect(countdown.value).toBe(30)
     })
@@ -155,7 +155,7 @@ describe('useGameLogic', () => {
     it('should default countdown to 60 seconds', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, countdown } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up')
       expect(countdown.value).toBe(60)
     })
@@ -163,13 +163,13 @@ describe('useGameLogic', () => {
     it('should decrement countdown every second', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, countdown } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up', 10)
       expect(countdown.value).toBe(10)
-      
+
       vi.advanceTimersByTime(1000)
       expect(countdown.value).toBe(9)
-      
+
       vi.advanceTimersByTime(3000)
       expect(countdown.value).toBe(6)
     })
@@ -179,15 +179,15 @@ describe('useGameLogic', () => {
     it('should increment score for correct UP guess', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, score, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up', 5)
-      
+
       // Price goes up
       priceData.value = createPriceData(50500)
-      
+
       // Wait for countdown to complete
       vi.advanceTimersByTime(5000)
-      
+
       expect(score.value).toBe(1)
       cleanup()
     })
@@ -195,14 +195,14 @@ describe('useGameLogic', () => {
     it('should decrement score for incorrect UP guess', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, score, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up', 5)
-      
+
       // Price goes down
       priceData.value = createPriceData(49500)
-      
+
       vi.advanceTimersByTime(5000)
-      
+
       expect(score.value).toBe(-1)
       cleanup()
     })
@@ -210,14 +210,14 @@ describe('useGameLogic', () => {
     it('should increment score for correct DOWN guess', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, score, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('down', 5)
-      
+
       // Price goes down
       priceData.value = createPriceData(49500)
-      
+
       vi.advanceTimersByTime(5000)
-      
+
       expect(score.value).toBe(1)
       cleanup()
     })
@@ -225,14 +225,14 @@ describe('useGameLogic', () => {
     it('should decrement score for incorrect DOWN guess', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, score, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('down', 5)
-      
+
       // Price goes up
       priceData.value = createPriceData(50500)
-      
+
       vi.advanceTimersByTime(5000)
-      
+
       expect(score.value).toBe(-1)
       cleanup()
     })
@@ -240,27 +240,27 @@ describe('useGameLogic', () => {
     it('should accumulate score across multiple guesses', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, score, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       // First guess - correct
       makeGuess('up', 2)
       priceData.value = createPriceData(50500)
       vi.advanceTimersByTime(2000)
       expect(score.value).toBe(1)
-      
+
       // Second guess - correct
       priceData.value = createPriceData(50500)
       makeGuess('down', 2)
       priceData.value = createPriceData(50000)
       vi.advanceTimersByTime(2000)
       expect(score.value).toBe(2)
-      
+
       // Third guess - incorrect
       priceData.value = createPriceData(50000)
       makeGuess('up', 2)
       priceData.value = createPriceData(49000)
       vi.advanceTimersByTime(2000)
       expect(score.value).toBe(1)
-      
+
       cleanup()
     })
   })
@@ -269,13 +269,13 @@ describe('useGameLogic', () => {
     it('should unlock after guess is checked', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, isLocked, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up', 2)
       expect(isLocked.value).toBe(true)
-      
+
       priceData.value = createPriceData(50500)
       vi.advanceTimersByTime(2000)
-      
+
       expect(isLocked.value).toBe(false)
       cleanup()
     })
@@ -283,13 +283,13 @@ describe('useGameLogic', () => {
     it('should reset guess to null after checking', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, guess, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up', 2)
       expect(guess.value).toBe('up')
-      
+
       priceData.value = createPriceData(50500)
       vi.advanceTimersByTime(2000)
-      
+
       expect(guess.value).toBeNull()
       cleanup()
     })
@@ -297,13 +297,13 @@ describe('useGameLogic', () => {
     it('should reset guessPrice to null after checking', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, guessPrice, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up', 2)
       expect(guessPrice.value).toBe(50000)
-      
+
       priceData.value = createPriceData(50500)
       vi.advanceTimersByTime(2000)
-      
+
       expect(guessPrice.value).toBeNull()
       cleanup()
     })
@@ -311,13 +311,13 @@ describe('useGameLogic', () => {
     it('should call clearBid after checking', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up', 2)
       expect(setBidMock).toHaveBeenCalledWith(50000, 'up')
-      
+
       priceData.value = createPriceData(50500)
       vi.advanceTimersByTime(2000)
-      
+
       expect(clearBidMock).toHaveBeenCalled()
       cleanup()
     })
@@ -325,12 +325,12 @@ describe('useGameLogic', () => {
     it('should reset countdown to 0 after checking', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, countdown, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up', 10)
-      
+
       vi.advanceTimersByTime(5000)
       expect(countdown.value).toBe(5)
-      
+
       // Complete the countdown
       vi.advanceTimersByTime(5000)
       expect(countdown.value).toBe(0)
@@ -342,18 +342,18 @@ describe('useGameLogic', () => {
     it('should reset all game state', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, cancelGuess, isLocked, guess, guessPrice, countdown } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up', 60)
       vi.advanceTimersByTime(5000)
-      
+
       expect(isLocked.value).toBe(true)
       expect(guess.value).toBe('up')
       expect(guessPrice.value).toBe(50000)
       expect(countdown.value).toBe(55)
       expect(setBidMock).toHaveBeenCalledWith(50000, 'up')
-      
+
       cancelGuess()
-      
+
       expect(isLocked.value).toBe(false)
       expect(guess.value).toBeNull()
       expect(guessPrice.value).toBeNull()
@@ -364,14 +364,14 @@ describe('useGameLogic', () => {
     it('should stop the countdown interval', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, cancelGuess, countdown } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up', 60)
       vi.advanceTimersByTime(5000)
       expect(countdown.value).toBe(55)
-      
+
       cancelGuess()
       expect(countdown.value).toBe(0)
-      
+
       // Advance time - countdown should not change
       vi.advanceTimersByTime(5000)
       expect(countdown.value).toBe(0)
@@ -380,18 +380,18 @@ describe('useGameLogic', () => {
     it('should not affect score', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, cancelGuess, score } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       // First get a point
       makeGuess('up', 2)
       priceData.value = createPriceData(50500)
       vi.advanceTimersByTime(2000)
       expect(score.value).toBe(1)
-      
+
       // Start another guess and cancel
       priceData.value = createPriceData(50500)
       makeGuess('down', 60)
       cancelGuess()
-      
+
       // Score should remain unchanged
       expect(score.value).toBe(1)
     })
@@ -401,13 +401,13 @@ describe('useGameLogic', () => {
     it('should clear the countdown interval', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, cleanup, countdown } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up', 60)
       vi.advanceTimersByTime(5000)
       expect(countdown.value).toBe(55)
-      
+
       cleanup()
-      
+
       // Advance time - countdown should not change after cleanup
       vi.advanceTimersByTime(10000)
       expect(countdown.value).toBe(55) // Stays at 55, interval was cleared
@@ -416,9 +416,9 @@ describe('useGameLogic', () => {
     it('should be safe to call multiple times', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up', 60)
-      
+
       // Should not throw
       expect(() => {
         cleanup()
@@ -429,7 +429,7 @@ describe('useGameLogic', () => {
 
     it('should be safe to call when no guess is active', () => {
       const { cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       expect(() => cleanup()).not.toThrow()
     })
   })
@@ -437,7 +437,7 @@ describe('useGameLogic', () => {
   describe('edge cases', () => {
     it('should handle checkGuess being called manually when no guess is active', () => {
       const { checkGuess, score } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       // Should not throw and should not change score
       expect(() => checkGuess()).not.toThrow()
       expect(score.value).toBe(0)
@@ -445,7 +445,7 @@ describe('useGameLogic', () => {
 
     it('should handle very small price differences', () => {
       const { evaluateGuess } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       expect(evaluateGuess('up', 50000.00, 50000.01)).toBe(true)
       expect(evaluateGuess('down', 50000.00, 49999.99)).toBe(true)
     })
@@ -453,13 +453,13 @@ describe('useGameLogic', () => {
     it('should handle large price swings', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, score, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       makeGuess('up', 2)
-      
+
       // Major price increase
       priceData.value = createPriceData(100000)
       vi.advanceTimersByTime(2000)
-      
+
       expect(score.value).toBe(1)
       cleanup()
     })
@@ -467,7 +467,7 @@ describe('useGameLogic', () => {
     it('should handle negative scores', () => {
       priceData.value = createPriceData(50000)
       const { makeGuess, score, cleanup } = useGameLogic(priceData, setBidMock, clearBidMock)
-      
+
       // Make 3 incorrect guesses
       for (let i = 0; i < 3; i++) {
         priceData.value = createPriceData(50000)
@@ -475,7 +475,7 @@ describe('useGameLogic', () => {
         priceData.value = createPriceData(49000) // Price goes down
         vi.advanceTimersByTime(1000)
       }
-      
+
       expect(score.value).toBe(-3)
       cleanup()
     })

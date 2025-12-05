@@ -45,10 +45,22 @@ const handleHover = (data: PricePoint | null) => {
     <div class="chart-header">
       <div class="flex gap-eighth">
         <div class="flex gap-fourth items-center">
-          <p v-if="isLoadingHistory" class="text-xs font-sans">Loading...</p>
-          <div v-if="hoveredData" class="flex gap-eighth">
-            <p class="text-xs font-sans text-gray-dark">${{ hoveredData.price.toFixed(2) }}</p>
-            <p class="text-xs font-sans text-gray-dark">{{ new Date(hoveredData.timestamp).toLocaleTimeString() }}</p>
+          <p
+            v-if="isLoadingHistory"
+            class="text-xs font-sans"
+          >
+            Loading...
+          </p>
+          <div
+            v-if="hoveredData"
+            class="flex gap-eighth"
+          >
+            <p class="text-xs font-sans text-gray-dark">
+              ${{ hoveredData.price.toFixed(2) }}
+            </p>
+            <p class="text-xs font-sans text-gray-dark">
+              {{ new Date(hoveredData.timestamp).toLocaleTimeString() }}
+            </p>
           </div>
         </div>
         <div class="time-range-selector">
@@ -74,7 +86,10 @@ const handleHover = (data: PricePoint | null) => {
         :selected-range="selectedRange"
         @hover="handleHover"
       />
-      <div v-if="isLoadingHistory" class="chart-loading-overlay">
+      <div
+        v-if="isLoadingHistory"
+        class="chart-loading-overlay"
+      >
         <span>Loading historical data...</span>
       </div>
     </div>
@@ -82,7 +97,6 @@ const handleHover = (data: PricePoint | null) => {
 </template>
 
 <style scoped>
-
 .time-range-selector {
   display: flex;
   gap: 4px;

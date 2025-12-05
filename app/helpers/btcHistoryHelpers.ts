@@ -22,7 +22,7 @@ export const getMaxPointsForRange = (minutes: number): number => {
  * Get Binance kline API parameters based on time range
  * Returns appropriate interval and limit for the API call
  */
-export const getKlineParams = (minutes: number): { interval: string; limit: number } => {
+export const getKlineParams = (minutes: number): { interval: string, limit: number } => {
   let interval: string
   let limit: number
 

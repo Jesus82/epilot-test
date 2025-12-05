@@ -244,8 +244,8 @@ export const useBtcChartUpdateHelper = () => {
     y: d3.ScaleLinear<number, number>,
   ) => {
     return d3.line<PricePoint>()
-      .x((d) => x(new Date(d.timestamp)))
-      .y((d) => y(d.price))
+      .x(d => x(new Date(d.timestamp)))
+      .y(d => y(d.price))
       .curve(d3.curveMonotoneX)
   }
 
@@ -256,9 +256,9 @@ export const useBtcChartUpdateHelper = () => {
     height: number,
   ) => {
     return d3.area<PricePoint>()
-      .x((d) => x(new Date(d.timestamp)))
+      .x(d => x(new Date(d.timestamp)))
       .y0(height)
-      .y1((d) => y(d.price))
+      .y1(d => y(d.price))
       .curve(d3.curveMonotoneX)
   }
 
@@ -316,7 +316,7 @@ export const useBtcChartUpdateHelper = () => {
     xAxisGroup?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).call(
       d3.axisBottom(x)
         .ticks(xTicks)
-        .tickFormat((d) => d3.timeFormat('%H:%M')(d as Date)),
+        .tickFormat(d => d3.timeFormat('%H:%M')(d as Date)),
     )
 
     yAxisGroup?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).call(
@@ -445,8 +445,8 @@ export const useBtcChartUpdateHelper = () => {
     }
 
     // Filter data points after bid timestamp and prepend exact bid point
-    const filteredData = data.filter((d) => d.timestamp >= bidTimestamp)
-    
+    const filteredData = data.filter(d => d.timestamp >= bidTimestamp)
+
     // Prepend the exact bid point to ensure the line/area starts at the bid price
     const bidData: PricePoint[] = [
       { timestamp: bidTimestamp, price: bidPrice },
@@ -466,7 +466,7 @@ export const useBtcChartUpdateHelper = () => {
       bidPriceLine?.transition().duration(TRANSITION_DURATION).ease(d3.easeCubicOut).style('opacity', 0)
       return
     }
-    
+
     const currentPrice = lastPoint.price
     const isWinning = guessDirection === 'up'
       ? currentPrice > bidPrice
@@ -474,9 +474,9 @@ export const useBtcChartUpdateHelper = () => {
 
     // Create area generator for bid data
     const areaGenerator = d3.area<PricePoint>()
-      .x((d) => x(new Date(d.timestamp)))
+      .x(d => x(new Date(d.timestamp)))
       .y0(height)
-      .y1((d) => y(d.price))
+      .y1(d => y(d.price))
       .curve(d3.curveMonotoneX)
 
     const newPath = areaGenerator(bidData) || ''
@@ -504,8 +504,8 @@ export const useBtcChartUpdateHelper = () => {
     // Update bid price line with matching color
     if (bidPriceLine) {
       const lineGenerator = d3.line<PricePoint>()
-        .x((d) => x(new Date(d.timestamp)))
-        .y((d) => y(d.price))
+        .x(d => x(new Date(d.timestamp)))
+        .y(d => y(d.price))
         .curve(d3.curveMonotoneX)
 
       const newLinePath = lineGenerator(bidData) || ''

@@ -5,7 +5,6 @@ import { calculatePriceLabelPosition } from '~/helpers/btcChartHelpers'
 const LABEL_PADDING_X = 5
 
 export const useBtcChartMouseHelper = () => {
-
   // Helper to set label background width (height/y/text position handled by CSS)
   const setLabelWidth = (
     label: d3.Selection<Element, unknown, null, undefined>,

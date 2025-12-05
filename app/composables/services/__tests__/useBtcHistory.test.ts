@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+// Import the actual composable - this will use the real helper functions
+import { useBtcHistory } from '../useBtcHistory'
+
 // Mock fetch before importing the composable
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
-
-// Import the actual composable - this will use the real helper functions
-import { useBtcHistory } from '../useBtcHistory'
 
 describe('useBtcHistory', () => {
   let btcHistory: ReturnType<typeof useBtcHistory>

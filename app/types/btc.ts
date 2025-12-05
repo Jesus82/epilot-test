@@ -1,7 +1,7 @@
 /**
  * Price point for chart data
  */
-export type PricePoint = { timestamp: number; price: number }
+export type PricePoint = { timestamp: number, price: number }
 
 /**
  * Simplified BTC price data for the app

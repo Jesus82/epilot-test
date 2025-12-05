@@ -128,7 +128,6 @@ const initChart = async () => {
   svgElement = svgResult.svgElement
   svg = svgResult.svg
 
-
   createPriceAreaGradient(svgElement)
 
   const axisResult = createAxisGroups(svg, height)
@@ -137,12 +136,12 @@ const initChart = async () => {
   yAxisGroup = axisResult.yAxisGroup
 
   priceArea = createPriceArea(svg)
-  
+
   const bidAreaResult = createBidAreaElements(svg)
   bidArea = bidAreaResult.bidArea
-  
+
   priceLine = createPriceLine(svg)
-  
+
   // Create bid price line (green/red) ON TOP of the blue line
   bidPriceLine = createBidPriceLine(svg)
 
@@ -260,7 +259,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="chartRef" class="btc-chart-renderer" />
+  <div
+    ref="chartRef"
+    class="btc-chart-renderer"
+  />
 </template>
 
 <style scoped>

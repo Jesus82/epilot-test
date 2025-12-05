@@ -31,7 +31,7 @@ export const calculateLabelCollision = (
   bidYPosition: number | null,
   height: number,
   labelHeight: number = 18,
-): { adjustedAvgY: number | null; adjustedBidY: number | null } => {
+): { adjustedAvgY: number | null, adjustedBidY: number | null } => {
   const labelCollisionThreshold = labelHeight + 2
 
   let adjustedAvgY = avgYPosition
@@ -63,7 +63,7 @@ export const calculateLabelCollision = (
 
 export const findMinMaxPoints = (
   data: PricePoint[],
-): { minPoint: PricePoint | null; maxPoint: PricePoint | null } => {
+): { minPoint: PricePoint | null, maxPoint: PricePoint | null } => {
   if (data.length === 0) return { minPoint: null, maxPoint: null }
 
   let minPoint = data[0]!
@@ -113,7 +113,7 @@ export const calculateMinMaxLabelPosition = (
   width: number,
   height: number,
   type: 'min' | 'max',
-): { labelX: number; labelY: number } => {
+): { labelX: number, labelY: number } => {
   // Position label: prefer right side of point, but flip to left if near edge
   let labelX = pointX + 4
   if (labelX + totalLabelWidth > width) {
