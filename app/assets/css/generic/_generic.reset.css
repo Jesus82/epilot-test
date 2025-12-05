@@ -6,8 +6,6 @@
  * A very simple reset that sits on top of Normalize.css.
  */
 
-/* purgecss start ignore */
-
 body,
 h1, h2, h3, h4, h5, h6,
 blockquote, p, pre,
@@ -53,4 +51,17 @@ fieldset {
   border: 0;
 }
 
-/* purgecss end ignore */
+/**
+ * Show scrollbars only when they’re needed (while keeping space for the scrollbar if it’s added  * later) https://www.zachleat.com/web/stable-scrollbar-gutters/
+ */
+
+html {
+	overflow-y: scroll;
+}
+
+@supports (scrollbar-gutter: stable) {
+	html {
+		overflow-y: auto;
+		scrollbar-gutter: stable;
+	}
+}
