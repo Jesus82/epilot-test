@@ -1,5 +1,8 @@
 <script setup lang="ts">
-const { priceData, price, formattedPrice, status, setBid, clearBid, connect, disconnect } = useBtcPrice()
+import { calculateYDomain } from '~/helpers/btcChartHelpers'
+import { filterByTimeRange } from '~/helpers/btcPriceChartHelpers'
+
+const { priceData, price, formatPrice, status, priceHistory, setBid, clearBid, connect, disconnect } = useBtcPrice()
 
 // Game logic composable
 const {
@@ -8,9 +11,25 @@ const {
   isLocked,
   countdown,
   guessPrice,
+  isWinning,
   makeGuess,
   cleanup,
 } = useGameLogic(priceData, setBid, clearBid)
+
+// Track selected range (default 5 minutes, same as chart)
+const selectedRange = ref(5)
+
+const yDomain = computed(() => {
+  const filteredData = filterByTimeRange(priceHistory.value, selectedRange.value)
+  return calculateYDomain(filteredData)
+})
+
+const bidToPriceDifference = computed(() => {
+  if (guessPrice.value && price.value) {
+    return price.value - guessPrice.value
+  }
+  return null
+})
 
 onMounted(() => {
   connect()
@@ -36,11 +55,61 @@ onUnmounted(() => {
     <ClientOnly fallback-tag="div">
       <BtcPriceChart />
 
-      <div class="grid grid-cols-3">
-        <div class="flex justify-center items-center">
-          <p class="font-display text-3xl">
+      <div class="grid grid-cols-3 py-second">
+        <div class="flex justify-center items-center gap-half">
+          <p
+            v-if="countdown"
+            class="font-display text-3xl"
+          >
             {{ countdown }}s
           </p>
+          <BidProgressBar
+            v-if="isLocked && guessPrice && price && guess"
+            :bid-price="guessPrice"
+            :current-price="price"
+            :is-winning="isWinning"
+            :y-min="yDomain.yMin"
+            :y-max="yDomain.yMax"
+          />
+          <div class="grid grid-rows-3">
+            <p
+              v-if="isLocked && bidToPriceDifference"
+              :class="[
+                'font-display text-lg',
+                isWinning
+                  ? 'text-green'
+                  : 'text-red',
+                bidToPriceDifference >= 0
+                  ? 'row-start-1'
+                  : 'row-start-3',
+              ]"
+            >
+              {{ bidToPriceDifference > 0 ? '+' : '' }}{{ formatPrice(bidToPriceDifference) }}
+            </p>
+            <p
+              v-if="guessPrice"
+              class="font-display text-lg text-gray-dark row-start-2"
+            >
+              Your bid: <span
+                :class="[
+                  'font-display text-lg',
+                  isWinning
+                    ? 'text-green'
+                    : 'text-red',
+                ]"
+              >{{ formatPrice(guessPrice) }} <span
+                v-if="guess === 'up'"
+              >⬆</span><span
+                v-else
+                :class="[
+                  'font-display text-lg',
+                  isWinning
+                    ? 'text-green'
+                    : 'text-red',
+                ]"
+              >⬇</span></span>
+            </p>
+          </div>
         </div>
         <div class="col-start-2 flex flex-col p-second">
           <div class="flex justify-center gap-half">
@@ -63,24 +132,6 @@ onUnmounted(() => {
               <span>⬇</span>
               <span>DOWN</span>
             </button>
-          </div>
-
-          <div
-            v-if="isLocked"
-            class="flex flex-col items-center"
-          >
-            <p
-              v-if="guessPrice"
-              class="font-display text-lg text-gray-dark"
-            >
-              Current Price <span class="text-xl text-gray-darkest">{{ formattedPrice ?? 'Loading...' }}</span>
-            </p>
-            <p
-              v-if="guessPrice && price"
-              class="font-display text-xl"
-            >
-              Your bet is {{ guess }} at {{ guessPrice?.toFixed(2) }} ({{ (price - guessPrice).toFixed(2) }})
-            </p>
           </div>
         </div>
       </div>

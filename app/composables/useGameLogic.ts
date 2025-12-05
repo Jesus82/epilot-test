@@ -102,6 +102,16 @@ export const useGameLogic = (
   }
 
   /**
+   * Computed that determines if the current bet is winning
+   */
+  const isWinning = computed(() => {
+    if (!guess.value || !guessPrice.value || !priceData.value) return false
+
+    const difference = priceData.value.price - guessPrice.value
+    return guess.value === 'up' ? difference > 0 : difference < 0
+  })
+
+  /**
    * Cleanup function to be called on unmount
    */
   const cleanup = () => {
@@ -118,6 +128,7 @@ export const useGameLogic = (
     isLocked,
     countdown,
     guessPrice,
+    isWinning,
 
     // Actions
     makeGuess,

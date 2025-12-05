@@ -4,6 +4,7 @@ import {
   calculateMinMaxLabelPosition,
   calculateNiceStep,
   calculatePriceLabelPosition,
+  calculateYDomain,
   findMinMaxPoints,
   getTimeIntervalMinutes,
 } from '~/helpers/btcChartHelpers'
@@ -284,6 +285,51 @@ describe('btcChartHelpers', () => {
 
         expect(result.labelY).toBe(283) // pointY - 12
       })
+    })
+  })
+
+  describe('calculateYDomain', () => {
+    it('returns default values for empty data', () => {
+      const result = calculateYDomain([])
+      expect(result).toEqual({ yMin: 0, yMax: 100 })
+    })
+
+    it('calculates domain with nice step values', () => {
+      const data: PricePoint[] = [
+        { price: 95050, timestamp: 1000 },
+        { price: 95100, timestamp: 2000 },
+        { price: 95150, timestamp: 3000 },
+      ]
+      const result = calculateYDomain(data)
+
+      // Range is 100, step should be 10
+      // yMin = floor(95050/10)*10 - 10 = 95040
+      // yMax = ceil(95150/10)*10 + 10 = 95160
+      expect(result.yMin).toBeLessThanOrEqual(95050)
+      expect(result.yMax).toBeGreaterThanOrEqual(95150)
+      expect(result.yMax - result.yMin).toBeGreaterThan(100)
+    })
+
+    it('handles single data point', () => {
+      const data: PricePoint[] = [
+        { price: 95000, timestamp: 1000 },
+      ]
+      const result = calculateYDomain(data)
+
+      expect(result.yMin).toBeLessThan(95000)
+      expect(result.yMax).toBeGreaterThan(95000)
+    })
+
+    it('provides padding around the price range', () => {
+      const data: PricePoint[] = [
+        { price: 92000, timestamp: 1000 },
+        { price: 93000, timestamp: 2000 },
+      ]
+      const result = calculateYDomain(data)
+
+      // Should have padding below min and above max
+      expect(result.yMin).toBeLessThan(92000)
+      expect(result.yMax).toBeGreaterThan(93000)
     })
   })
 })

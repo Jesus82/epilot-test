@@ -138,3 +138,25 @@ export const calculateMinMaxLabelPosition = (
 
   return { labelX, labelY }
 }
+
+/**
+ * Calculate Y-axis domain (min/max) for chart display
+ * Uses nice step values for clean axis labels
+ */
+export const calculateYDomain = (data: PricePoint[]): { yMin: number, yMax: number } => {
+  if (data.length === 0) {
+    return { yMin: 0, yMax: 100 }
+  }
+
+  const prices = data.map(d => d.price)
+  const minPrice = Math.min(...prices)
+  const maxPrice = Math.max(...prices)
+  const range = maxPrice - minPrice
+
+  const step = calculateNiceStep(range, 10)
+
+  const yMin = Math.floor(minPrice / step) * step - step
+  const yMax = Math.ceil(maxPrice / step) * step + step
+
+  return { yMin, yMax }
+}

@@ -326,77 +326,29 @@ describe('useBtcPrice', () => {
     })
   })
 
-  describe('formattedPrice', () => {
-    it('should return null when priceData is null', async () => {
+  describe('formatPrice', () => {
+    it('should return null when value is null', async () => {
       const { useBtcPrice } = await import('../useBtcPrice')
-      const { formattedPrice } = useBtcPrice()
+      const { formatPrice } = useBtcPrice()
 
-      expect(formattedPrice.value).toBeNull()
+      expect(formatPrice(null)).toBeNull()
     })
 
     it('should format price as USD currency', async () => {
       const { useBtcPrice } = await import('../useBtcPrice')
-      const { formattedPrice, connect } = useBtcPrice()
+      const { formatPrice } = useBtcPrice()
 
-      await connect()
-      await new Promise(resolve => setTimeout(resolve, 10))
-
-      mockWebSocketInstance?.simulateMessage({
-        e: '24hrTicker',
-        E: Date.now(),
-        s: 'BTCUSDT',
-        c: '42123.45',
-        o: '42000.00',
-        h: '43000.00',
-        l: '41000.00',
-        v: '500.00',
-        q: '21000000.00',
-        P: '0.29',
-        p: '123.45',
-      })
-
-      expect(formattedPrice.value).toBe('$42,123.45')
+      expect(formatPrice(42123.45)).toBe('$42,123.45')
     })
 
-    it('should update formattedPrice when price changes', async () => {
+    it('should format different price values correctly', async () => {
       const { useBtcPrice } = await import('../useBtcPrice')
-      const { formattedPrice, connect } = useBtcPrice()
+      const { formatPrice } = useBtcPrice()
 
-      await connect()
-      await new Promise(resolve => setTimeout(resolve, 10))
-
-      mockWebSocketInstance?.simulateMessage({
-        e: '24hrTicker',
-        E: Date.now(),
-        s: 'BTCUSDT',
-        c: '50000.00',
-        o: '49000.00',
-        h: '51000.00',
-        l: '48000.00',
-        v: '1000.00',
-        q: '50000000.00',
-        P: '2.04',
-        p: '1000.00',
-      })
-
-      expect(formattedPrice.value).toBe('$50,000.00')
-
-      // Send another price update
-      mockWebSocketInstance?.simulateMessage({
-        e: '24hrTicker',
-        E: Date.now(),
-        s: 'BTCUSDT',
-        c: '51234.56',
-        o: '49000.00',
-        h: '52000.00',
-        l: '48000.00',
-        v: '1000.00',
-        q: '50000000.00',
-        P: '4.56',
-        p: '2234.56',
-      })
-
-      expect(formattedPrice.value).toBe('$51,234.56')
+      expect(formatPrice(50000.00)).toBe('$50,000.00')
+      expect(formatPrice(51234.56)).toBe('$51,234.56')
+      expect(formatPrice(0)).toBe('$0.00')
+      expect(formatPrice(-123.45)).toBe('-$123.45')
     })
   })
 
@@ -414,7 +366,6 @@ describe('useBtcPrice', () => {
         bidPrice,
         bidTimestamp,
         guessDirection,
-        formattedPrice,
       } = useBtcPrice()
 
       // All should be refs or computed
@@ -428,7 +379,13 @@ describe('useBtcPrice', () => {
       expect(isRef(bidPrice)).toBe(true)
       expect(isRef(bidTimestamp)).toBe(true)
       expect(isRef(guessDirection)).toBe(true)
-      expect(isRef(formattedPrice) || isComputed(formattedPrice)).toBe(true)
+    })
+
+    it('should expose formatPrice as a function', async () => {
+      const { useBtcPrice } = await import('../useBtcPrice')
+      const { formatPrice } = useBtcPrice()
+
+      expect(typeof formatPrice).toBe('function')
     })
 
     it('should expose connect and disconnect functions', async () => {

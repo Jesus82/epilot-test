@@ -31,13 +31,13 @@ export const useBtcPrice = () => {
     guessDirection.value = null
   }
 
-  const formattedPrice = computed(() => {
-    if (!priceData.value) return null
+  const formatPrice = (value: number | null) => {
+    if (value === null) return null
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-    }).format(priceData.value.price)
-  })
+    }).format(value)
+  }
 
   return {
     // From useBtcWS
@@ -61,6 +61,6 @@ export const useBtcPrice = () => {
     setBidPrice,
     setBid,
     clearBid,
-    formattedPrice,
+    formatPrice,
   }
 }
