@@ -5,28 +5,14 @@ import {
   findMinMaxPoints,
   calculateMinMaxLabelPosition,
   getTimeIntervalMinutes,
+  calculateIsWinning,
 } from '~/helpers/btcChartHelpers'
+import { setLabelWidth } from '~/helpers/d3LabelHelpers'
 
 export type { PricePoint }
 
-// Padding for width calculation (must match CSS --label-padding-x)
-const LABEL_PADDING_X = 5
-
 export const useBtcChartUpdateHelper = () => {
   const TRANSITION_DURATION = 300
-
-  // Helper to set label background width (height/y/text position handled by CSS)
-  const setLabelWidth = (
-    label: d3.Selection<SVGGElement, unknown, null, undefined> | null,
-    bgSelector: string,
-    textWidth: number,
-    centered = false,
-  ) => {
-    const width = textWidth + LABEL_PADDING_X * 2
-    const bgX = centered ? -width / 2 : 0
-
-    label?.select(bgSelector).attr('x', bgX).attr('width', width)
-  }
 
   const getTimeInterval = (d3: typeof import('d3'), rangeMinutes: number) => {
     const minutes = getTimeIntervalMinutes(rangeMinutes)
@@ -183,9 +169,7 @@ export const useBtcChartUpdateHelper = () => {
       // Determine label variant based on win/lose state
       let labelVariant = 'bid'
       if (currentPrice && guessDirection) {
-        const isWinning = guessDirection === 'up'
-          ? currentPrice > bidPrice
-          : currentPrice < bidPrice
+        const isWinning = calculateIsWinning(guessDirection, currentPrice, bidPrice)
         labelVariant = isWinning ? 'bid-win' : 'bid-lose'
       }
       bidLabel?.attr('data-label-variant', labelVariant)
@@ -468,9 +452,7 @@ export const useBtcChartUpdateHelper = () => {
     }
 
     const currentPrice = lastPoint.price
-    const isWinning = guessDirection === 'up'
-      ? currentPrice > bidPrice
-      : currentPrice < bidPrice
+    const isWinning = calculateIsWinning(guessDirection, currentPrice, bidPrice)
 
     // Create area generator for bid data
     const areaGenerator = d3.area<PricePoint>()

@@ -30,7 +30,7 @@ const model = defineModel<number>({ required: true })
   padding: var(--spacing-sixteenth) var(--spacing-quarter);
   border: none;
   background: transparent;
-  color: var(--color-gray-dark);
+  color: var(--color-gray);
   font-size: var(--text-xs);
   font-weight: 500;
   cursor: pointer;

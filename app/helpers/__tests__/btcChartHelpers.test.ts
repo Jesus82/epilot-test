@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  calculateIsWinning,
   calculateLabelCollision,
   calculateMinMaxLabelPosition,
   calculateNiceStep,
@@ -11,6 +12,38 @@ import {
 import type { PricePoint } from '~/types/btc'
 
 describe('btcChartHelpers', () => {
+  describe('calculateIsWinning', () => {
+    it('returns true for "up" guess when price went up', () => {
+      expect(calculateIsWinning('up', 100, 90)).toBe(true)
+      expect(calculateIsWinning('up', 50000.50, 50000.00)).toBe(true)
+    })
+
+    it('returns false for "up" guess when price went down', () => {
+      expect(calculateIsWinning('up', 90, 100)).toBe(false)
+      expect(calculateIsWinning('up', 49999.50, 50000.00)).toBe(false)
+    })
+
+    it('returns true for "down" guess when price went down', () => {
+      expect(calculateIsWinning('down', 90, 100)).toBe(true)
+      expect(calculateIsWinning('down', 49999.50, 50000.00)).toBe(true)
+    })
+
+    it('returns false for "down" guess when price went up', () => {
+      expect(calculateIsWinning('down', 100, 90)).toBe(false)
+      expect(calculateIsWinning('down', 50000.50, 50000.00)).toBe(false)
+    })
+
+    it('returns false when price is unchanged', () => {
+      expect(calculateIsWinning('up', 100, 100)).toBe(false)
+      expect(calculateIsWinning('down', 100, 100)).toBe(false)
+    })
+
+    it('returns false when guess direction is null', () => {
+      expect(calculateIsWinning(null, 100, 90)).toBe(false)
+      expect(calculateIsWinning(null, 90, 100)).toBe(false)
+    })
+  })
+
   describe('calculateNiceStep', () => {
     it('returns 1 for very small ranges', () => {
       expect(calculateNiceStep(5, 10)).toBe(1)

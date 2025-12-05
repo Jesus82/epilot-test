@@ -5,6 +5,8 @@ export interface ChartMargin {
   left: number
 }
 
+export type ChartPadding = ChartMargin
+
 export const useBtcChartInitHelper = () => {
   // Create main SVG element
   const createSvgElement = (
@@ -13,6 +15,7 @@ export const useBtcChartInitHelper = () => {
     containerWidth: number,
     containerHeight: number,
     margin: ChartMargin,
+    padding: ChartPadding,
   ) => {
     d3.select(container).selectAll('*').remove()
 
@@ -25,7 +28,7 @@ export const useBtcChartInitHelper = () => {
 
     const svg = svgElement
       .append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`)
+      .attr('transform', `translate(${margin.left + padding.left},${margin.top + padding.top})`)
 
     return { svgElement, svg }
   }

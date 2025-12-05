@@ -1,4 +1,5 @@
 import type { BtcPriceData } from '~/types/btc'
+import { calculateIsWinning } from '~/helpers/btcChartHelpers'
 
 export type GuessDirection = 'up' | 'down' | null
 
@@ -107,8 +108,7 @@ export const useGameLogic = (
   const isWinning = computed(() => {
     if (!guess.value || !guessPrice.value || !priceData.value) return false
 
-    const difference = priceData.value.price - guessPrice.value
-    return guess.value === 'up' ? difference > 0 : difference < 0
+    return calculateIsWinning(guess.value, priceData.value.price, guessPrice.value)
   })
 
   /**

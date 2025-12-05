@@ -83,7 +83,11 @@ let currentYScale: d3.ScaleLinear<number, number> | null = null
 let currentWidth = 0
 let currentHeight = 0
 
-const margin = { top: 20, right: 80, bottom: 30, left: 10 }
+// Margin for SVG group transform (keep at 0 for flush edges)
+const margin = { top: 0, right: 0, bottom: 0, left: 0 }
+// Padding for internal chart drawing area (space for labels)
+const padding = { top: 10, right: 55, bottom: 25, left: 0 }
+const CHART_HEIGHT = 300
 
 watch(() => props.data, () => {
   if (!isChartReady.value) return
@@ -113,14 +117,14 @@ const initChart = async () => {
 
   const container = chartRef.value
   const containerWidth = container.clientWidth || 800
-  const containerHeight = 300
-  const width = containerWidth - margin.left - margin.right
-  const height = containerHeight - margin.top - margin.bottom
+  const containerHeight = CHART_HEIGHT
+  const width = containerWidth - padding.left - padding.right
+  const height = containerHeight - padding.top - padding.bottom
 
   currentWidth = width
   currentHeight = height
 
-  const svgResult = createSvgElement(d3, container, containerWidth, containerHeight, margin)
+  const svgResult = createSvgElement(d3, container, containerWidth, containerHeight, margin, padding)
   svgElement = svgResult.svgElement
   svg = svgResult.svg
 
@@ -200,15 +204,16 @@ const updateChart = () => {
   const d3 = d3Module
   const container = chartRef.value
   const containerWidth = container.clientWidth || 800
-  const containerHeight = 300
-  const width = containerWidth - margin.left - margin.right
-  const height = containerHeight - margin.top - margin.bottom
+  const containerHeight = CHART_HEIGHT
+  const width = containerWidth - padding.left - padding.right
+  const height = containerHeight - padding.top - padding.bottom
 
   currentWidth = width
   currentHeight = height
 
   svgElement?.attr('viewBox', `0 0 ${containerWidth} ${containerHeight}`)
   yAxisGroup?.attr('transform', `translate(${width},0)`)
+  xAxisGroup?.attr('transform', `translate(0,${height})`)
   hoverOverlay?.attr('width', width).attr('height', height)
 
   const { x, y, yTickValues, xTicks } = updateScales(d3, props.data, props.selectedRange, width, height)
@@ -261,7 +266,6 @@ onUnmounted(() => {
 <style scoped>
 .btc-chart-renderer {
   width: 100%;
-  min-height: 300px;
 }
 
 .btc-chart-renderer :deep(.x-axis path),

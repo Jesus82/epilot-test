@@ -4,6 +4,20 @@
  */
 
 import type { PricePoint } from '~/types/btc'
+import type { GuessDirection } from '~/composables/useGameLogic'
+
+/**
+ * Determine if a bet is winning based on guess direction and price difference
+ */
+export const calculateIsWinning = (
+  guessDirection: GuessDirection,
+  currentPrice: number,
+  bidPrice: number,
+): boolean => {
+  if (!guessDirection) return false
+  const difference = currentPrice - bidPrice
+  return guessDirection === 'up' ? difference > 0 : difference < 0
+}
 
 /**
  * Calculate "nice" step value for Y axis ticks

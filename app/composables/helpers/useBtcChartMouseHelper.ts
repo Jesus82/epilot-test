@@ -1,23 +1,8 @@
 import type { PricePoint } from './useBtcChartUpdateHelper'
 import { calculatePriceLabelPosition } from '~/helpers/btcChartHelpers'
-
-// Padding for width calculation (must match CSS --label-padding-x)
-const LABEL_PADDING_X = 5
+import { setLabelWidth } from '~/helpers/d3LabelHelpers'
 
 export const useBtcChartMouseHelper = () => {
-  // Helper to set label background width (height/y/text position handled by CSS)
-  const setLabelWidth = (
-    label: d3.Selection<Element, unknown, null, undefined>,
-    bgSelector: string,
-    textWidth: number,
-    centered = false,
-  ) => {
-    const width = textWidth + LABEL_PADDING_X * 2
-    const bgX = centered ? -width / 2 : 0
-
-    label.select(bgSelector).attr('x', bgX).attr('width', width)
-  }
-
   const findClosestPoint = (
     d3: typeof import('d3'),
     data: PricePoint[],
