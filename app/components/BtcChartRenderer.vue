@@ -12,10 +12,6 @@ const props = defineProps<{
   selectedRange: number
 }>()
 
-const emit = defineEmits<{
-  hover: [data: PricePoint | null]
-}>()
-
 const {
   updateScales,
   updateGridLines,
@@ -177,8 +173,6 @@ const handleMouseMove = (event: MouseEvent) => {
   const closestPoint = findClosestPoint(d3, props.data, currentXScale, mouseX)
   if (!closestPoint) return
 
-  emit('hover', closestPoint)
-
   const xPos = currentXScale(new Date(closestPoint.timestamp))
   const yPos = currentYScale(closestPoint.price)
 
@@ -198,7 +192,6 @@ const handleMouseMove = (event: MouseEvent) => {
 
 const handleMouseLeave = () => {
   hideCrosshair(crosshairGroup)
-  emit('hover', null)
 }
 
 const updateChart = () => {

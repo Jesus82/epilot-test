@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import type { PricePoint } from '~/types/btc'
 import {
-  TIME_RANGES,
   bucketDataByInterval,
   calculateAveragePrice,
   filterByTimeRange,
@@ -11,8 +9,6 @@ import {
 const { priceHistory, price, bidPrice, bidTimestamp, guessDirection, loadHistoricalData, isLoadingHistory } = useBtcPrice()
 
 const selectedRange = ref(5) // Default 5 minutes
-
-const hoveredData = ref<PricePoint | null>(null)
 
 const filteredPriceHistory = computed(() =>
   filterByTimeRange(priceHistory.value, selectedRange.value),
@@ -34,46 +30,20 @@ const averagePrice = computed(() =>
 watch(selectedRange, async (newRange) => {
   await loadHistoricalData(newRange)
 })
-
-const handleHover = (data: PricePoint | null) => {
-  hoveredData.value = data
-}
 </script>
 
 <template>
   <div class="btc-price-chart">
-    <div class="chart-header">
-      <div class="flex gap-eighth">
-        <div class="flex gap-fourth items-center">
-          <p
-            v-if="isLoadingHistory"
-            class="text-xs font-sans"
-          >
-            Loading...
-          </p>
-          <div
-            v-if="hoveredData"
-            class="flex gap-eighth"
-          >
-            <p class="text-xs font-sans text-gray-dark">
-              ${{ hoveredData.price.toFixed(2) }}
-            </p>
-            <p class="text-xs font-sans text-gray-dark">
-              {{ new Date(hoveredData.timestamp).toLocaleTimeString() }}
-            </p>
-          </div>
-        </div>
-        <div class="time-range-selector">
-          <button
-            v-for="range in TIME_RANGES"
-            :key="range.minutes"
-            :class="['range-btn', { active: selectedRange === range.minutes }]"
-            @click="selectedRange = range.minutes"
-          >
-            {{ range.label }}
-          </button>
-        </div>
+    <div class="flex gap-eighth justify-end">
+      <div class="flex gap-fourth items-center">
+        <p
+          v-if="isLoadingHistory"
+          class="text-xs font-sans"
+        >
+          Loading...
+        </p>
       </div>
+      <TimeRangeSelector v-model="selectedRange" />
     </div>
     <div class="chart-container">
       <BtcChartRenderer
@@ -84,7 +54,6 @@ const handleHover = (data: PricePoint | null) => {
         :guess-direction="guessDirection"
         :current-price="price"
         :selected-range="selectedRange"
-        @hover="handleHover"
       />
       <div
         v-if="isLoadingHistory"
@@ -97,35 +66,11 @@ const handleHover = (data: PricePoint | null) => {
 </template>
 
 <style scoped>
-.time-range-selector {
+.btc-price-chart {
   display: flex;
-  gap: 4px;
-  background: #f3f4f6;
-  padding: 4px;
-  border-radius: 6px;
-}
-
-.range-btn {
-  padding: 4px 10px;
-  border: none;
-  background: transparent;
-  color: #6b7280;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.15s ease;
-}
-
-.range-btn:hover {
-  color: #374151;
-  background: #e5e7eb;
-}
-
-.range-btn.active {
-  background: #ffffff;
-  color: #2563eb;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  flex-direction: column;
+  padding: var(--spacing-quarter) 0;
+  gap: var(--spacing-quarter);
 }
 
 .chart-container {
