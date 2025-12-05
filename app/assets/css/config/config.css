@@ -235,6 +235,19 @@
 }
 
 @font-face {
+  font-family: 'Inconsolata';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+
+  text-rendering: optimizeLegibility;
+  src: url('/fonts/Inconsolata-Regular.woff2') format('woff2'),
+    url('/fonts/Inconsolata-Regular.woff') format('woff'),
+    url('/fonts/Inconsolata-Regular.ttf') format('truetype'),
+    url('/fonts/Inconsolata-Regular.svg#Inconsolata-Regular') format('svg');
+}
+
+@font-face {
   font-family: "Roboto";
   font-weight: 300;
   font-style: normal;

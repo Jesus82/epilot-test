@@ -12,13 +12,22 @@
   --color-gray-darkest: hsl(216, 60%, 9.8%);
   --color-gray-lightest: hsl(212.7, 24.4%, 91.2%);
 
-  --color-blue: hsl(232.4, 69.9%, 55.7%);
+  --color-orange: hsl(34, 85%, 60%);
+  --color-orange-dark: hsl(34, 85%, 48%);
+  --color-orange-darkest: hsl(34, 85%, 44%);
+  --color-orange-light: hsl(34, 85%, 72%);
 
-  --color-red: hsl(9.4, 100%, 68.6%);
+  --color-blue: hsl(214, 85%, 60%);
+  --color-blue-dark: hsl(214, 85%, 48%);
+  --color-blue-darkest: hsl(214, 85%, 44%);
 
-  --color-green: hsl(141.4, 70.1%, 48.2%);
+  --color-green: hsl(154, 85%, 42%);
+  --color-green-dark: hsl(154, 85%, 34%);
+  --color-green-darkest: hsl(154, 85%, 26%);
 
-  --color-orange: hsl(38, 92%, 50%);
+  --color-yellow: hsl(51.5, 100%, 54.5%);
+  
+  --color-red: hsl(12, 100%, 40%);
 
   --color-black: hsl(0, 0%, 0%);
   --color-white: hsl(0, 0%, 100%);
@@ -27,7 +36,7 @@
   /* Font Families */
   --font-sans: 'Roboto', 'Adjusted HelveticaNeue', 'Adjusted Helvetica', 'Adjusted Arial', 'Adjusted sans-serif';
 
-  --font-display: 'JustMyType', 'System', 'Adjusted sans-serif';
+  --font-display: 'Inconsolata', 'System', 'Adjusted sans-serif';
 
 
 

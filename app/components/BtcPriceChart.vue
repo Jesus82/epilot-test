@@ -43,7 +43,6 @@ const handleHover = (data: PricePoint | null) => {
 <template>
   <div class="btc-price-chart">
     <div class="chart-header">
-      <h2>Live BTC Price Chart</h2>
       <div class="flex gap-eighth">
         <div class="flex gap-fourth items-center">
           <p v-if="isLoadingHistory" class="text-xs font-sans">Loading...</p>
