@@ -1,5 +1,6 @@
 import { ref, readonly } from 'vue'
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 import type { PlayerStats, BidResult } from './useGameLogic'
 
 export interface ApiPlayerStats extends PlayerStats {

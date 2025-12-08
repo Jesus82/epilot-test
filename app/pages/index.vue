@@ -1,10 +1,25 @@
 <script setup lang="ts">
 import { calculateYDomain } from '~/helpers/btcChartHelpers'
 import { filterByTimeRange } from '~/helpers/btcPriceChartHelpers'
+import type { BidResult } from '~/composables/useGameLogic'
 
 const { priceData, price, formatPrice, status, priceHistory, setBid, clearBid, connect, disconnect } = useBtcPrice()
 
-// Game logic composable
+// Player identification
+const { getPlayerId } = usePlayerId()
+
+// Player API for persistence
+const { fetchStats, saveBid, isLoading: isApiLoading } = usePlayerApi()
+
+// Callback when a bid completes - save to Supabase
+const onBidComplete = async (result: BidResult) => {
+  const playerId = getPlayerId()
+  if (playerId) {
+    await saveBid(playerId, result)
+  }
+}
+
+// Game logic composable with bid completion callback
 const {
   score,
   guess,
@@ -21,7 +36,8 @@ const {
   lastBidResult,
   makeGuess,
   cleanup,
-} = useGameLogic(priceData, setBid, clearBid)
+  loadStats,
+} = useGameLogic(priceData, setBid, clearBid, onBidComplete)
 
 // Track selected range (default 5 minutes, same as chart)
 const selectedRange = ref(5)
@@ -38,8 +54,18 @@ const bidToPriceDifference = computed(() => {
   return null
 })
 
-onMounted(() => {
+// Load player stats on mount
+onMounted(async () => {
   connect()
+
+  // Load existing stats from Supabase
+  const playerId = getPlayerId()
+  if (playerId) {
+    const stats = await fetchStats(playerId)
+    if (stats && !stats.isNewPlayer) {
+      loadStats(stats)
+    }
+  }
 })
 
 onUnmounted(() => {
