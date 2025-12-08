@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import type { PlayerStats, BidResult } from './useGameLogic'
 
 export interface ApiPlayerStats extends PlayerStats {
+  playerName?: string | null
   isNewPlayer?: boolean
   updatedAt?: string
 }
@@ -12,6 +13,7 @@ export interface ApiPlayerStats extends PlayerStats {
 interface PlayerRow {
   id: string
   player_id: string
+  player_name: string | null
   current_streak: number
   longest_streak: number
   total_wins: number
@@ -34,6 +36,13 @@ interface BidRow {
 }
 
 let supabaseClient: SupabaseClient | null = null
+
+/**
+ * Reset Supabase client (for testing purposes)
+ */
+export const resetSupabaseClient = () => {
+  supabaseClient = null
+}
 
 /**
  * Get or create Supabase client
@@ -100,6 +109,7 @@ export const usePlayerApi = () => {
         totalWins: row.total_wins,
         totalLosses: row.total_losses,
         totalEarnings: row.total_earnings,
+        playerName: row.player_name,
         updatedAt: row.updated_at,
       }
     }
@@ -197,6 +207,7 @@ export const usePlayerApi = () => {
         totalWins: row.total_wins,
         totalLosses: row.total_losses,
         totalEarnings: row.total_earnings,
+        playerName: row.player_name,
         updatedAt: row.updated_at,
       }
     }
@@ -249,11 +260,68 @@ export const usePlayerApi = () => {
     }
   }
 
+  /**
+   * Update player name
+   */
+  const updatePlayerName = async (playerId: string, playerName: string): Promise<boolean> => {
+    const supabase = getSupabaseClient()
+    if (!supabase) return false
+
+    isLoading.value = true
+    error.value = null
+
+    try {
+      // Check if player exists
+      const { data: existingPlayer } = await supabase
+        .from('players')
+        .select('id')
+        .eq('player_id', playerId)
+        .single()
+
+      if (existingPlayer) {
+        // Update existing player
+        const { error: updateError } = await supabase
+          .from('players')
+          .update({ player_name: playerName })
+          .eq('player_id', playerId)
+
+        if (updateError) throw updateError
+      }
+      else {
+        // Create new player with name
+        const { error: insertError } = await supabase
+          .from('players')
+          .insert({
+            player_id: playerId,
+            player_name: playerName,
+            current_streak: 0,
+            longest_streak: 0,
+            total_wins: 0,
+            total_losses: 0,
+            total_earnings: 0,
+          })
+
+        if (insertError) throw insertError
+      }
+
+      return true
+    }
+    catch (err) {
+      error.value = err instanceof Error ? err.message : 'Unknown error'
+      console.error('[usePlayerApi] Error updating player name:', err)
+      return false
+    }
+    finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     isLoading: readonly(isLoading),
     error: readonly(error),
     fetchStats,
     saveBid,
     fetchBids,
+    updatePlayerName,
   }
 }

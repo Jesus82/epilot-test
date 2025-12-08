@@ -9,7 +9,12 @@ const { priceData, price, formatPrice, status, priceHistory, setBid, clearBid, c
 const { getPlayerId } = usePlayerId()
 
 // Player API for persistence
-const { fetchStats, saveBid, isLoading: isApiLoading } = usePlayerApi()
+const { fetchStats, saveBid, updatePlayerName, isLoading: isApiLoading } = usePlayerApi()
+
+// Player name state
+const playerName = ref<string>('')
+const isEditingName = ref(false)
+const showNamePrompt = ref(false)
 
 // Callback when a bid completes - save to Supabase
 const onBidComplete = async (result: BidResult) => {
@@ -62,11 +67,42 @@ onMounted(async () => {
   const playerId = getPlayerId()
   if (playerId) {
     const stats = await fetchStats(playerId)
-    if (stats && !stats.isNewPlayer) {
-      loadStats(stats)
+    if (stats) {
+      if (stats.isNewPlayer || !stats.playerName) {
+        // New player or player without name - prompt for name
+        showNamePrompt.value = true
+      }
+      else {
+        playerName.value = stats.playerName
+        loadStats(stats)
+      }
     }
   }
 })
+
+// Handle saving player name
+const handleSaveName = async () => {
+  const playerId = getPlayerId()
+  if (playerId && playerName.value.trim()) {
+    const success = await updatePlayerName(playerId, playerName.value.trim())
+    if (success) {
+      showNamePrompt.value = false
+      isEditingName.value = false
+    }
+  }
+}
+
+// Handle canceling name edit
+const handleCancelNameEdit = () => {
+  isEditingName.value = false
+}
+
+// Start editing name (only when not locked)
+const startEditingName = () => {
+  if (!isLocked.value) {
+    isEditingName.value = true
+  }
+}
 
 onUnmounted(() => {
   disconnect()
@@ -76,8 +112,50 @@ onUnmounted(() => {
 
 <template>
   <main class="p-second">
-    <div class="flex justify-between">
-      <p class="font-display text-lg  capitalize">
+    <!-- Player Name Prompt Overlay -->
+    <div
+      v-if="showNamePrompt"
+      class="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+    >
+      <div class="bg-gray-900 p-8 rounded-lg max-w-md w-full mx-4">
+        <h2 class="font-display text-2xl mb-4 text-center">
+          Welcome to BTC Price Prediction!
+        </h2>
+        <p class="text-gray-400 mb-6 text-center">
+          Enter your name to get started
+        </p>
+        <PlayerNameInput
+          v-model="playerName"
+          :disabled="isApiLoading"
+          :is-editing="true"
+          @save="handleSaveName"
+        />
+      </div>
+    </div>
+
+    <div class="flex justify-between items-center">
+      <div class="flex items-center gap-half">
+        <template v-if="!isEditingName && playerName">
+          <span
+            class="font-display text-lg cursor-pointer hover:text-orange"
+            :class="{ 'opacity-50 cursor-not-allowed': isLocked }"
+            :title="isLocked ? 'Cannot edit while bid is locked' : 'Click to edit name'"
+            @click="startEditingName"
+          >
+            {{ playerName }}
+          </span>
+        </template>
+        <template v-else-if="isEditingName">
+          <PlayerNameInput
+            v-model="playerName"
+            :disabled="isApiLoading"
+            :is-editing="true"
+            @save="handleSaveName"
+            @cancel="handleCancelNameEdit"
+          />
+        </template>
+      </div>
+      <p class="font-display text-lg capitalize">
         {{ status }}
       </p>
       <p class="font-display text-lg">
