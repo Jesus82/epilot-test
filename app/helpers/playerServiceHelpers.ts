@@ -2,26 +2,8 @@
  * Pure helper functions for player service operations
  */
 
-import type { ApiPlayerStats, PlayerInfo, BidInfo } from '../../shared/types/player'
+import type { ApiPlayerStats, PlayerInfo, BidInfo, DefaultPlayerStats, UpdatedPlayerStats } from '../../shared/types/player'
 import type { BidResult } from '../../shared/types/game'
-
-/**
- * Default stats for a new player
- */
-export interface DefaultPlayerStats {
-  current_streak: number
-  longest_streak: number
-  total_wins: number
-  total_losses: number
-  total_earnings: number
-}
-
-/**
- * Stats update after a bid
- */
-export interface UpdatedPlayerStats extends DefaultPlayerStats {
-  player_name?: string | null
-}
 
 /**
  * Creates default stats for a new player

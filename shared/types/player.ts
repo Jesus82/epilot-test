@@ -62,6 +62,21 @@ export interface ApiPlayerStats extends PlayerStats {
   updatedAt?: string
 }
 
+/**
+ * Request body for updating player name
+ */
+export interface UpdateNameBody {
+  playerName: string
+}
+
+/**
+ * Leaderboard entry with rank and player ID
+ */
+export interface LeaderboardEntry extends ApiPlayerStats {
+  playerId: string
+  rank: number
+}
+
 // ============================================
 // Internal Helper Types
 // ============================================

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { ref, computed, isRef } from 'vue'
+import { ref, computed, isRef, isReadonly } from 'vue'
 
 // Mock WebSocket
 class MockWebSocket {
@@ -325,12 +325,12 @@ describe('useBtcWS', () => {
       const { useBtcWS } = await import('../useBtcWS')
       const { priceData, status, error, price, isConnected } = useBtcWS()
 
-      // All should be refs or computed
+      // All should be refs or computed (isRef returns true for both ref and computed)
       expect(isRef(priceData)).toBe(true)
       expect(isRef(status)).toBe(true)
       expect(isRef(error)).toBe(true)
-      expect(isRef(price) || isComputed(price)).toBe(true)
-      expect(isRef(isConnected) || isComputed(isConnected)).toBe(true)
+      expect(isRef(price)).toBe(true)
+      expect(isRef(isConnected)).toBe(true)
     })
 
     it('should have correct initial state', async () => {
@@ -358,8 +358,3 @@ describe('useBtcWS', () => {
     })
   })
 })
-
-// Helper to check if something is a computed ref
-function isComputed(value: unknown): boolean {
-  return isRef(value) && '_getter' in (value as object)
-}

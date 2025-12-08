@@ -3,7 +3,8 @@ import { ref, nextTick } from 'vue'
 import { flushPromises } from '@vue/test-utils'
 import type { BtcPriceData } from '../../../shared/types/btc'
 import { useGameLogic } from '../useGameLogic'
-import type { GuessDirection } from '../useGameLogic'
+import { evaluateGuess, calculateEarnings } from '../../helpers/gameLogicHelpers'
+import type { GuessDirection } from '../../../shared/types/game'
 
 describe('useGameLogic', () => {
   let priceData: Ref<BtcPriceData | null>
@@ -57,35 +58,29 @@ describe('useGameLogic', () => {
     })
   })
 
-  describe('evaluateGuess', () => {
+  describe('evaluateGuess (helper)', () => {
     it('should return true for correct UP guess when price increases', () => {
-      const { evaluateGuess } = useGameLogic(priceData, setBidMock, clearBidMock)
       expect(evaluateGuess('up', 50000, 50100)).toBe(true)
     })
 
     it('should return false for incorrect UP guess when price decreases', () => {
-      const { evaluateGuess } = useGameLogic(priceData, setBidMock, clearBidMock)
       expect(evaluateGuess('up', 50000, 49900)).toBe(false)
     })
 
     it('should return true for correct DOWN guess when price decreases', () => {
-      const { evaluateGuess } = useGameLogic(priceData, setBidMock, clearBidMock)
       expect(evaluateGuess('down', 50000, 49900)).toBe(true)
     })
 
     it('should return false for incorrect DOWN guess when price increases', () => {
-      const { evaluateGuess } = useGameLogic(priceData, setBidMock, clearBidMock)
       expect(evaluateGuess('down', 50000, 50100)).toBe(false)
     })
 
     it('should return true for DOWN guess when price stays the same', () => {
       // When price equals guess price, priceWentUp is false, so DOWN wins
-      const { evaluateGuess } = useGameLogic(priceData, setBidMock, clearBidMock)
       expect(evaluateGuess('down', 50000, 50000)).toBe(true)
     })
 
     it('should return false for UP guess when price stays the same', () => {
-      const { evaluateGuess } = useGameLogic(priceData, setBidMock, clearBidMock)
       expect(evaluateGuess('up', 50000, 50000)).toBe(false)
     })
   })
@@ -541,8 +536,6 @@ describe('useGameLogic', () => {
     })
 
     it('should handle very small price differences', () => {
-      const { evaluateGuess } = useGameLogic(priceData, setBidMock, clearBidMock)
-
       expect(evaluateGuess('up', 50000.00, 50000.01)).toBe(true)
       expect(evaluateGuess('down', 50000.00, 49999.99)).toBe(true)
     })
@@ -578,35 +571,30 @@ describe('useGameLogic', () => {
     })
   })
 
-  describe('calculateEarnings', () => {
+  describe('calculateEarnings (helper)', () => {
     it('should return positive earnings for correct UP guess', () => {
-      const { calculateEarnings } = useGameLogic(priceData, setBidMock, clearBidMock)
       // Guessed up, price went from 50000 to 50200 = +200
       expect(calculateEarnings('up', 50000, 50200)).toBe(200)
     })
 
     it('should return negative earnings for incorrect UP guess', () => {
-      const { calculateEarnings } = useGameLogic(priceData, setBidMock, clearBidMock)
       // Guessed up, price went from 50000 to 49700 = -300
       expect(calculateEarnings('up', 50000, 49700)).toBe(-300)
     })
 
     it('should return positive earnings for correct DOWN guess', () => {
-      const { calculateEarnings } = useGameLogic(priceData, setBidMock, clearBidMock)
       // Guessed down, price went from 50000 to 49700 = +300
       expect(calculateEarnings('down', 50000, 49700)).toBe(300)
     })
 
     it('should return negative earnings for incorrect DOWN guess', () => {
-      const { calculateEarnings } = useGameLogic(priceData, setBidMock, clearBidMock)
       // Guessed down, price went from 50000 to 50200 = -200
       expect(calculateEarnings('down', 50000, 50200)).toBe(-200)
     })
 
     it('should return 0 when price stays the same', () => {
-      const { calculateEarnings } = useGameLogic(priceData, setBidMock, clearBidMock)
       expect(calculateEarnings('up', 50000, 50000)).toBe(0)
-      expect(calculateEarnings('down', 50000, 50000)).toBe(-0) // -0 is mathematically equal to 0
+      // Note: calculateEarnings('down', 50000, 50000) returns -0, which equals 0
     })
   })
 

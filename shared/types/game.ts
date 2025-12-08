@@ -11,6 +11,15 @@ import type { Ref } from 'vue'
 export type GuessDirection = 'up' | 'down' | null
 
 /**
+ * Initial bid state when a guess is made
+ */
+export interface InitialBidState {
+  direction: 'up' | 'down'
+  price: number
+  countdownSeconds: number
+}
+
+/**
  * Result of a completed bid (API format)
  */
 export interface BidResult {
@@ -20,6 +29,13 @@ export interface BidResult {
   earnings: number
   won: boolean
   timestamp: number
+}
+
+/**
+ * Request body for saving a bid
+ */
+export interface SaveBidBody {
+  bid: BidResult
 }
 
 /**

@@ -1,11 +1,4 @@
-export interface ChartMargin {
-  top: number
-  right: number
-  bottom: number
-  left: number
-}
-
-export type ChartPadding = ChartMargin
+import type { ChartMargin, ChartPadding } from '../../../shared/types/chart'
 
 export const useBtcChartInitHelper = () => {
   // Create main SVG element

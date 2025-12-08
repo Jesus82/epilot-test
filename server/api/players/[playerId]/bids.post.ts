@@ -5,11 +5,8 @@
 
 import { getServerSupabase } from '~~/server/utils/supabase'
 import { findPlayerById, createPlayer, updatePlayerStats, insertBid } from '~~/server/utils/playerDb'
-import { mapPlayerInfoToApiStats, type BidResult } from '~~/server/lib/playerHelpers'
-
-interface SaveBidBody {
-  bid: BidResult
-}
+import { mapPlayerInfoToApiStats } from '~~/server/lib/playerHelpers'
+import type { SaveBidBody } from '~~/shared/types/game'
 
 export default defineEventHandler(async (event) => {
   const playerId = getRouterParam(event, 'playerId')

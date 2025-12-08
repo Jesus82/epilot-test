@@ -2,6 +2,13 @@ import type { BtcPriceData } from '../../shared/types/btc'
 import type { GuessDirection, BidResult, GameState } from '../../shared/types/game'
 import type { PlayerStats } from '../../shared/types/player'
 import { calculateIsWinning } from '~/helpers/btcChartHelpers'
+import {
+  evaluateGuess,
+  calculateEarnings,
+  calculateStatsUpdate,
+  createBidResult,
+  createInitialBidState,
+} from '~/helpers/gameLogicHelpers'
 
 export const useGameLogic = (
   priceData: Ref<BtcPriceData | null>,
@@ -25,33 +32,6 @@ export const useGameLogic = (
   const lastBidResult = ref<BidResult | null>(null)
 
   let countdownInterval: ReturnType<typeof setInterval> | null = null
-
-  /**
-   * Evaluate if the guess was correct based on price movement
-   */
-  const evaluateGuess = (
-    guessDirection: 'up' | 'down',
-    priceAtGuess: number,
-    currentPrice: number,
-  ): boolean => {
-    const priceWentUp = currentPrice > priceAtGuess
-    return (guessDirection === 'up' && priceWentUp) || (guessDirection === 'down' && !priceWentUp)
-  }
-
-  /**
-   * Calculate earnings based on price difference and guess direction
-   * Positive if won, negative if lost
-   */
-  const calculateEarnings = (
-    guessDirection: 'up' | 'down',
-    priceAtGuess: number,
-    currentPrice: number,
-  ): number => {
-    const priceDiff = currentPrice - priceAtGuess
-    // If guessed up: earn the difference (positive if price went up)
-    // If guessed down: earn the inverse (positive if price went down)
-    return guessDirection === 'up' ? priceDiff : -priceDiff
-  }
 
   /**
    * Reset the game state after a guess is evaluated
@@ -79,33 +59,14 @@ export const useGameLogic = (
     const isCorrect = evaluateGuess(guess.value, guessPrice.value, currentPrice)
     const earnings = calculateEarnings(guess.value, guessPrice.value, currentPrice)
 
+    const newStats = calculateStatsUpdate(getStats(), isCorrect, earnings)
+
     // Update score
-    if (isCorrect) {
-      score.value++
-      totalWins.value++
-      currentStreak.value++
-      if (currentStreak.value > longestStreak.value) {
-        longestStreak.value = currentStreak.value
-      }
-    }
-    else {
-      score.value--
-      totalLosses.value++
-      currentStreak.value = 0
-    }
+    score.value += isCorrect ? 1 : -1
 
-    // Update earnings
-    totalEarnings.value += earnings
+    loadStats(newStats)
 
-    // Create bid result
-    const bidResult: BidResult = {
-      direction: guess.value,
-      bidPrice: guessPrice.value,
-      finalPrice: currentPrice,
-      earnings,
-      won: isCorrect,
-      timestamp: Date.now(),
-    }
+    const bidResult = createBidResult(guess.value, guessPrice.value, currentPrice, earnings, isCorrect)
     lastBidResult.value = bidResult
 
     // Notify callback if provided
@@ -134,26 +95,25 @@ export const useGameLogic = (
   const makeGuess = (direction: 'up' | 'down', countdownSeconds: number = 60) => {
     if (isLocked.value || !priceData.value) return
 
-    // Lock the buttons
-    isLocked.value = true
-    guess.value = direction
-    guessPrice.value = priceData.value.price
-    isMinimumTimePassed.value = false
-    setBid(priceData.value.price, direction) // Set bid marker with direction
-    countdown.value = countdownSeconds
+    const bidState = createInitialBidState(direction, priceData.value.price, countdownSeconds)
 
-    // Start countdown
+    // Apply bid state
+    isLocked.value = true
+    guess.value = bidState.direction
+    guessPrice.value = bidState.price
+    isMinimumTimePassed.value = false
+    setBid(bidState.price, bidState.direction)
+    countdown.value = bidState.countdownSeconds
+
+    // Start countdown interval
     countdownInterval = setInterval(() => {
       countdown.value--
 
       if (countdown.value <= 0) {
         isMinimumTimePassed.value = true
-        // Check if price has already changed
         if (hasPriceChanged()) {
           checkGuess()
         }
-        // If price hasn't changed, keep interval running to check on each tick
-        // The watcher on priceData will handle resolution when price changes
       }
     }, 1000)
   }
@@ -252,9 +212,7 @@ export const useGameLogic = (
     loadStats,
     getStats,
 
-    // Pure functions exposed for testing
-    evaluateGuess,
-    calculateEarnings,
+    // Helper for testing
     hasPriceChanged,
   }
 }

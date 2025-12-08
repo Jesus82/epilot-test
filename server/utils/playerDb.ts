@@ -3,10 +3,9 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import type { PlayerInfo, BidInfo } from '../../shared/types/player'
+import type { BidResult } from '../../shared/types/game'
 import {
-  type PlayerInfo,
-  type BidInfo,
-  type BidResult,
   createDefaultPlayerStats,
   mapBidInfoToBidResult,
   calculateUpdatedStats,

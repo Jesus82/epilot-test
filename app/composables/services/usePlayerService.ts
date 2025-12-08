@@ -4,17 +4,9 @@
  */
 
 import { ref, readonly } from 'vue'
-import type { ApiPlayerStats } from '../../../shared/types/player'
+import type { ApiPlayerStats, LeaderboardEntry } from '../../../shared/types/player'
 import type { BidResult } from '../../../shared/types/game'
 import { getErrorMessage } from '~/helpers/playerServiceHelpers'
-
-/**
- * Leaderboard entry with rank and player ID
- */
-export interface LeaderboardEntry extends ApiPlayerStats {
-  playerId: string
-  rank: number
-}
 
 /**
  * Composable for interacting with player REST API
