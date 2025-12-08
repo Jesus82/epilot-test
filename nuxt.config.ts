@@ -15,8 +15,9 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      // API base URL - set via NUXT_PUBLIC_API_BASE_URL env var
-      apiBaseUrl: '',
+      // Supabase - set via NUXT_PUBLIC_SUPABASE_URL and NUXT_PUBLIC_SUPABASE_ANON_KEY env vars
+      supabaseUrl: '',
+      supabaseAnonKey: '',
     },
   },
   compatibilityDate: '2025-07-15',
