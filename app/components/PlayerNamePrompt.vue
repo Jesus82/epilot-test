@@ -2,6 +2,8 @@
 interface Props {
   modelValue: string
   show: boolean
+  showContent?: boolean
+  showInput?: boolean
   loading?: boolean
   error?: string | null
 }
@@ -12,6 +14,8 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  showContent: false,
+  showInput: false,
   loading: false,
   error: null,
 })
@@ -29,26 +33,31 @@ const handleSave = () => {
 </script>
 
 <template>
-  <div
-    v-if="show"
-    class="c-player-name-prompt"
-  >
-    <h2 class="font-display text-2xl mb-half text-center max-w-[30ch]">
-      Welcome to the BTC Price Prediction Contest!
-    </h2>
-    <PlayerNameInput
-      v-model="localName"
-      :disabled="loading"
-      :is-editing="true"
-      @save="handleSave"
-    />
-    <p
-      v-if="error"
-      class="text-red text-sm mt-double text-center"
+  <Transition name="fade">
+    <div
+      v-if="show"
+      class="c-player-name-prompt"
     >
-      {{ error }}
-    </p>
-  </div>
+      <template v-if="showContent">
+        <h2 class="font-display text-2xl mb-half text-center max-w-[30ch]">
+          Welcome to the BTC Price Prediction Contest!
+        </h2>
+        <PlayerNameInput
+          v-if="showInput"
+          v-model="localName"
+          :disabled="loading"
+          :is-editing="true"
+          @save="handleSave"
+        />
+        <p
+          v-if="error"
+          class="text-red text-sm mt-double text-center"
+        >
+          {{ error }}
+        </p>
+      </template>
+    </div>
+  </Transition>
 </template>
 
 <style scoped>
@@ -65,5 +74,13 @@ const handleSave = () => {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+}
+
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

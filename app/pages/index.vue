@@ -14,7 +14,9 @@ const { fetchStats, saveBid, updatePlayerName, isLoading: isApiLoading, error: a
 // Player name state
 const playerName = ref<string>('')
 const isEditingName = ref(false)
-const showNamePrompt = ref(false)
+const showNamePrompt = ref(true)
+const isNewPlayer = ref(false)
+const isPlayerChecked = ref(false)
 const nameError = ref<string | null>(null)
 
 // Callback when a bid completes - save to Supabase
@@ -64,16 +66,18 @@ const bidToPriceDifference = computed(() => {
 onMounted(async () => {
   connect()
 
-  // Load existing stats from Supabase
   const playerId = getPlayerId()
   if (playerId) {
     const stats = await fetchStats(playerId)
     if (stats) {
       if (stats.isNewPlayer || !stats.playerName) {
-        // New player or player without name - prompt for name
-        showNamePrompt.value = true
+        // New player - show the input
+        isNewPlayer.value = true
+        isPlayerChecked.value = true
       }
       else {
+        // Existing player with name - hide prompt and load stats
+        showNamePrompt.value = false
         playerName.value = stats.playerName
         loadStats(stats)
       }
@@ -81,7 +85,6 @@ onMounted(async () => {
   }
 })
 
-// Handle saving player name
 const handleSaveName = async () => {
   nameError.value = null
   const playerId = getPlayerId()
@@ -93,19 +96,16 @@ const handleSaveName = async () => {
       nameError.value = null
     }
     else {
-      // Show the error from the API
       nameError.value = apiError.value
     }
   }
 }
 
-// Handle canceling name edit
 const handleCancelNameEdit = () => {
   isEditingName.value = false
   nameError.value = null
 }
 
-// Start editing name (only when not locked)
 const startEditingName = () => {
   if (!isLocked.value) {
     isEditingName.value = true
@@ -120,10 +120,11 @@ onUnmounted(() => {
 
 <template>
   <main class="p-second">
-    <!-- Player Name Prompt Overlay -->
     <PlayerNamePrompt
       v-model="playerName"
       :show="showNamePrompt"
+      :show-content="isPlayerChecked"
+      :show-input="isNewPlayer"
       :loading="isApiLoading"
       :error="nameError"
       @save="handleSaveName"
