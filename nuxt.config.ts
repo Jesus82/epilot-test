@@ -7,6 +7,13 @@ export default defineNuxtConfig({
     '@nuxt/image',
     '@nuxt/ui',
   ],
+
+  // Auto-import composables from subdirectories
+  imports: {
+    dirs: [
+      'composables/**',
+    ],
+  },
   devtools: { enabled: true },
 
   css: [
@@ -14,10 +21,13 @@ export default defineNuxtConfig({
   ],
 
   runtimeConfig: {
+    // Server-only Supabase credentials
+    // Set via NUXT_SUPABASE_URL and NUXT_SUPABASE_SECRET_KEY env vars
+    // Uses new Supabase key format: sb_secret_... (replaces service_role key)
+    supabaseUrl: '',
+    supabaseSecretKey: '',
     public: {
-      // Supabase - set via NUXT_PUBLIC_SUPABASE_URL and NUXT_PUBLIC_SUPABASE_ANON_KEY env vars
-      supabaseUrl: '',
-      supabaseAnonKey: '',
+      // No Supabase credentials exposed to client
     },
   },
   compatibilityDate: '2025-07-15',

@@ -1,32 +1,9 @@
 import type { BtcPriceData } from '~/types/btc'
+import type { GuessDirection, BidResult, GameState } from '~/types/game'
+import type { PlayerStats } from '~/types/player'
 import { calculateIsWinning } from '~/helpers/btcChartHelpers'
 
-export type GuessDirection = 'up' | 'down' | null
-
-export interface BidResult {
-  direction: 'up' | 'down'
-  bidPrice: number
-  finalPrice: number
-  earnings: number
-  won: boolean
-  timestamp: number
-}
-
-export interface PlayerStats {
-  currentStreak: number
-  longestStreak: number
-  totalWins: number
-  totalLosses: number
-  totalEarnings: number
-}
-
-export interface GameState {
-  score: Ref<number>
-  guess: Ref<GuessDirection>
-  isLocked: Ref<boolean>
-  countdown: Ref<number>
-  guessPrice: Ref<number | null>
-}
+export type { GuessDirection, BidResult, GameState, PlayerStats }
 
 export const useGameLogic = (
   priceData: Ref<BtcPriceData | null>,

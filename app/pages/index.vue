@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { calculateYDomain } from '~/helpers/btcChartHelpers'
 import { filterByTimeRange } from '~/helpers/btcPriceChartHelpers'
-import type { BidResult } from '~/composables/useGameLogic'
+import type { BidResult } from '~/types/game'
 
 const { priceData, price, formatPrice, status, priceHistory, setBid, clearBid, connect, disconnect } = useBtcPrice()
 
@@ -9,7 +9,7 @@ const { priceData, price, formatPrice, status, priceHistory, setBid, clearBid, c
 const { getPlayerId } = usePlayerId()
 
 // Player API for persistence
-const { fetchStats, saveBid, updatePlayerName, isLoading: isApiLoading, error: apiError } = usePlayerApi()
+const { fetchStats, saveBid, updatePlayerName, isLoading: isApiLoading, error: apiError } = usePlayerService()
 
 // Player name state
 const playerName = ref<string>('')

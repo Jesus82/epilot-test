@@ -7,8 +7,7 @@ interface Props {
 
 interface Emits {
   (e: 'update:modelValue', value: string): void
-  (e: 'save'): void
-  (e: 'cancel'): void
+  (e: 'save' | 'cancel'): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
