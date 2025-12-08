@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { parseTickerMessage, shouldAttemptReconnect } from '~/helpers/btcWSHelpers'
-import type { BinanceTickerMessage } from '~/types/binance'
+import type { BinanceTickerMessage } from '../../../shared/types/binance'
 
 describe('btcWSHelpers', () => {
   describe('shouldAttemptReconnect', () => {

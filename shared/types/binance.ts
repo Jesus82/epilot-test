@@ -1,4 +1,9 @@
 /**
+ * Binance API types
+ * Single source of truth for both app and server contexts
+ */
+
+/**
  * Binance 24hr Ticker WebSocket message
  * Stream: wss://stream.binance.com:9443/ws/btcusdt@ticker
  */

@@ -149,11 +149,3 @@ export const fetchLeaderboard = async (
   if (error) throw error
   return data as PlayerInfo[]
 }
-
-// Re-export types only (functions are imported from ../lib/playerHelpers)
-export type {
-  PlayerInfo,
-  BidInfo,
-  BidResult,
-  ApiPlayerStats,
-} from '../lib/playerHelpers'

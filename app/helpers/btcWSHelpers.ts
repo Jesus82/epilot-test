@@ -3,8 +3,8 @@
  * These functions have no Vue/Nuxt dependencies and are easily testable
  */
 
-import type { BinanceTickerMessage } from '~/types/binance'
-import type { BtcPriceData } from '~/types/btc'
+import type { BinanceTickerMessage } from '../../shared/types/binance'
+import type { BtcPriceData } from '../../shared/types/btc'
 
 /**
  * Determine if a reconnection should be attempted based on close code and attempts

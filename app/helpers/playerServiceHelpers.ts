@@ -2,8 +2,8 @@
  * Pure helper functions for player service operations
  */
 
-import type { ApiPlayerStats, PlayerInfo, BidInfo } from '~/types/player'
-import type { BidResult } from '~/types/game'
+import type { ApiPlayerStats, PlayerInfo, BidInfo } from '../../shared/types/player'
+import type { BidResult } from '../../shared/types/game'
 
 /**
  * Default stats for a new player

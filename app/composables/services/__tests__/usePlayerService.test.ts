@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { usePlayerService } from '../usePlayerService'
-import type { ApiPlayerStats } from '~/types/player'
-import type { BidResult } from '~/types/game'
+import type { ApiPlayerStats } from '../../../../shared/types/player'
+import type { BidResult } from '../../../../shared/types/game'
 
 // Mock $fetch globally
 const mockFetch = vi.fn()

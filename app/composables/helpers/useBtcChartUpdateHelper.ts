@@ -1,5 +1,5 @@
 import { interpolatePath } from 'd3-interpolate-path'
-import type { PricePoint } from '~/types/btc'
+import type { PricePoint } from '../../../shared/types/btc'
 import {
   calculateNiceStep,
   findMinMaxPoints,
@@ -8,8 +8,6 @@ import {
   calculateIsWinning,
 } from '~/helpers/btcChartHelpers'
 import { setLabelWidth } from '~/helpers/d3LabelHelpers'
-
-export type { PricePoint }
 
 export const useBtcChartUpdateHelper = () => {
   const TRANSITION_DURATION = 300

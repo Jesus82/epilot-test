@@ -1,9 +1,7 @@
-import type { BtcPriceData } from '~/types/btc'
-import type { GuessDirection, BidResult, GameState } from '~/types/game'
-import type { PlayerStats } from '~/types/player'
+import type { BtcPriceData } from '../../shared/types/btc'
+import type { GuessDirection, BidResult, GameState } from '../../shared/types/game'
+import type { PlayerStats } from '../../shared/types/player'
 import { calculateIsWinning } from '~/helpers/btcChartHelpers'
-
-export type { GuessDirection, BidResult, GameState, PlayerStats }
 
 export const useGameLogic = (
   priceData: Ref<BtcPriceData | null>,

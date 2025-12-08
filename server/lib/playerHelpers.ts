@@ -3,75 +3,14 @@
  * Pure functions for database operations - no external dependencies
  */
 
-import type { GuessDirection } from '../../app/types/game'
-
-/**
- * Database row types
- */
-export interface PlayerInfo {
-  player_id: string
-  player_name: string | null
-  current_streak: number
-  longest_streak: number
-  total_wins: number
-  total_losses: number
-  total_earnings: number
-  created_at: string
-  updated_at: string
-}
-
-export interface BidInfo {
-  id: number
-  player_id: string
-  direction: GuessDirection
-  bid_price: number
-  final_price: number
-  earnings: number
-  won: boolean
-  timestamp: number
-  created_at: string
-}
-
-/**
- * API response types
- */
-export interface ApiPlayerStats {
-  currentStreak: number
-  longestStreak: number
-  totalWins: number
-  totalLosses: number
-  totalEarnings: number
-  playerName?: string | null
-  isNewPlayer?: boolean
-  updatedAt?: string
-}
-
-export interface BidResult {
-  direction: GuessDirection
-  bidPrice: number
-  finalPrice: number
-  earnings: number
-  won: boolean
-  timestamp: number
-}
-
-/**
- * Default stats for a new player
- */
-export interface DefaultPlayerStats {
-  current_streak: number
-  longest_streak: number
-  total_wins: number
-  total_losses: number
-  total_earnings: number
-}
-
-/**
- * Stats update after a bid
- */
-export interface UpdatedPlayerStats extends DefaultPlayerStats {
-  player_name?: string | null
-}
+import type {
+  PlayerInfo,
+  BidInfo,
+  ApiPlayerStats,
+  DefaultPlayerStats,
+  UpdatedPlayerStats,
+} from '../../shared/types/player'
+import type { BidResult } from '../../shared/types/game'
 
 /**
  * Creates default stats for a new player

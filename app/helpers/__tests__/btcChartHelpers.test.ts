@@ -9,7 +9,7 @@ import {
   findMinMaxPoints,
   getTimeIntervalMinutes,
 } from '~/helpers/btcChartHelpers'
-import type { PricePoint } from '~/types/btc'
+import type { PricePoint } from '../../../shared/types/btc'
 
 describe('btcChartHelpers', () => {
   describe('calculateIsWinning', () => {

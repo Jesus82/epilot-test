@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { ref, nextTick } from 'vue'
 import { flushPromises } from '@vue/test-utils'
-import type { BtcPriceData } from '~/types/btc'
+import type { BtcPriceData } from '../../../shared/types/btc'
 import { useGameLogic } from '../useGameLogic'
 import type { GuessDirection } from '../useGameLogic'
 

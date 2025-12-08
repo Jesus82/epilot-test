@@ -3,8 +3,8 @@
  * These functions have no Vue/Nuxt dependencies and are easily testable
  */
 
-import type { BinanceKline } from '~/types/binance'
-import type { PricePoint } from '~/types/btc'
+import type { BinanceKline } from '../../shared/types/binance'
+import type { PricePoint } from '../../shared/types/btc'
 
 /**
  * Get the maximum number of points to store for a given time range

@@ -6,8 +6,8 @@ import {
   takeRecentPoints,
   trimOldPoints,
 } from '~/helpers/btcHistoryHelpers'
-import type { BinanceKline } from '~/types/binance'
-import type { PricePoint } from '~/types/btc'
+import type { BinanceKline } from '../../../shared/types/binance'
+import type { PricePoint } from '../../../shared/types/btc'
 
 describe('btcHistoryHelpers', () => {
   describe('getMaxPointsForRange', () => {

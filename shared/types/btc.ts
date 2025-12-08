@@ -1,4 +1,9 @@
 /**
+ * BTC-related types for price data
+ * Single source of truth for both app and server contexts
+ */
+
+/**
  * Price point for chart data
  */
 export type PricePoint = { timestamp: number, price: number }

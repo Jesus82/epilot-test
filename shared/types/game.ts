@@ -1,5 +1,6 @@
 /**
  * Game-related types for BTC Price Prediction
+ * Single source of truth for both app and server contexts
  */
 
 import type { Ref } from 'vue'
@@ -10,7 +11,7 @@ import type { Ref } from 'vue'
 export type GuessDirection = 'up' | 'down' | null
 
 /**
- * Result of a completed bid
+ * Result of a completed bid (API format)
  */
 export interface BidResult {
   direction: 'up' | 'down'
@@ -22,7 +23,7 @@ export interface BidResult {
 }
 
 /**
- * Game state interface
+ * Game state interface (Vue reactive refs)
  */
 export interface GameState {
   score: Ref<number>

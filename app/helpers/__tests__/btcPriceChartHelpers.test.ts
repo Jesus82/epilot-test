@@ -6,7 +6,7 @@ import {
   filterByTimeRange,
   getSampleInterval,
 } from '../btcPriceChartHelpers'
-import type { PricePoint } from '~/types/btc'
+import type { PricePoint } from '../../../shared/types/btc'
 
 describe('btcPriceChartHelpers', () => {
   describe('TIME_RANGES', () => {

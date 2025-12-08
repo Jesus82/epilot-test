@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { PricePoint } from '~/types/btc'
-import type { GuessDirection } from '~/composables/useGameLogic'
+import type { PricePoint } from '../../shared/types/btc'
+import type { GuessDirection } from '../../shared/types/game'
 
 const props = defineProps<{
   data: PricePoint[]

@@ -8,7 +8,7 @@ export default defineNuxtConfig({
     '@nuxt/ui',
   ],
 
-  // Auto-import composables from subdirectories
+  // Auto-import composables from subdirectories and shared types
   imports: {
     dirs: [
       'composables/**',
@@ -29,6 +29,11 @@ export default defineNuxtConfig({
     public: {
       // No Supabase credentials exposed to client
     },
+  },
+
+  // Make shared types available via alias
+  alias: {
+    '~shared': '../shared',
   },
   compatibilityDate: '2025-07-15',
 

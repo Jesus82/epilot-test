@@ -4,8 +4,8 @@
  */
 
 import { ref, readonly } from 'vue'
-import type { ApiPlayerStats } from '~/types/player'
-import type { BidResult } from '~/types/game'
+import type { ApiPlayerStats } from '../../../shared/types/player'
+import type { BidResult } from '../../../shared/types/game'
 import { getErrorMessage } from '~/helpers/playerServiceHelpers'
 
 /**
