@@ -208,6 +208,54 @@ describe('usePlayerApi', () => {
 
       expect(isLoading.value).toBe(false)
     })
+
+    it('should return "Player name already exists" error when name is duplicated on update', async () => {
+      // Mock existing player check
+      const existingPlayerMock = createQueryMock({ id: '1' })
+
+      // Mock update with unique constraint violation (PostgreSQL error code 23505)
+      const updateMock = {
+        update: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({ error: { code: '23505', message: 'duplicate key value' } }),
+        }),
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: { id: '1' }, error: null }),
+      }
+
+      mockSupabaseClient.from
+        .mockReturnValueOnce(existingPlayerMock)
+        .mockReturnValueOnce(updateMock)
+
+      const { updatePlayerName, error } = usePlayerApi()
+      const success = await updatePlayerName('player-id', 'ExistingName')
+
+      expect(success).toBe(false)
+      expect(error.value).toBe('Player name already exists')
+    })
+
+    it('should return "Player name already exists" error when name is duplicated on first registration', async () => {
+      // Mock no existing player (new player)
+      const noPlayerMock = createQueryMock(null, { code: 'PGRST116' })
+
+      // Mock insert with unique constraint violation (PostgreSQL error code 23505)
+      const insertMock = {
+        insert: vi.fn().mockResolvedValue({ error: { code: '23505', message: 'duplicate key value' } }),
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      }
+
+      mockSupabaseClient.from
+        .mockReturnValueOnce(noPlayerMock) // First call: check existence - player doesn't exist
+        .mockReturnValueOnce(insertMock) // Second call: insert fails with duplicate name
+
+      const { updatePlayerName, error } = usePlayerApi()
+      const success = await updatePlayerName('new-player-id', 'AlreadyTakenName')
+
+      expect(success).toBe(false)
+      expect(error.value).toBe('Player name already exists')
+    })
   })
 
   describe('saveBid', () => {

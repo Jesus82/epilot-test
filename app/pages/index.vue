@@ -9,12 +9,13 @@ const { priceData, price, formatPrice, status, priceHistory, setBid, clearBid, c
 const { getPlayerId } = usePlayerId()
 
 // Player API for persistence
-const { fetchStats, saveBid, updatePlayerName, isLoading: isApiLoading } = usePlayerApi()
+const { fetchStats, saveBid, updatePlayerName, isLoading: isApiLoading, error: apiError } = usePlayerApi()
 
 // Player name state
 const playerName = ref<string>('')
 const isEditingName = ref(false)
 const showNamePrompt = ref(false)
+const nameError = ref<string | null>(null)
 
 // Callback when a bid completes - save to Supabase
 const onBidComplete = async (result: BidResult) => {
@@ -82,12 +83,18 @@ onMounted(async () => {
 
 // Handle saving player name
 const handleSaveName = async () => {
+  nameError.value = null
   const playerId = getPlayerId()
   if (playerId && playerName.value.trim()) {
     const success = await updatePlayerName(playerId, playerName.value.trim())
     if (success) {
       showNamePrompt.value = false
       isEditingName.value = false
+      nameError.value = null
+    }
+    else {
+      // Show the error from the API
+      nameError.value = apiError.value
     }
   }
 }
@@ -95,6 +102,7 @@ const handleSaveName = async () => {
 // Handle canceling name edit
 const handleCancelNameEdit = () => {
   isEditingName.value = false
+  nameError.value = null
 }
 
 // Start editing name (only when not locked)
@@ -130,6 +138,12 @@ onUnmounted(() => {
           :is-editing="true"
           @save="handleSaveName"
         />
+        <p
+          v-if="nameError"
+          class="text-red text-sm mt-2 text-center"
+        >
+          {{ nameError }}
+        </p>
       </div>
     </div>
 
@@ -146,13 +160,21 @@ onUnmounted(() => {
           </span>
         </template>
         <template v-else-if="isEditingName">
-          <PlayerNameInput
-            v-model="playerName"
-            :disabled="isApiLoading"
-            :is-editing="true"
-            @save="handleSaveName"
-            @cancel="handleCancelNameEdit"
-          />
+          <div class="flex flex-col">
+            <PlayerNameInput
+              v-model="playerName"
+              :disabled="isApiLoading"
+              :is-editing="true"
+              @save="handleSaveName"
+              @cancel="handleCancelNameEdit"
+            />
+            <p
+              v-if="nameError"
+              class="text-red text-sm mt-1"
+            >
+              {{ nameError }}
+            </p>
+          </div>
         </template>
       </div>
       <p class="font-display text-lg capitalize">

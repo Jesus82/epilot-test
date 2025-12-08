@@ -5,7 +5,7 @@
 CREATE TABLE players (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   player_id TEXT UNIQUE NOT NULL,  -- The UUID from localStorage
-  player_name TEXT DEFAULT NULL,   -- Player's display name
+  player_name TEXT UNIQUE DEFAULT NULL,   -- Player's display name (must be unique)
   current_streak INTEGER DEFAULT 0,
   longest_streak INTEGER DEFAULT 0,
   total_wins INTEGER DEFAULT 0,

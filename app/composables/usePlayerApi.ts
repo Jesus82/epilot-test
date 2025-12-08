@@ -306,8 +306,15 @@ export const usePlayerApi = () => {
 
       return true
     }
-    catch (err) {
-      error.value = err instanceof Error ? err.message : 'Unknown error'
+    catch (err: unknown) {
+      // Check for unique constraint violation (PostgreSQL error code 23505)
+      const pgError = err as { code?: string }
+      if (pgError.code === '23505') {
+        error.value = 'Player name already exists'
+      }
+      else {
+        error.value = err instanceof Error ? err.message : 'Unknown error'
+      }
       console.error('[usePlayerApi] Error updating player name:', err)
       return false
     }
