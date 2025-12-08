@@ -6,22 +6,34 @@
  * Button basic classes
  */
 
+ :root {
+  --o-button-min-size: var(--min-input-size);
+  --o-button-padding-vertical: var(--spacing-half);
+  --o-button-padding-horizontal: var(--spacing-quarter);
+  --o-button-font-size: var(--text-2xl);
+  --o-button-font-family: var(--font-display);
+  --o-button-color: var(--color-white);
+  --o-button-border-radius: var(--radius-base);
+  --o-button-bg-color: var(--color-blue-dark);
+  --o-button-gap: var(--spacing-quarter);
+}
+
 .o-button {
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  background-color: var(--color-blue);
-  font-size: var(--text-2xl);
-  font-family: var(--font-display);
-  color: var(--color-white);
-  padding: var(--spacing-half);
-  border-radius: var(--radius-base);
-  gap: var(--spacing-quarter);
+  background-color: var(--o-button-bg-color);
+  font-size: var(--o-button-font-size);
+  font-family: var(--o-button-font-family);
+  color: var(--o-button-color);
+  padding: var(--o-button-padding-vertical) var(--o-button-padding-horizontal);
+  border-radius: var(--o-button-border-radius);
+  gap: var(--o-button-gap);
 }
 
 .o-button:hover,
 .o-button:active:not(:disabled) {
-  background-color: hsl(from var(--color-blue) h s 60% / 1);
+  background-color: hsl(from var(--o-button-bg-color) h s 50% / 1);
   transform: scale(0.98);
   transition: 0.2s transform var(--ease-out-quad);
 }
@@ -33,9 +45,15 @@
 
 .o-button:disabled,
 .o-button[disabled] {
-  background-color: var(--color-gray-dark);
+  background-color: hsl(from var(--o-button-bg-color) h s l / 0.6);
   cursor: not-allowed;
   pointer-events: none;
+}
+
+.o-button[data-button-variant="small"] {
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-quarter) var(--spacing-half);
+  min-height: var(--o-button-min-size);
 }
 
 .o-button[data-button-variant="is-bet-active"] {

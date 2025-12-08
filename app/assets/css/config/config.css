@@ -11,9 +11,11 @@
 }
 
 
-/* @function --fluid-scaler(--small-ratio, --large-ratio) {
-  result: calc(--small-ratio + (--large-ratio - --small-ratio) * var(--screen-normalizer));
-} */
+/* Inputs */
+
+:root {
+  --min-input-size: calc(var(--text-sm) * var(--leading) + var(--spacing-quarter) * 2);
+}
 
 /* Fonts */
 

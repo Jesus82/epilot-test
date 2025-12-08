@@ -121,31 +121,13 @@ onUnmounted(() => {
 <template>
   <main class="p-second">
     <!-- Player Name Prompt Overlay -->
-    <div
-      v-if="showNamePrompt"
-      class="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
-    >
-      <div class="bg-gray-900 p-8 rounded-lg max-w-md w-full mx-4">
-        <h2 class="font-display text-2xl mb-4 text-center">
-          Welcome to BTC Price Prediction!
-        </h2>
-        <p class="text-gray-400 mb-6 text-center">
-          Enter your name to get started
-        </p>
-        <PlayerNameInput
-          v-model="playerName"
-          :disabled="isApiLoading"
-          :is-editing="true"
-          @save="handleSaveName"
-        />
-        <p
-          v-if="nameError"
-          class="text-red text-sm mt-2 text-center"
-        >
-          {{ nameError }}
-        </p>
-      </div>
-    </div>
+    <PlayerNamePrompt
+      v-model="playerName"
+      :show="showNamePrompt"
+      :loading="isApiLoading"
+      :error="nameError"
+      @save="handleSaveName"
+    />
 
     <div class="flex justify-between items-center">
       <div class="flex items-center gap-half">

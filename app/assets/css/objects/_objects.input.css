@@ -1,0 +1,52 @@
+/* ==========================================================================
+   #INPUT
+   ========================================================================== */
+
+/**
+ * Input base classes
+ */
+
+:root {
+  --o-input-border-radius: none;
+  --o-input-padding-vertical: var(--spacing-quarter);
+  --o-input-padding-horizontal: var(--spacing-quarter);
+  --o-input-font-size: var(--text-sm);
+  --o-input-font-family: var(--font-sans);
+  --o-input-color: var(--color-gray-darkest);
+  --o-input-border-color: var(--color-gray-lightest);
+  --o-input-min-size: var(--min-input-size);
+}
+
+.o-input,
+.o-input button {
+  font-size: var(--o-input-font-size);
+}
+
+.o-input {
+  cursor: pointer;
+  border-radius: var(--o-input-border-radius);
+  padding: var(--o-input-padding-vertical) var(--o-input-padding-horizontal);
+  font-size: var(--o-input-font-size);
+  font-family: var(--o-input-font-family);
+  color: var(--o-input-color);
+  background-color: hsl(from var(--color-gray-lightest) h s 97% / 1);
+  border: 1px solid var(--o-input-border-color);
+  display: flex;
+  align-items: center;
+  min-height: var(--o-input-min-size);
+}
+
+.o-input:hover{
+  background-color: hsl(from var(--color-gray-lightest) h s l / 1);
+}
+
+.o-input:focus-visible {
+  outline: 2px solid var(--color-blue);
+}
+
+.o-input:disabled,
+.o-input[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: hsl(from var(--color-gray-lightest) h s 97% / 1);
+}

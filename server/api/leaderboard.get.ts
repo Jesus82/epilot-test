@@ -5,7 +5,8 @@
 
 import { getServerSupabase } from '~~/server/utils/supabase'
 import { fetchLeaderboard } from '~~/server/utils/playerDb'
-import { mapPlayerInfoToApiStats, type PlayerInfo } from '~~/server/lib/playerHelpers'
+import { mapPlayerInfoToApiStats } from '~~/server/lib/playerHelpers'
+import type { PlayerInfo } from '~~/shared/types/db'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
