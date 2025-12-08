@@ -3,7 +3,7 @@
  * These functions have no D3/Vue dependencies and are easily testable
  */
 
-import type { PricePoint } from '../../shared/types/btc'
+import type { PricePoint } from '../../shared/types/chart'
 import type { GuessDirection } from '~/composables/useGameLogic'
 
 /**

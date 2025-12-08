@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { calculateYDomain } from '~/helpers/btcChartHelpers'
 import { filterByTimeRange } from '~/helpers/btcPriceChartHelpers'
-import type { BidResult } from '../../shared/types/game'
+import type { BidResult } from '../../shared/types/api'
 
 const { priceData, price, formatPrice, status, priceHistory, setBid, clearBid, connect, disconnect } = useBtcPrice()
 

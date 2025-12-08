@@ -3,7 +3,8 @@
  * Pure functions for game state calculations
  */
 
-import type { BidResult, InitialBidState } from '../../shared/types/game'
+import type { BidResult } from '../../shared/types/api'
+import type { InitialBidState } from '../../shared/types/game'
 import type { PlayerStats } from '../../shared/types/player'
 
 /**

@@ -6,11 +6,10 @@
 import type {
   PlayerInfo,
   BidInfo,
-  ApiPlayerStats,
   DefaultPlayerStats,
   UpdatedPlayerStats,
-} from '../../shared/types/player'
-import type { BidResult } from '../../shared/types/game'
+} from '../../shared/types/db'
+import type { ApiPlayerStats, BidResult } from '../../shared/types/api'
 
 /**
  * Creates default stats for a new player

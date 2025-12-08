@@ -1,5 +1,6 @@
 import type { BtcPriceData } from '../../shared/types/btc'
-import type { GuessDirection, BidResult, GameState } from '../../shared/types/game'
+import type { GuessDirection, GameState } from '../../shared/types/game'
+import type { BidResult } from '../../shared/types/api'
 import type { PlayerStats } from '../../shared/types/player'
 import { calculateIsWinning } from '~/helpers/btcChartHelpers'
 import {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PricePoint } from '../../shared/types/btc'
+import type { PricePoint } from '../../shared/types/chart'
 import type { GuessDirection } from '../../shared/types/game'
 
 const props = defineProps<{

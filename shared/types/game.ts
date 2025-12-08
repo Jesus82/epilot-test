@@ -1,6 +1,6 @@
 /**
  * Game-related types for BTC Price Prediction
- * Single source of truth for both app and server contexts
+ * Core game state types
  */
 
 import type { Ref } from 'vue'
@@ -17,25 +17,6 @@ export interface InitialBidState {
   direction: 'up' | 'down'
   price: number
   countdownSeconds: number
-}
-
-/**
- * Result of a completed bid (API format)
- */
-export interface BidResult {
-  direction: 'up' | 'down'
-  bidPrice: number
-  finalPrice: number
-  earnings: number
-  won: boolean
-  timestamp: number
-}
-
-/**
- * Request body for saving a bid
- */
-export interface SaveBidBody {
-  bid: BidResult
 }
 
 /**

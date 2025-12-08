@@ -6,7 +6,7 @@
 import { getServerSupabase } from '~~/server/utils/supabase'
 import { findPlayerById, createPlayer, updatePlayerNameInDb } from '~~/server/utils/playerDb'
 import { isUniqueConstraintError } from '~~/server/lib/playerHelpers'
-import type { UpdateNameBody } from '~~/shared/types/player'
+import type { UpdateNameBody } from '~~/shared/types/api'
 
 export default defineEventHandler(async (event) => {
   const playerId = getRouterParam(event, 'playerId')

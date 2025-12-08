@@ -10,8 +10,8 @@ import {
   isRecordNotFoundError,
   getErrorMessage,
 } from '../playerServiceHelpers'
-import type { PlayerInfo, BidInfo } from '../../../shared/types/player'
-import type { BidResult } from '../../../shared/types/game'
+import type { PlayerInfo, BidInfo } from '../../../shared/types/db'
+import type { BidResult } from '../../../shared/types/api'
 
 describe('playerServiceHelpers', () => {
   describe('createDefaultPlayerStats', () => {

@@ -1,5 +1,5 @@
 import type { BinanceKline } from '../../../shared/types/binance'
-import type { PricePoint } from '../../../shared/types/btc'
+import type { PricePoint } from '../../../shared/types/chart'
 import {
   getKlineParams,
   getMaxPointsForRange,

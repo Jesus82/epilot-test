@@ -1,5 +1,5 @@
 import { interpolatePath } from 'd3-interpolate-path'
-import type { PricePoint } from '../../../shared/types/btc'
+import type { PricePoint } from '../../../shared/types/chart'
 import {
   calculateNiceStep,
   findMinMaxPoints,

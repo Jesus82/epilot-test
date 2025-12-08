@@ -1,4 +1,4 @@
-import type { PricePoint } from './useBtcChartUpdateHelper'
+import type { PricePoint } from '../../../shared/types/chart'
 import { calculatePriceLabelPosition } from '~/helpers/btcChartHelpers'
 import { setLabelWidth } from '~/helpers/d3LabelHelpers'
 

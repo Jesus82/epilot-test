@@ -3,7 +3,7 @@
  * These functions have no Vue dependencies and are easily testable
  */
 
-import type { PricePoint } from '../../shared/types/btc'
+import type { PricePoint } from '../../shared/types/chart'
 
 /**
  * Time range options for the chart

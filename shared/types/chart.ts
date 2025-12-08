@@ -4,6 +4,14 @@
  */
 
 /**
+ * Price point for chart data
+ */
+export interface PricePoint {
+  timestamp: number
+  price: number
+}
+
+/**
  * Chart margin configuration
  */
 export interface ChartMargin {
