@@ -47,6 +47,7 @@ const handleSave = async () => {
       role="dialog"
       aria-modal="true"
       aria-labelledby="welcome-heading"
+      style="position: fixed; inset: 0; background: #fff; z-index: 1000;"
     >
       <template v-if="showContent">
         <img
