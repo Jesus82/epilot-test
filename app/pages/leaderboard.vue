@@ -88,24 +88,30 @@ const activeTab = ref<Tab>('score')
         <h1 class="font-display text-4xl mb-half">
           Highest Scores
         </h1>
-        <div
-          v-for="(player, index) in topByScore"
-          :key="'score-' + player.playerId"
-          class="grid grid-cols-[1fr_max-content] gap-base"
+        <TransitionGroup
+          name="t-stagger"
+          appear
         >
-          <p
-            class="font-display"
-            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+          <div
+            v-for="(player, index) in topByScore"
+            :key="'score-' + player.playerId"
+            class="grid grid-cols-[1fr_max-content] gap-base"
+            :style="{ transitionDelay: `${index * 50}ms` }"
           >
-            {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
-          </p>
-          <p
-            class="font-display flex justify-end"
-            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
-          >
-            {{ player.score }}
-          </p>
-        </div>
+            <p
+              class="font-display"
+              :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+            >
+              {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
+            </p>
+            <p
+              class="font-display flex justify-end"
+              :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+            >
+              {{ player.score }}
+            </p>
+          </div>
+        </TransitionGroup>
       </div>
 
       <div
@@ -115,24 +121,30 @@ const activeTab = ref<Tab>('score')
         <h1 class="font-display text-4xl mb-half">
           Best Streaks
         </h1>
-        <div
-          v-for="(player, index) in topByStreak"
-          :key="'streak-' + player.playerId"
-          class="grid grid-cols-[1fr_max-content] gap-base"
+        <TransitionGroup
+          name="t-stagger"
+          appear
         >
-          <p
-            class="font-display"
-            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+          <div
+            v-for="(player, index) in topByStreak"
+            :key="'streak-' + player.playerId"
+            class="grid grid-cols-[1fr_max-content] gap-base"
+            :style="{ transitionDelay: `${index * 50}ms` }"
           >
-            {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
-          </p>
-          <p
-            class="font-display flex justify-end"
-            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
-          >
-            {{ player.longestStreak }}
-          </p>
-        </div>
+            <p
+              class="font-display"
+              :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+            >
+              {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
+            </p>
+            <p
+              class="font-display flex justify-end"
+              :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+            >
+              {{ player.longestStreak }}
+            </p>
+          </div>
+        </TransitionGroup>
       </div>
 
       <div
@@ -142,24 +154,30 @@ const activeTab = ref<Tab>('score')
         <h1 class="font-display text-4xl mb-half">
           Top Earnings
         </h1>
-        <div
-          v-for="(player, index) in topByEarnings"
-          :key="'earnings-' + player.playerId"
-          class="grid grid-cols-[1fr_max-content] gap-base"
+        <TransitionGroup
+          name="t-stagger"
+          appear
         >
-          <p
-            class="font-display"
-            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+          <div
+            v-for="(player, index) in topByEarnings"
+            :key="'earnings-' + player.playerId"
+            class="grid grid-cols-[1fr_max-content] gap-base"
+            :style="{ transitionDelay: `${index * 50}ms` }"
           >
-            {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
-          </p>
-          <p
-            class="font-display flex justify-end"
-            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
-          >
-            {{ formatPrice(player.totalEarnings) }}
-          </p>
-        </div>
+            <p
+              class="font-display"
+              :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+            >
+              {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
+            </p>
+            <p
+              class="font-display flex justify-end"
+              :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+            >
+              {{ formatPrice(player.totalEarnings) }}
+            </p>
+          </div>
+        </TransitionGroup>
       </div>
     </template>
 
