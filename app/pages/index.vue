@@ -3,7 +3,7 @@ import { calculateYDomain } from '~/helpers/btcChartHelpers'
 import { filterByTimeRange } from '~/helpers/btcPriceChartHelpers'
 import type { BidResult } from '../../shared/types/api'
 
-const { priceData, price, formatPrice, status, priceHistory, setBid, clearBid, connect, disconnect } = useBtcPrice()
+const { priceData, price, status, priceHistory, setBid, clearBid, connect, disconnect } = useBtcPrice()
 
 // Player identification
 const { getPlayerId } = usePlayerId()
@@ -160,9 +160,7 @@ onUnmounted(() => {
           </div>
         </template>
       </div>
-      <p class="font-display text-lg capitalize">
-        {{ status }}
-      </p>
+
       <p class="font-display text-lg">
         Score: {{ score }}
       </p>
@@ -172,135 +170,33 @@ onUnmounted(() => {
       <BtcPriceChart />
 
       <div class="grid grid-cols-3 py-second">
-        <div class="flex justify-center items-center gap-half">
-          <p
-            v-if="countdown"
-            class="font-display text-3xl"
-          >
-            {{ countdown }}s
-          </p>
-          <BidProgressBar
-            v-if="isLocked && guessPrice && price && guess"
-            :bid-price="guessPrice"
-            :current-price="price"
-            :is-winning="isWinning"
-            :y-min="yDomain.yMin"
-            :y-max="yDomain.yMax"
-          />
-          <div class="grid grid-rows-3">
-            <p
-              v-if="isLocked && bidToPriceDifference"
-              :class="[
-                'font-display text-lg',
-                isWinning
-                  ? 'text-green'
-                  : 'text-red',
-                bidToPriceDifference >= 0
-                  ? 'row-start-1'
-                  : 'row-start-3',
-              ]"
-            >
-              {{ bidToPriceDifference > 0 ? '+' : '' }}{{ formatPrice(bidToPriceDifference) }}
-            </p>
-            <p
-              v-if="guessPrice"
-              class="font-display text-lg text-gray-dark row-start-2"
-            >
-              Your bid: <span
-                :class="[
-                  'font-display text-lg',
-                  isWinning
-                    ? 'text-green'
-                    : 'text-red',
-                ]"
-              >{{ formatPrice(guessPrice) }} <span
-                v-if="guess === 'up'"
-              >⬆</span><span
-                v-else
-                :class="[
-                  'font-display text-lg',
-                  isWinning
-                    ? 'text-green'
-                    : 'text-red',
-                ]"
-              >⬇</span></span>
-            </p>
-          </div>
-        </div>
-        <div class="col-start-2 flex flex-col p-second">
-          <div class="flex justify-center gap-half">
-            <button
-              class="o-button"
-              :disabled="isLocked || status !== 'connected'"
-              :data-button-color="guess === 'up' ? 'active' : null"
-              @click="makeGuess('up')"
-            >
-              <span>⬆</span>
-              <span>UP</span>
-            </button>
-
-            <button
-              class="o-button"
-              :disabled="isLocked || status !== 'connected'"
-              :data-button-variant="guess === 'down' ? 'active' : null"
-              @click="makeGuess('down')"
-            >
-              <span>⬇</span>
-              <span>DOWN</span>
-            </button>
-          </div>
-        </div>
-        <div>
-          <div>
-            <p class="font-display text-md">
-              Total Earnings:
-              <span :class="totalEarnings >= 0 ? 'text-green' : 'text-red'">
-                {{ totalEarnings >= 0 ? '+' : '' }}{{ formatPrice(totalEarnings) }}
-              </span>
-            </p>
-          </div>
-          <div>
-            <p class="font-display text-md">
-              Current Streak:
-              <span>{{ currentStreak }}</span>
-            </p>
-          </div>
-          <div>
-            <p class="font-display text-md">
-              Longest Streak:
-              <span>{{ longestStreak }}</span>
-            </p>
-          </div>
-          <div>
-            <p class="font-display text-md">
-              Wins:
-              <span>{{ totalWins }}</span>
-            </p>
-          </div>
-          <div>
-            <p class="font-display text-md">
-              Losses:
-              <span>{{ totalLosses }}</span>
-            </p>
-          </div>
-          <div v-if="isLocked">
-            <p class="font-display text-md">
-              Potential Earnings:
-              <span :class="potentialEarnings >= 0 ? 'text-green' : 'text-red'">
-                {{ potentialEarnings >= 0 ? '+' : '' }}{{ formatPrice(potentialEarnings) }}
-              </span>
-            </p>
-          </div>
-          <div v-if="lastBidResult">
-            <p class="font-display text-md">
-              Last Bid:
-              <span :class="lastBidResult.won ? 'text-green' : 'text-red'">
-                {{ lastBidResult.won ? 'Won' : 'Lost' }}
-                {{ lastBidResult.earnings >= 0 ? '+' : '' }}{{ formatPrice(lastBidResult.earnings) }}
-              </span>
-            </p>
-          </div>
-        </div>
+        <BidStatus
+          :countdown="countdown"
+          :is-locked="isLocked"
+          :guess-price="guessPrice"
+          :current-price="price"
+          :is-winning="isWinning"
+          :guess="guess"
+          :bid-to-price-difference="bidToPriceDifference"
+          :y-min="yDomain.yMin"
+          :y-max="yDomain.yMax"
+        />
+        <BidButtons
+          :is-locked="isLocked"
+          :is-connected="status === 'connected'"
+          :guess="guess"
+          @guess="makeGuess"
+        />
+        <PlayerStatsPanel
+          :total-earnings="totalEarnings"
+          :current-streak="currentStreak"
+          :longest-streak="longestStreak"
+          :total-wins="totalWins"
+          :total-losses="totalLosses"
+          :potential-earnings="potentialEarnings"
+          :is-locked="isLocked"
+          :last-bid-result="lastBidResult"
+        />
       </div>
     </ClientOnly>
   </main>
