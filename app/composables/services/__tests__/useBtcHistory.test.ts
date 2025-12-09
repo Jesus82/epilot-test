@@ -191,7 +191,8 @@ describe('useBtcHistory', () => {
       })
     })
 
-    it('should add multiple price points', () => {
+    it('should add multiple price points at 1s intervals for 5min range', () => {
+      // 5min range has 1s sample interval, so all points should be stored
       btcHistory.addPricePoint(1700000000000, 95000)
       btcHistory.addPricePoint(1700000001000, 95100)
       btcHistory.addPricePoint(1700000002000, 95200)
@@ -200,13 +201,43 @@ describe('useBtcHistory', () => {
       expect(btcHistory.priceHistory.value[2]?.price).toBe(95200)
     })
 
+    it('should throttle points based on sample interval for 60min range', async () => {
+      // Load with 60 minutes to set the range (1min sample interval)
+      mockFetch.mockResolvedValueOnce({
+        json: () => Promise.resolve([]),
+      })
+      await btcHistory.loadHistoricalData(60)
+
+      // Add points at 30s intervals - only every minute should be stored
+      btcHistory.addPricePoint(1700000000000, 95000) // Stored (first point)
+      btcHistory.addPricePoint(1700000030000, 95100) // Skipped (30s later)
+      btcHistory.addPricePoint(1700000060000, 95200) // Stored (60s later)
+      btcHistory.addPricePoint(1700000090000, 95300) // Skipped (30s later)
+      btcHistory.addPricePoint(1700000120000, 95400) // Stored (60s later)
+
+      expect(btcHistory.priceHistory.value).toHaveLength(3)
+      expect(btcHistory.priceHistory.value.map(p => p.price)).toEqual([95000, 95200, 95400])
+    })
+
     it('should trim old points when exceeding max', () => {
       // Add more than maxPoints for 5 min range (400)
+      // Points are at 1s intervals which matches 5min sample interval
       for (let i = 0; i < 450; i++) {
         btcHistory.addPricePoint(Date.now() + i * 1000, 95000 + i)
       }
 
       expect(btcHistory.priceHistory.value.length).toBeLessThanOrEqual(400)
+    })
+
+    it('should skip points that are too close together', () => {
+      // Add points at 500ms intervals - should only store ~half
+      btcHistory.addPricePoint(1700000000000, 95000) // Stored
+      btcHistory.addPricePoint(1700000000500, 95050) // Skipped (500ms later)
+      btcHistory.addPricePoint(1700000001000, 95100) // Stored (1s from first)
+      btcHistory.addPricePoint(1700000001500, 95150) // Skipped (500ms later)
+      btcHistory.addPricePoint(1700000002000, 95200) // Stored (1s from second stored)
+
+      expect(btcHistory.priceHistory.value).toHaveLength(3)
     })
   })
 

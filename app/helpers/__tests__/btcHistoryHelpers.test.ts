@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   getKlineParams,
   getMaxPointsForRange,
+  getSampleIntervalForRange,
   klinesToPricePoints,
+  shouldStorePoint,
   takeRecentPoints,
   trimOldPoints,
 } from '~/helpers/btcHistoryHelpers'
@@ -36,6 +38,59 @@ describe('btcHistoryHelpers', () => {
     it('returns 400 for more than 360 minutes (24h)', () => {
       expect(getMaxPointsForRange(361)).toBe(400)
       expect(getMaxPointsForRange(1440)).toBe(400)
+    })
+  })
+
+  describe('getSampleIntervalForRange', () => {
+    it('returns 1000ms for 5 minutes or less', () => {
+      expect(getSampleIntervalForRange(1)).toBe(1000)
+      expect(getSampleIntervalForRange(5)).toBe(1000)
+    })
+
+    it('returns 2000ms for 6-10 minutes', () => {
+      expect(getSampleIntervalForRange(6)).toBe(2000)
+      expect(getSampleIntervalForRange(10)).toBe(2000)
+    })
+
+    it('returns 60000ms for 11-60 minutes', () => {
+      expect(getSampleIntervalForRange(11)).toBe(60000)
+      expect(getSampleIntervalForRange(60)).toBe(60000)
+    })
+
+    it('returns 60000ms for 61-360 minutes', () => {
+      expect(getSampleIntervalForRange(61)).toBe(60000)
+      expect(getSampleIntervalForRange(360)).toBe(60000)
+    })
+
+    it('returns 300000ms for more than 360 minutes', () => {
+      expect(getSampleIntervalForRange(361)).toBe(300000)
+      expect(getSampleIntervalForRange(1440)).toBe(300000)
+    })
+  })
+
+  describe('shouldStorePoint', () => {
+    it('returns true when lastTimestamp is null', () => {
+      expect(shouldStorePoint(null, 1700000001000, 1000)).toBe(true)
+    })
+
+    it('returns true when gap is exactly the sample interval', () => {
+      expect(shouldStorePoint(1700000000000, 1700000001000, 1000)).toBe(true)
+    })
+
+    it('returns true when gap is larger than sample interval', () => {
+      expect(shouldStorePoint(1700000000000, 1700000002000, 1000)).toBe(true)
+    })
+
+    it('returns false when gap is smaller than sample interval', () => {
+      expect(shouldStorePoint(1700000000000, 1700000000500, 1000)).toBe(false)
+      expect(shouldStorePoint(1700000000000, 1700000000999, 1000)).toBe(false)
+    })
+
+    it('works with larger sample intervals', () => {
+      const minute = 60000
+      expect(shouldStorePoint(1700000000000, 1700000030000, minute)).toBe(false) // 30s gap
+      expect(shouldStorePoint(1700000000000, 1700000060000, minute)).toBe(true) // 60s gap
+      expect(shouldStorePoint(1700000000000, 1700000120000, minute)).toBe(true) // 120s gap
     })
   })
 

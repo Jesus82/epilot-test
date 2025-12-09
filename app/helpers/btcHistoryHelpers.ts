@@ -19,6 +19,31 @@ export const getMaxPointsForRange = (minutes: number): number => {
 }
 
 /**
+ * Get the minimum interval between stored points for a given time range (in ms)
+ * This prevents storing too many points for longer time ranges
+ */
+export const getSampleIntervalForRange = (minutes: number): number => {
+  if (minutes <= 5) return 1000 // Store every 1s for 5min view
+  if (minutes <= 10) return 2000 // Store every 2s for 10min view
+  if (minutes <= 60) return 60000 // Store every 1min for 1h view
+  if (minutes <= 360) return 60000 // Store every 1min for 6h view
+  return 300000 // Store every 5min for 24h view
+}
+
+/**
+ * Check if a new point should be stored based on the last stored timestamp
+ * and the current sample interval
+ */
+export const shouldStorePoint = (
+  lastTimestamp: number | null,
+  newTimestamp: number,
+  sampleIntervalMs: number,
+): boolean => {
+  if (lastTimestamp === null) return true
+  return (newTimestamp - lastTimestamp) >= sampleIntervalMs
+}
+
+/**
  * Get Binance kline API parameters based on time range
  * Returns appropriate interval and limit for the API call
  */
