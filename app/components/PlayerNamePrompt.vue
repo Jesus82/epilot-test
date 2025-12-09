@@ -44,9 +44,12 @@ const handleSave = async () => {
     <div
       v-if="show"
       class="c-player-name-prompt"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="welcome-heading"
     >
       <template v-if="showContent">
-        <h2 class="font-display text-2xl mb-half text-center max-w-[30ch]">
+        <h2 id="welcome-heading" class="font-display text-2xl mb-half text-center max-w-[30ch]">
           Welcome to the BTC Price Prediction Contest!
         </h2>
         <PlayerNameInput

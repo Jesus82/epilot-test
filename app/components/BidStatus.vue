@@ -74,8 +74,10 @@ const hasContent = computed(() =>
           ]"
         >{{ formatPrice(guessPrice) }} <span
           v-if="guess === 'up'"
+          aria-hidden="true"
         >⬆</span><span
           v-else
+          aria-hidden="true"
           :class="[
             'font-display text-lg',
             isWinning

@@ -16,20 +16,32 @@ const handleStartEdit = () => {
     startEditing()
   }
 }
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault()
+    handleStartEdit()
+  }
+}
 </script>
 
 <template>
   <nav class="flex justify-between items-center">
     <div class="flex items-center gap-half">
       <template v-if="!isEditingName && playerName">
-        <span
+        <h1
           class="font-display text-lg cursor-pointer hover:text-orange"
           :class="{ 'opacity-50 cursor-not-allowed': isLocked }"
           :title="isLocked ? 'Cannot edit while bid is locked' : 'Click to edit name'"
+          :tabindex="isLocked ? -1 : 0"
+          role="button"
+          :aria-label="`Edit player name: ${playerName}`"
+          :aria-disabled="isLocked"
           @click="handleStartEdit"
+          @keydown="handleKeydown"
         >
           {{ playerName }}
-        </span>
+        </h1>
       </template>
       <template v-else-if="isEditingName">
         <div class="flex flex-col">
@@ -72,6 +84,9 @@ const handleStartEdit = () => {
           :data-status="lastScoreChange > 0 ? 'positive' : 'negative'"
           class="font-display text-sm font-bold"
           :class="lastScoreChange > 0 ? 'text-green' : 'text-red'"
+          role="status"
+          aria-live="polite"
+          :aria-label="lastScoreChange > 0 ? 'Score increased by 1' : 'Score decreased by 1'"
         >
           {{ lastScoreChange > 0 ? '+1' : '-1' }}
         </span>

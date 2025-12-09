@@ -16,8 +16,14 @@ export const useBtcChartInitHelper = () => {
       .append('svg')
       .attr('viewBox', `0 0 ${containerWidth} ${containerHeight}`)
       .attr('preserveAspectRatio', 'xMidYMid meet')
+      .attr('role', 'img')
+      .attr('aria-label', 'Bitcoin price chart showing price movements over time')
       .style('width', '100%')
       .style('height', 'auto')
+
+    // Add title and desc for screen readers
+    svgElement.append('title').text('Bitcoin Price Chart')
+    svgElement.append('desc').text('A line chart displaying Bitcoin price fluctuations over the selected time period')
 
     const svg = svgElement
       .append('g')

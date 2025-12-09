@@ -32,6 +32,8 @@ watch(selectedRange, async (newRange) => {
         <p
           v-if="isLoadingHistory"
           class="text-xs font-sans"
+          role="status"
+          aria-live="polite"
         >
           Loading...
         </p>
@@ -51,6 +53,8 @@ watch(selectedRange, async (newRange) => {
       <div
         v-if="isLoadingHistory"
         class="chart-loading-overlay"
+        role="status"
+        aria-live="polite"
       >
         <span>Loading historical data...</span>
       </div>

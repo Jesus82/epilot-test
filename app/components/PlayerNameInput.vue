@@ -80,6 +80,7 @@ const handleKeydown = (event: KeyboardEvent) => {
       :value="localName"
       type="text"
       placeholder="Enter your name"
+      aria-label="Enter your player name"
       :disabled="disabled"
       maxlength="20"
       class="o-input"

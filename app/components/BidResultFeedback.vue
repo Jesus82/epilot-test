@@ -14,20 +14,25 @@ const { formatPrice } = useBtcPrice()
       v-if="show"
       data-testid="result-feedback-overlay"
       class="absolute inset-0 flex flex-col justify-center items-center z-10 result-feedback-bg rounded-lg"
+      role="alert"
+      :aria-label="won ? 'You won this round' : 'You lost this round'"
     >
       <p
         data-testid="result-feedback-message"
         :data-status="won ? 'positive' : 'negative'"
         class="font-display text-2xl font-bold"
         :class="won ? 'text-green' : 'text-red'"
+        role="status"
+        aria-live="assertive"
       >
-        {{ won ? '🎉 You Won!' : '😔 You Lost' }}
+        <span aria-hidden="true">{{ won ? '🎉' : '😔' }}</span> {{ won ? 'You Won!' : 'You Lost' }}
       </p>
       <p
         data-testid="result-feedback-earnings"
         :data-status="won ? 'positive' : 'negative'"
         class="font-display text-xl"
         :class="won ? 'text-green' : 'text-red'"
+        :aria-label="`Earnings: ${earnings >= 0 ? 'plus' : 'minus'} ${Math.abs(earnings)} dollars`"
       >
         {{ earnings >= 0 ? '+' : '' }}{{ formatPrice(earnings) }}
       </p>

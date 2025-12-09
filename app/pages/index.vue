@@ -59,7 +59,9 @@ onUnmounted(() => {
       @saved="setPlayerName"
     />
 
-    <PlayerHeader />
+    <header>
+      <PlayerHeader />
+    </header>
 
     <ClientOnly fallback-tag="div">
       <BtcPriceChart />

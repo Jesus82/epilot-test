@@ -16,9 +16,10 @@ const handleGuess = (direction: 'up' | 'down') => {
         class="o-button"
         :disabled="isLocked || !isConnected"
         :data-button-color="guess === 'up' ? 'active' : null"
+        aria-label="Predict price will go up"
         @click="handleGuess('up')"
       >
-        <span>⬆</span>
+        <span aria-hidden="true">⬆</span>
         <span>UP</span>
       </button>
 
@@ -26,9 +27,10 @@ const handleGuess = (direction: 'up' | 'down') => {
         class="o-button"
         :disabled="isLocked || !isConnected"
         :data-button-variant="guess === 'down' ? 'active' : null"
+        aria-label="Predict price will go down"
         @click="handleGuess('down')"
       >
-        <span>⬇</span>
+        <span aria-hidden="true">⬇</span>
         <span>DOWN</span>
       </button>
     </div>

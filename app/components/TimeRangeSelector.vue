@@ -5,11 +5,13 @@ const model = defineModel<number>({ required: true })
 </script>
 
 <template>
-  <div class="time-range-selector">
+  <div class="time-range-selector" role="group" aria-label="Select time range">
     <button
       v-for="range in TIME_RANGES"
       :key="range.minutes"
       :class="['time-range-selector__btn', { 'time-range-selector__btn--active': model === range.minutes }]"
+      :aria-pressed="model === range.minutes"
+      :aria-label="`Show last ${range.label} of data`"
       @click="model = range.minutes"
     >
       {{ range.label }}

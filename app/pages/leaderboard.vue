@@ -35,7 +35,7 @@ const activeTab = ref<Tab>('score')
 
 <template>
   <div class="flex flex-col items-center p-base min-w-screen min-h-screen">
-    <div v-if="status === 'pending'">
+    <div v-if="status === 'pending'" role="status" aria-live="polite">
       Loading...
     </div>
 
@@ -47,11 +47,14 @@ const activeTab = ref<Tab>('score')
     </div>
 
     <template v-else-if="leaderboard && leaderboard.length > 0">
-      <div class="pb-third grid grid-cols-3 gap-base">
+      <div class="pb-third grid grid-cols-3 gap-base" role="tablist" aria-label="Leaderboard categories">
         <button
           :data-active="activeTab === 'score'"
           class="font-display text-xl"
           :class="{ underline: activeTab === 'score' }"
+          role="tab"
+          :aria-selected="activeTab === 'score'"
+          aria-controls="tabpanel-score"
           @click="activeTab = 'score'"
         >
           Score
@@ -60,6 +63,9 @@ const activeTab = ref<Tab>('score')
           :data-active="activeTab === 'streak'"
           class="font-display text-xl"
           :class="{ underline: activeTab === 'streak' }"
+          role="tab"
+          :aria-selected="activeTab === 'streak'"
+          aria-controls="tabpanel-streak"
           @click="activeTab = 'streak'"
         >
           Streak
@@ -68,6 +74,9 @@ const activeTab = ref<Tab>('score')
           :data-active="activeTab === 'earnings'"
           class="font-display text-xl"
           :class="{ underline: activeTab === 'earnings' }"
+          role="tab"
+          :aria-selected="activeTab === 'earnings'"
+          aria-controls="tabpanel-earnings"
           @click="activeTab = 'earnings'"
         >
           Earnings
@@ -83,6 +92,9 @@ const activeTab = ref<Tab>('score')
 
       <div
         v-if="activeTab === 'score'"
+        id="tabpanel-score"
+        role="tabpanel"
+        aria-label="Highest scores leaderboard"
         class="min-w-[40%]"
       >
         <h1 class="font-display text-4xl mb-half">
@@ -119,6 +131,9 @@ const activeTab = ref<Tab>('score')
 
       <div
         v-else-if="activeTab === 'streak'"
+        id="tabpanel-streak"
+        role="tabpanel"
+        aria-label="Best streaks leaderboard"
         class="min-w-[40%]"
       >
         <h1 class="font-display text-4xl mb-half">
@@ -155,6 +170,9 @@ const activeTab = ref<Tab>('score')
 
       <div
         v-else-if="activeTab === 'earnings'"
+        id="tabpanel-earnings"
+        role="tabpanel"
+        aria-label="Top earnings leaderboard"
         class="min-w-[40%]"
       >
         <h1 class="font-display text-4xl mb-half">
