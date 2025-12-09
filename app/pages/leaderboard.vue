@@ -2,10 +2,14 @@
 import type { LeaderboardEntry } from '../../shared/types/api'
 
 const { formatPrice } = useBtcPrice()
+const route = useRoute()
 
 const { data: leaderboard, status, error, refresh } = await useFetch<LeaderboardEntry[]>('/api/leaderboard', {
   query: { limit: 50 },
 })
+
+// Key to force re-render of TransitionGroups on navigation
+const transitionKey = computed(() => route.fullPath)
 
 // Top 10 by score (from database)
 const topByScore = computed(() => {
@@ -109,6 +113,7 @@ const activeTab = ref<Tab>('score')
           Highest Scores
         </h1>
         <TransitionGroup
+          :key="transitionKey + '-score'"
           name="t-stagger"
           appear
         >
@@ -148,6 +153,7 @@ const activeTab = ref<Tab>('score')
           Best Streaks
         </h1>
         <TransitionGroup
+          :key="transitionKey + '-streak'"
           name="t-stagger"
           appear
         >
@@ -187,6 +193,7 @@ const activeTab = ref<Tab>('score')
           Top Earnings
         </h1>
         <TransitionGroup
+          :key="transitionKey + '-earnings'"
           name="t-stagger"
           appear
         >

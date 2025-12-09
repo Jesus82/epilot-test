@@ -44,6 +44,10 @@ describe('leaderboard.vue', () => {
       formatPrice: mockFormatPrice,
     }))
 
+    vi.stubGlobal('useRoute', () => ({
+      fullPath: '/leaderboard',
+    }))
+
     vi.stubGlobal('ref', ref)
     vi.stubGlobal('computed', computed)
   })
