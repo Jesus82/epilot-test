@@ -72,7 +72,7 @@ const handleKeydown = (event: KeyboardEvent) => {
     </NuxtLink>
 
     <p
-      class="font-display text-lg items-center gap-1"
+      class="font-display text-lg items-center gap-1 order-2 md:order-3"
       :class="{ 'hidden md:inline-flex': isEditingName }"
     >
       Score: {{ score }}
