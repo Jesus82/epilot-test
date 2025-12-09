@@ -15,6 +15,7 @@ export interface PlayerInfo {
   total_wins: number
   total_losses: number
   total_earnings: number
+  score: number
   created_at: string
   updated_at: string
 }
@@ -43,6 +44,7 @@ export interface DefaultPlayerStats {
   total_wins: number
   total_losses: number
   total_earnings: number
+  score: number
 }
 
 /**

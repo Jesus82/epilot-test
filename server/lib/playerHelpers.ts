@@ -20,6 +20,7 @@ export const createDefaultPlayerStats = (): DefaultPlayerStats => ({
   total_wins: 0,
   total_losses: 0,
   total_earnings: 0,
+  score: 0,
 })
 
 /**
@@ -31,6 +32,7 @@ export const createNewPlayerApiStats = (): ApiPlayerStats => ({
   totalWins: 0,
   totalLosses: 0,
   totalEarnings: 0,
+  score: 0,
   isNewPlayer: true,
 })
 
@@ -43,6 +45,7 @@ export const mapPlayerInfoToApiStats = (row: PlayerInfo): ApiPlayerStats => ({
   totalWins: row.total_wins,
   totalLosses: row.total_losses,
   totalEarnings: row.total_earnings,
+  score: row.score,
   playerName: row.player_name,
   updatedAt: row.updated_at,
 })
@@ -68,6 +71,7 @@ export const calculateUpdatedStats = (
 ): UpdatedPlayerStats => {
   const newCurrentStreak = bid.won ? (currentStats.current_streak + 1) : 0
   const newLongestStreak = Math.max(newCurrentStreak, currentStats.longest_streak)
+  const newScore = currentStats.score + (bid.won ? 1 : -1)
 
   return {
     current_streak: newCurrentStreak,
@@ -75,6 +79,7 @@ export const calculateUpdatedStats = (
     total_wins: currentStats.total_wins + (bid.won ? 1 : 0),
     total_losses: currentStats.total_losses + (bid.won ? 0 : 1),
     total_earnings: Number(currentStats.total_earnings) + bid.earnings,
+    score: newScore,
   }
 }
 

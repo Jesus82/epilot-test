@@ -788,6 +788,7 @@ describe('useGameLogic', () => {
         totalWins: 1,
         totalLosses: 0,
         totalEarnings: 100,
+        score: 1,
       })
 
       cleanup()

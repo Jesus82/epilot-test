@@ -49,6 +49,7 @@ export const calculateStatsUpdate = (
     totalWins: currentStats.totalWins + (isCorrect ? 1 : 0),
     totalLosses: currentStats.totalLosses + (isCorrect ? 0 : 1),
     totalEarnings: currentStats.totalEarnings + earnings,
+    score: currentStats.score + (isCorrect ? 1 : -1),
   }
 }
 

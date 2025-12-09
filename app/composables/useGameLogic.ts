@@ -62,9 +62,6 @@ export const useGameLogic = (
 
     const newStats = calculateStatsUpdate(getStats(), isCorrect, earnings)
 
-    // Update score
-    score.value += isCorrect ? 1 : -1
-
     loadStats(newStats)
 
     const bidResult = createBidResult(guess.value, guessPrice.value, currentPrice, earnings, isCorrect)
@@ -163,6 +160,7 @@ export const useGameLogic = (
     totalWins.value = stats.totalWins
     totalLosses.value = stats.totalLosses
     totalEarnings.value = stats.totalEarnings
+    score.value = stats.score
   }
 
   /**
@@ -174,6 +172,7 @@ export const useGameLogic = (
     totalWins: totalWins.value,
     totalLosses: totalLosses.value,
     totalEarnings: totalEarnings.value,
+    score: score.value,
   })
 
   /**

@@ -12,4 +12,5 @@ export interface PlayerStats {
   totalWins: number
   totalLosses: number
   totalEarnings: number
+  score: number
 }
