@@ -9,16 +9,6 @@ export default defineNuxtConfig({
     '@nuxt/ui',
   ],
 
-  // Custom icon collection for local SVGs
-  icon: {
-    customCollections: [
-      {
-        prefix: 'local',
-        dir: './app/assets/icons',
-      },
-    ],
-  },
-
   // Auto-import composables from subdirectories and shared types
   imports: {
     dirs: [
@@ -26,6 +16,23 @@ export default defineNuxtConfig({
     ],
   },
   devtools: { enabled: true },
+
+  app: {
+    head: {
+      title: 'Epilot Test',
+      htmlAttrs: {
+        lang: 'en',
+      },
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'description', content: 'Bitcoin Prediction Game' },
+      ],
+      link: [
+        { rel: 'icon', type: 'image/svg+xml', href: '/img/bt-logo.svg' },
+      ],
+    },
+  },
 
   css: [
     '~/assets/css/main.css',
