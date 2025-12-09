@@ -1,11 +1,14 @@
+import type * as d3 from 'd3'
+import type { BaseType } from 'd3'
+
 // Padding for width calculation (must match CSS --label-padding-x)
 export const LABEL_PADDING_X = 5
 
 /**
  * Helper to set label background width (height/y/text position handled by CSS)
  */
-export const setLabelWidth = (
-  label: d3.Selection<SVGGElement | Element, unknown, null, undefined> | null,
+export const setLabelWidth = <T extends BaseType>(
+  label: d3.Selection<T, unknown, null, undefined> | null,
   bgSelector: string,
   textWidth: number,
   centered = false,
