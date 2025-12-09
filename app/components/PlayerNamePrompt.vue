@@ -1,34 +1,41 @@
 <script setup lang="ts">
 interface Props {
-  modelValue: string
   show: boolean
   showContent?: boolean
   showInput?: boolean
-  loading?: boolean
-  error?: string | null
 }
 
 interface Emits {
-  (e: 'update:modelValue', value: string): void
-  (e: 'save'): void
+  (e: 'update:show', value: boolean): void
+  (e: 'saved', playerName: string): void
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   showContent: false,
   showInput: false,
-  loading: false,
-  error: null,
 })
 
 const emit = defineEmits<Emits>()
 
-const localName = computed({
-  get: () => props.modelValue,
-  set: (value: string) => emit('update:modelValue', value),
-})
+const { getPlayerId } = usePlayerId()
+const { updatePlayerName, isLoading, error: apiError } = usePlayerService()
 
-const handleSave = () => {
-  emit('save')
+const localName = ref('')
+const nameError = ref<string | null>(null)
+
+const handleSave = async () => {
+  nameError.value = null
+  const playerId = getPlayerId()
+  if (playerId && localName.value.trim()) {
+    const success = await updatePlayerName(playerId, localName.value.trim())
+    if (success) {
+      emit('update:show', false)
+      emit('saved', localName.value.trim())
+    }
+    else {
+      nameError.value = apiError.value
+    }
+  }
 }
 </script>
 
@@ -45,15 +52,15 @@ const handleSave = () => {
         <PlayerNameInput
           v-if="showInput"
           v-model="localName"
-          :disabled="loading"
+          :disabled="isLoading"
           :is-editing="true"
           @save="handleSave"
         />
         <p
-          v-if="error"
+          v-if="nameError"
           class="text-red text-sm mt-double text-center"
         >
-          {{ error }}
+          {{ nameError }}
         </p>
       </template>
     </div>

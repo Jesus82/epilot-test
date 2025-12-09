@@ -9,15 +9,7 @@ const { priceData, price, status, priceHistory, setBid, clearBid, connect, disco
 const { getPlayerId } = usePlayerId()
 
 // Player API for persistence
-const { fetchStats, saveBid, updatePlayerName, isLoading: isApiLoading, error: apiError } = usePlayerService()
-
-// Player name state
-const playerName = ref<string>('')
-const isEditingName = ref(false)
-const showNamePrompt = ref(true)
-const isNewPlayer = ref(false)
-const isPlayerChecked = ref(false)
-const nameError = ref<string | null>(null)
+const { fetchStats, saveBid } = usePlayerService()
 
 // Callback when a bid completes - save to Supabase
 const onBidComplete = async (result: BidResult) => {
@@ -46,6 +38,23 @@ const {
   cleanup,
   loadStats,
 } = useGameLogic(priceData, setBid, clearBid, onBidComplete)
+
+// Player profile management (pass isLocked to prevent editing during active bid)
+const {
+  playerName,
+  isEditingName,
+  nameError,
+  isLoading: isProfileLoading,
+  setPlayerName,
+  startEditing,
+  cancelEditing,
+  saveName,
+} = usePlayerProfile({ isLocked })
+
+// Player prompt state
+const showNamePrompt = ref(true)
+const isNewPlayer = ref(false)
+const isPlayerChecked = ref(false)
 
 // Track selected range (default 5 minutes, same as chart)
 const selectedRange = ref(5)
@@ -78,39 +87,12 @@ onMounted(async () => {
       else {
         // Existing player with name - hide prompt and load stats
         showNamePrompt.value = false
-        playerName.value = stats.playerName
+        setPlayerName(stats.playerName)
         loadStats(stats)
       }
     }
   }
 })
-
-const handleSaveName = async () => {
-  nameError.value = null
-  const playerId = getPlayerId()
-  if (playerId && playerName.value.trim()) {
-    const success = await updatePlayerName(playerId, playerName.value.trim())
-    if (success) {
-      showNamePrompt.value = false
-      isEditingName.value = false
-      nameError.value = null
-    }
-    else {
-      nameError.value = apiError.value
-    }
-  }
-}
-
-const handleCancelNameEdit = () => {
-  isEditingName.value = false
-  nameError.value = null
-}
-
-const startEditingName = () => {
-  if (!isLocked.value) {
-    isEditingName.value = true
-  }
-}
 
 onUnmounted(() => {
   disconnect()
@@ -121,50 +103,23 @@ onUnmounted(() => {
 <template>
   <main class="p-second">
     <PlayerNamePrompt
-      v-model="playerName"
-      :show="showNamePrompt"
+      v-model:show="showNamePrompt"
       :show-content="isPlayerChecked"
       :show-input="isNewPlayer"
-      :loading="isApiLoading"
-      :error="nameError"
-      @save="handleSaveName"
+      @saved="setPlayerName"
     />
 
-    <div class="flex justify-between items-center">
-      <div class="flex items-center gap-half">
-        <template v-if="!isEditingName && playerName">
-          <span
-            class="font-display text-lg cursor-pointer hover:text-orange"
-            :class="{ 'opacity-50 cursor-not-allowed': isLocked }"
-            :title="isLocked ? 'Cannot edit while bid is locked' : 'Click to edit name'"
-            @click="startEditingName"
-          >
-            {{ playerName }}
-          </span>
-        </template>
-        <template v-else-if="isEditingName">
-          <div class="flex flex-col">
-            <PlayerNameInput
-              v-model="playerName"
-              :disabled="isApiLoading"
-              :is-editing="true"
-              @save="handleSaveName"
-              @cancel="handleCancelNameEdit"
-            />
-            <p
-              v-if="nameError"
-              class="text-red text-sm mt-1"
-            >
-              {{ nameError }}
-            </p>
-          </div>
-        </template>
-      </div>
-
-      <p class="font-display text-lg">
-        Score: {{ score }}
-      </p>
-    </div>
+    <PlayerHeader
+      v-model:player-name="playerName"
+      :score="score"
+      :is-editing-name="isEditingName"
+      :is-locked="isLocked"
+      :is-api-loading="isProfileLoading"
+      :name-error="nameError"
+      @save="saveName"
+      @cancel="cancelEditing"
+      @start-edit="startEditing"
+    />
 
     <ClientOnly fallback-tag="div">
       <BtcPriceChart />
