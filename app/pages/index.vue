@@ -232,7 +232,7 @@ onUnmounted(() => {
             <button
               class="o-button"
               :disabled="isLocked || status !== 'connected'"
-              :data-button-variant="guess === 'up' ? 'is-bet-active' : null"
+              :data-button-color="guess === 'up' ? 'active' : null"
               @click="makeGuess('up')"
             >
               <span>⬆</span>
@@ -242,7 +242,7 @@ onUnmounted(() => {
             <button
               class="o-button"
               :disabled="isLocked || status !== 'connected'"
-              :data-button-variant="guess === 'down' ? 'is-bet-active' : null"
+              :data-button-variant="guess === 'down' ? 'active' : null"
               @click="makeGuess('down')"
             >
               <span>⬇</span>

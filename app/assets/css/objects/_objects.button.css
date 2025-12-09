@@ -43,19 +43,23 @@
   box-shadow: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-blue);
 }
 
-.o-button:disabled,
-.o-button[disabled] {
-  background-color: hsl(from var(--o-button-bg-color) h s l / 0.6);
-  cursor: not-allowed;
-  pointer-events: none;
-}
-
 .o-button[data-button-variant="small"] {
   font-size: var(--font-size-sm);
   padding: var(--spacing-quarter) var(--spacing-half);
   min-height: var(--o-button-min-size);
 }
 
-.o-button[data-button-variant="is-bet-active"] {
+.o-button[data-button-color="alert"] {
+  background-color: var(--color-red)
+}
+
+.o-button[data-button-color="active"] {
   background-color: var(--color-blue-darkest);
+}
+
+.o-button:disabled,
+.o-button[disabled] {
+  background-color: hsl(from var(--o-button-bg-color) h s l / 0.4);
+  cursor: not-allowed;
+  pointer-events: none;
 }

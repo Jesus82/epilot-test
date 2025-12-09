@@ -19,6 +19,7 @@ const emit = defineEmits<Emits>()
 
 const inputRef = ref<HTMLInputElement | null>(null)
 const localName = ref(props.modelValue)
+const originalName = ref(props.modelValue)
 
 watch(
   () => props.modelValue,
@@ -31,6 +32,7 @@ watch(
   () => props.isEditing,
   (isEditing) => {
     if (isEditing) {
+      originalName.value = props.modelValue
       nextTick(() => {
         inputRef.value?.focus()
         inputRef.value?.select()
@@ -45,10 +47,18 @@ const handleInput = (event: Event) => {
   emit('update:modelValue', target.value)
 }
 
+const hasChanged = computed(() => localName.value.trim() !== originalName.value.trim())
+
 const handleSave = () => {
   if (localName.value.trim()) {
     emit('save')
   }
+}
+
+const handleCancel = () => {
+  localName.value = originalName.value
+  emit('update:modelValue', originalName.value)
+  emit('cancel')
 }
 
 const handleKeydown = (event: KeyboardEvent) => {
@@ -75,12 +85,21 @@ const handleKeydown = (event: KeyboardEvent) => {
       @keydown="handleKeydown"
     >
     <button
-      :disabled="disabled || !localName.trim()"
+      :disabled="disabled || !localName.trim() || !hasChanged"
       class="o-button"
       data-button-variant="small"
       @click="handleSave"
     >
       Save
+    </button>
+    <button
+      :disabled="disabled"
+      class="o-button"
+      data-button-variant="small"
+      data-button-color="alert"
+      @click="handleCancel"
+    >
+      Cancel
     </button>
   </div>
 </template>
