@@ -143,6 +143,14 @@ export const useGameLogic = (
   })
 
   /**
+   * Computed for the difference between current price and bid price
+   */
+  const bidToPriceDifference = computed(() => {
+    if (!guessPrice.value || !priceData.value) return null
+    return priceData.value.price - guessPrice.value
+  })
+
+  /**
    * Computed for current potential earnings (before bid completes)
    */
   const potentialEarnings = computed(() => {
@@ -194,6 +202,7 @@ export const useGameLogic = (
     guessPrice,
     isWinning,
     isMinimumTimePassed,
+    bidToPriceDifference,
 
     // Stats state
     currentStreak,

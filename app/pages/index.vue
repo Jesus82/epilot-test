@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { calculateYDomain } from '~/helpers/btcChartHelpers'
-import { filterByTimeRange } from '~/helpers/btcPriceChartHelpers'
 import type { BidResult } from '../../shared/types/api'
 
-const { priceData, price, status, priceHistory, setBid, clearBid, connect, disconnect } = useBtcPrice()
+const { priceData, price, status, yDomain, setBid, clearBid, connect, disconnect } = useBtcPrice()
 
 // Player identification
 const { getPlayerId } = usePlayerId()
@@ -34,6 +32,7 @@ const {
   totalEarnings,
   potentialEarnings,
   lastBidResult,
+  bidToPriceDifference,
   makeGuess,
   cleanup,
   loadStats,
@@ -55,21 +54,6 @@ const {
 const showNamePrompt = ref(true)
 const isNewPlayer = ref(false)
 const isPlayerChecked = ref(false)
-
-// Track selected range (default 5 minutes, same as chart)
-const selectedRange = ref(5)
-
-const yDomain = computed(() => {
-  const filteredData = filterByTimeRange(priceHistory.value, selectedRange.value)
-  return calculateYDomain(filteredData)
-})
-
-const bidToPriceDifference = computed(() => {
-  if (guessPrice.value && price.value) {
-    return price.value - guessPrice.value
-  }
-  return null
-})
 
 // Load player stats on mount
 onMounted(async () => {

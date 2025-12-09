@@ -2,17 +2,10 @@
 import {
   bucketDataByInterval,
   calculateAveragePrice,
-  filterByTimeRange,
   getSampleInterval,
 } from '~/helpers/btcPriceChartHelpers'
 
-const { priceHistory, price, bidPrice, bidTimestamp, guessDirection, loadHistoricalData, isLoadingHistory } = useBtcPrice()
-
-const selectedRange = ref(5) // Default 5 minutes
-
-const filteredPriceHistory = computed(() =>
-  filterByTimeRange(priceHistory.value, selectedRange.value),
-)
+const { priceHistory, price, bidPrice, bidTimestamp, guessDirection, loadHistoricalData, isLoadingHistory, selectedRange, filteredPriceHistory } = useBtcPrice()
 
 // Downsample data for consistent density across time ranges
 const sampledPriceHistory = computed(() => {

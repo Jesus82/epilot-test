@@ -1,19 +1,32 @@
 /**
  * Unified BTC price composable
- * Re-exports useBtcWS and useBtcHistory for backward compatibility
- * Also provides shared bid state for the chart
+ * Combines useBtcWS (WebSocket connection) and useBtcHistory (price history)
+ * into a single interface, plus shared state for bid markers and chart configuration
  */
 
-import type { GuessDirection } from '~/composables/useGameLogic'
+import type { GuessDirection } from '../../../shared/types/game'
+import { filterByTimeRange } from '~/helpers/btcPriceChartHelpers'
+import { calculateYDomain } from '~/helpers/btcChartHelpers'
 
 // Shared bid state (used for chart marker)
 const bidPrice = ref<number | null>(null)
 const bidTimestamp = ref<number | null>(null)
 const guessDirection = ref<GuessDirection>(null)
 
+// Shared time range selection (used by chart and progress bar)
+const selectedRange = ref(5) // Default 5 minutes
+
 export const useBtcPrice = () => {
   const { priceData, price, status, error, isConnected, connect, disconnect } = useBtcWS()
   const { priceHistory, isLoadingHistory, loadHistoricalData } = useBtcHistory()
+
+  // Computed filtered data based on selected range
+  const filteredPriceHistory = computed(() =>
+    filterByTimeRange(priceHistory.value, selectedRange.value),
+  )
+
+  // Computed Y domain for charts/progress bar
+  const yDomain = computed(() => calculateYDomain(filteredPriceHistory.value))
 
   const setBidPrice = (price: number | null) => {
     bidPrice.value = price
@@ -53,6 +66,11 @@ export const useBtcPrice = () => {
     priceHistory,
     isLoadingHistory,
     loadHistoricalData,
+
+    // Chart/range state
+    selectedRange,
+    filteredPriceHistory,
+    yDomain,
 
     // Local state
     bidPrice,
