@@ -132,15 +132,12 @@ describe('usePlayerId', () => {
   describe('UUID format', () => {
     // Generate multiple UUIDs to verify format consistency
     // UUID v4 format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx where y is 8, 9, a, or b
-    it.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])(
-      'should generate valid UUID v4 format (iteration %i)',
-      () => {
-        localStorageMock = {} // Clear storage to force new generation
-        const { initPlayerId } = usePlayerId()
-        const id = initPlayerId()
+    it.each([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])('should generate valid UUID v4 format (iteration %i)', () => {
+      localStorageMock = {} // Clear storage to force new generation
+      const { initPlayerId } = usePlayerId()
+      const id = initPlayerId()
 
-        expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
-      }
+      expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
     })
   })
 })
