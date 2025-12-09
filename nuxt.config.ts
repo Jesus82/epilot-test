@@ -5,8 +5,19 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/hints',
     '@nuxt/image',
+    '@nuxt/icon',
     '@nuxt/ui',
   ],
+
+  // Custom icon collection for local SVGs
+  icon: {
+    customCollections: [
+      {
+        prefix: 'local',
+        dir: './app/assets/icons',
+      },
+    ],
+  },
 
   // Auto-import composables from subdirectories and shared types
   imports: {

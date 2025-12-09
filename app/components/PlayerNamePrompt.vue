@@ -49,7 +49,15 @@ const handleSave = async () => {
       aria-labelledby="welcome-heading"
     >
       <template v-if="showContent">
-        <h2 id="welcome-heading" class="font-display text-2xl mb-half text-center max-w-[30ch]">
+        <img
+          src="/img/bt-logo.svg"
+          class="c-player-name-prompt__logo"
+          aria-hidden="true"
+        >
+        <h2
+          id="welcome-heading"
+          class="font-display text-2xl mb-half text-center max-w-[30ch]"
+        >
           Welcome to the BTC Price Prediction Contest!
         </h2>
         <PlayerNameInput
@@ -88,11 +96,9 @@ const handleSave = async () => {
   z-index: 1000;
 }
 
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-leave-to {
-  opacity: 0;
+.c-player-name-prompt__logo {
+  width: var(--spacing-fourth);
+  height: var(--spacing-fourth);
+  margin-bottom: var(--spacing-base);
 }
 </style>
