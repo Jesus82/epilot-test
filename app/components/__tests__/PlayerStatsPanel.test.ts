@@ -215,7 +215,7 @@ describe('PlayerStatsPanel', () => {
     it('should display earnings from last bid', () => {
       mockLastBidResult.value = { won: true, earnings: 150 }
 
-      const wrapper = mount(PlayerStatsPanel)
+      mount(PlayerStatsPanel)
 
       expect(mockFormatPrice).toHaveBeenCalledWith(150)
     })

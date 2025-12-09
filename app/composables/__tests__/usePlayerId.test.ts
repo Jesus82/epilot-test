@@ -14,6 +14,7 @@ describe('usePlayerId', () => {
         localStorageMock[key] = value
       }),
       removeItem: vi.fn((key: string) => {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
         delete localStorageMock[key]
       }),
       clear: vi.fn(() => {

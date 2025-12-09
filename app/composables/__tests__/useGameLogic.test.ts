@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { ref, nextTick } from 'vue'
+import { ref } from 'vue'
 import { flushPromises } from '@vue/test-utils'
 import type { BtcPriceData } from '../../../shared/types/btc'
 import { useGameLogic } from '../useGameLogic'
 import { evaluateGuess, calculateEarnings } from '../../helpers/gameLogicHelpers'
-import type { GuessDirection } from '../../../shared/types/game'
 
 describe('useGameLogic', () => {
   let priceData: Ref<BtcPriceData | null>
@@ -100,7 +99,7 @@ describe('useGameLogic', () => {
 
     it('should not make guess if already locked', () => {
       priceData.value = createPriceData(50000)
-      const { makeGuess, isLocked, guess } = useGameLogic(priceData, setBidMock, clearBidMock)
+      const { makeGuess, guess } = useGameLogic(priceData, setBidMock, clearBidMock)
 
       makeGuess('up')
       expect(guess.value).toBe('up')

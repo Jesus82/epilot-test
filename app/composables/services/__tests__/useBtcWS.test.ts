@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { ref, computed, isRef, isReadonly } from 'vue'
+import { ref, computed, isRef } from 'vue'
 
 // Mock WebSocket
 class MockWebSocket {
@@ -67,6 +67,7 @@ describe('useBtcWS', () => {
       class extends MockWebSocket {
         constructor(url: string) {
           super(url)
+          // eslint-disable-next-line @typescript-eslint/no-this-alias
           mockWebSocketInstance = this
         }
       },
@@ -341,6 +342,7 @@ describe('useBtcWS', () => {
         class extends MockWebSocket {
           constructor(url: string) {
             super(url)
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
             mockWebSocketInstance = this
           }
         },

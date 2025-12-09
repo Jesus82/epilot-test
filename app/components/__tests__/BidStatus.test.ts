@@ -39,7 +39,7 @@ vi.stubGlobal('useBtcPrice', () => ({
 const BidProgressBarStub = defineComponent({
   name: 'BidProgressBar',
   props: ['bidPrice', 'currentPrice', 'isWinning', 'yMin', 'yMax'],
-  setup(props) {
+  setup(_props) {
     return () => h('div', { 'class': 'bid-progress-bar-stub', 'data-testid': 'bid-progress-bar' })
   },
 })
@@ -158,7 +158,7 @@ describe('BidStatus', () => {
       mockGuessPrice.value = 50000
       mockGuess.value = 'down'
 
-      const wrapper = mount(BidStatus, mountOptions)
+      mount(BidStatus, mountOptions)
 
       expect(mockFormatPrice).toHaveBeenCalledWith(-500)
     })

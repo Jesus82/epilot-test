@@ -5,7 +5,7 @@ import {
   getSampleInterval,
 } from '~/helpers/btcPriceChartHelpers'
 
-const { priceHistory, price, bidPrice, bidTimestamp, guessDirection, loadHistoricalData, isLoadingHistory, selectedRange, filteredPriceHistory } = useBtcPrice()
+const { price, bidPrice, bidTimestamp, guessDirection, loadHistoricalData, isLoadingHistory, selectedRange, filteredPriceHistory } = useBtcPrice()
 
 // Downsample data for consistent density across time ranges
 const sampledPriceHistory = computed(() => {

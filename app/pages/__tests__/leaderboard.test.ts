@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
-import { ref, computed, defineComponent, Suspense, h } from 'vue'
+import { ref, computed, defineComponent } from 'vue'
 import LeaderboardPage from '../leaderboard.vue'
 
 // Mock data for leaderboard
@@ -121,6 +121,7 @@ describe('leaderboard.vue', () => {
     })
 
     it('should display empty message when leaderboard is null', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockData.value = null as any
       const wrapper = await mountPage()
 

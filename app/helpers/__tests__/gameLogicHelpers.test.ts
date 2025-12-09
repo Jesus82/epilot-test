@@ -8,7 +8,6 @@ import {
   calculateEarnings,
   calculateStatsUpdate,
   createBidResult,
-  createInitialBidState,
 } from '../gameLogicHelpers'
 
 describe('gameLogicHelpers', () => {

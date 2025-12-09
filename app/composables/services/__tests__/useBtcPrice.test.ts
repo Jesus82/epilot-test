@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { ref, computed, isRef, isReadonly } from 'vue'
+import { ref, computed, isRef } from 'vue'
 
 // Mock WebSocket
 class MockWebSocket {
@@ -63,6 +63,7 @@ describe('useBtcPrice', () => {
       class extends MockWebSocket {
         constructor(url: string) {
           super(url)
+          // eslint-disable-next-line @typescript-eslint/no-this-alias
           mockWebSocketInstance = this
         }
       },
@@ -411,12 +412,3 @@ describe('useBtcPrice', () => {
     })
   })
 })
-
-// Helper to check if something is a computed ref
-// Computed refs are read-only and have an 'effect' property
-function isComputed(value: unknown): boolean {
-  if (!isRef(value)) return false
-  // Computed refs have an 'effect' property and are not writable
-  const ref = value as { effect?: unknown }
-  return 'effect' in ref || Object.getOwnPropertyDescriptor(value, 'value')?.set === undefined
-}
