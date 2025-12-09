@@ -11,15 +11,15 @@ A real-time Bitcoin price prediction game built with Nuxt 3. Players predict whe
 │                              CLIENT (Nuxt 3 / Vue 3) @Netlify               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐  │
-│  │   Pages     │    │ Components  │    │ Composables │    │   Helpers   │  │
-│  ├─────────────┤    ├─────────────┤    ├─────────────┤    ├─────────────┤  │
-│  │ index.vue   │───▶│PlayerHeader │    │useGameLogic │◀───│gameLogic    │  │
-│  │ leaderboard │    │BtcPriceChart│    │useBtcPrice  │    │btcChart     │  │
-│  │             │    │BidButtons   │    │usePlayerId  │    │bidPersist   │  │
-│  │             │    │BidStatus    │    │usePlayerProf│    │             │  │
-│  │             │    │PlayerStats  │    │             │    │             │  │
-│  └─────────────┘    └─────────────┘    └──────┬──────┘    └─────────────┘  │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐   │
+│  │   Pages     │    │ Components  │    │ Composables │    │   Helpers   │   │
+│  ├─────────────┤    ├─────────────┤    ├─────────────┤    ├─────────────┤   │
+│  │ index.vue   │───▶│PlayerHeader │    │useGameLogic │◀───│gameLogic    │   │
+│  │ leaderboard │    │BtcPriceChart│    │useBtcPrice  │    │btcChart     │   │
+│  │             │    │BidButtons   │    │usePlayerId  │    │bidPersist   │   │
+│  │             │    │BidStatus    │    │usePlayerProf│    │             │   │
+│  │             │    │PlayerStats  │    │             │    │             │   │
+│  └─────────────┘    └─────────────┘    └──────┬──────┘    └─────────────┘   │
 │                                               │                             │
 │                     ┌─────────────────────────┼─────────────────────────┐   │
 │                     │         Services Layer  │                         │   │
@@ -92,7 +92,7 @@ A real-time Bitcoin price prediction game built with Nuxt 3. Players predict whe
 
 4. COUNTDOWN & RESOLUTION (60 seconds)
    ┌──────────┐                    ┌──────────┐                 ┌──────────┐
-   │  Timer   │ ─── countdown ───▶ │  Check   │ ─── if price ─▶│ Evaluate │
+   │  Timer   │ ─── countdown ───▶ │  Check   │ ─── if price ─▶ │ Evaluate │
    │  (1s)    │     reaches 0      │  Price   │    changed      │   Win    │
    └──────────┘                    └──────────┘                 └──────────┘
                                                                      │
