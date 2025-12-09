@@ -24,6 +24,7 @@ describe('playerServiceHelpers', () => {
         total_wins: 0,
         total_losses: 0,
         total_earnings: 0,
+        score: 0,
       })
     })
   })
@@ -38,6 +39,7 @@ describe('playerServiceHelpers', () => {
         totalWins: 0,
         totalLosses: 0,
         totalEarnings: 0,
+        score: 0,
         isNewPlayer: true,
       })
     })
@@ -54,6 +56,7 @@ describe('playerServiceHelpers', () => {
         total_wins: 20,
         total_losses: 5,
         total_earnings: 1500.50,
+        score: 15,
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-02T00:00:00Z',
       }
@@ -66,6 +69,7 @@ describe('playerServiceHelpers', () => {
         totalWins: 20,
         totalLosses: 5,
         totalEarnings: 1500.50,
+        score: 15,
         playerName: 'TestPlayer',
         updatedAt: '2024-01-02T00:00:00Z',
       })
@@ -81,6 +85,7 @@ describe('playerServiceHelpers', () => {
         total_wins: 0,
         total_losses: 0,
         total_earnings: 0,
+        score: 0,
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
       }
@@ -128,6 +133,7 @@ describe('playerServiceHelpers', () => {
       total_wins: 10,
       total_losses: 5,
       total_earnings: 1000,
+      score: 5,
       created_at: '2024-01-01T00:00:00Z',
       updated_at: '2024-01-01T00:00:00Z',
     }

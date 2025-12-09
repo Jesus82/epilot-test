@@ -68,6 +68,7 @@ describe('gameLogicHelpers', () => {
       totalWins: 10,
       totalLosses: 5,
       totalEarnings: 1000,
+      score: 5,
     }
 
     it('should increment streak and wins on correct guess', () => {
@@ -105,6 +106,7 @@ describe('gameLogicHelpers', () => {
         totalWins: 0,
         totalLosses: 0,
         totalEarnings: 0,
+        score: 0,
       }
       const result = calculateStatsUpdate(zeroStats, true, 100)
       expect(result.currentStreak).toBe(1)

@@ -29,6 +29,7 @@ describe('usePlayerService', () => {
         totalWins: 20,
         totalLosses: 5,
         totalEarnings: 1500,
+        score: 15,
         playerName: 'TestPlayer',
         updatedAt: '2024-01-02',
       }
@@ -49,6 +50,7 @@ describe('usePlayerService', () => {
         totalWins: 0,
         totalLosses: 0,
         totalEarnings: 0,
+        score: 0,
         isNewPlayer: true,
       }
 
@@ -90,6 +92,7 @@ describe('usePlayerService', () => {
         totalWins: 0,
         totalLosses: 0,
         totalEarnings: 0,
+        score: 0,
       })
       await statsPromise
 
@@ -114,6 +117,7 @@ describe('usePlayerService', () => {
         totalWins: 1,
         totalLosses: 0,
         totalEarnings: 100,
+        score: 1,
       }
 
       mockFetch.mockResolvedValue(mockUpdatedStats)
