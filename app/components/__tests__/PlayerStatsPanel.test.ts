@@ -58,18 +58,18 @@ describe('PlayerStatsPanel', () => {
       mockTotalEarnings.value = 500
 
       const wrapper = mount(PlayerStatsPanel)
-      const earningsSpan = wrapper.find('.text-green')
+      const earningsSpan = wrapper.find('[data-testid="total-earnings"]')
 
-      expect(earningsSpan.exists()).toBe(true)
+      expect(earningsSpan.attributes('data-status')).toBe('positive')
     })
 
     it('should show red text for negative earnings', () => {
       mockTotalEarnings.value = -500
 
       const wrapper = mount(PlayerStatsPanel)
-      const earningsSpan = wrapper.find('.text-red')
+      const earningsSpan = wrapper.find('[data-testid="total-earnings"]')
 
-      expect(earningsSpan.exists()).toBe(true)
+      expect(earningsSpan.attributes('data-status')).toBe('negative')
     })
 
     it('should show plus sign for positive earnings', () => {
@@ -157,10 +157,9 @@ describe('PlayerStatsPanel', () => {
       mockPotentialEarnings.value = 250
 
       const wrapper = mount(PlayerStatsPanel)
-      // Find the potential earnings section
-      const greenSpans = wrapper.findAll('.text-green')
+      const potentialEarnings = wrapper.find('[data-testid="potential-earnings"]')
 
-      expect(greenSpans.length).toBeGreaterThan(0)
+      expect(potentialEarnings.attributes('data-status')).toBe('positive')
     })
 
     it('should show red text for negative potential earnings', () => {
@@ -169,9 +168,9 @@ describe('PlayerStatsPanel', () => {
       mockTotalEarnings.value = -100 // Make total also negative for consistency
 
       const wrapper = mount(PlayerStatsPanel)
-      const redSpans = wrapper.findAll('.text-red')
+      const potentialEarnings = wrapper.find('[data-testid="potential-earnings"]')
 
-      expect(redSpans.length).toBeGreaterThan(0)
+      expect(potentialEarnings.attributes('data-status')).toBe('negative')
     })
   })
 
@@ -199,7 +198,8 @@ describe('PlayerStatsPanel', () => {
       const wrapper = mount(PlayerStatsPanel)
 
       expect(wrapper.text()).toContain('Won')
-      expect(wrapper.find('.text-green').exists()).toBe(true)
+      const lastBid = wrapper.find('[data-testid="last-bid-result"]')
+      expect(lastBid.attributes('data-status')).toBe('positive')
     })
 
     it('should show Lost with red text for losing bid', () => {
@@ -209,7 +209,8 @@ describe('PlayerStatsPanel', () => {
       const wrapper = mount(PlayerStatsPanel)
 
       expect(wrapper.text()).toContain('Lost')
-      expect(wrapper.findAll('.text-red').length).toBeGreaterThan(0)
+      const lastBid = wrapper.find('[data-testid="last-bid-result"]')
+      expect(lastBid.attributes('data-status')).toBe('negative')
     })
 
     it('should display earnings from last bid', () => {

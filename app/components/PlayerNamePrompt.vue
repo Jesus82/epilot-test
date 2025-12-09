@@ -59,6 +59,7 @@ const handleSave = async () => {
         />
         <p
           v-if="nameError"
+          data-testid="name-error"
           class="text-red text-sm mt-double text-center"
         >
           {{ nameError }}

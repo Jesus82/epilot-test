@@ -47,6 +47,8 @@ const hasContent = computed(() =>
     <div class="grid grid-rows-3">
       <p
         v-if="isLocked && bidToPriceDifference"
+        data-testid="bid-difference"
+        :data-status="isWinning ? 'positive' : 'negative'"
         :class="[
           'font-display text-lg',
           isWinning

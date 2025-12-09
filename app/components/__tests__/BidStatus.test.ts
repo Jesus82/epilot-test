@@ -171,9 +171,9 @@ describe('BidStatus', () => {
       mockGuess.value = 'up'
 
       const wrapper = mount(BidStatus, mountOptions)
-      const diffElement = wrapper.find('.text-green')
+      const diffElement = wrapper.find('[data-testid="bid-difference"]')
 
-      expect(diffElement.exists()).toBe(true)
+      expect(diffElement.attributes('data-status')).toBe('positive')
     })
 
     it('should apply red text class when losing', () => {
@@ -184,9 +184,9 @@ describe('BidStatus', () => {
       mockGuess.value = 'down'
 
       const wrapper = mount(BidStatus, mountOptions)
-      const diffElement = wrapper.find('.text-red')
+      const diffElement = wrapper.find('[data-testid="bid-difference"]')
 
-      expect(diffElement.exists()).toBe(true)
+      expect(diffElement.attributes('data-status')).toBe('negative')
     })
 
     it('should position difference at row 1 when positive', () => {
@@ -197,9 +197,9 @@ describe('BidStatus', () => {
       mockGuess.value = 'up'
 
       const wrapper = mount(BidStatus, mountOptions)
-      const diffElement = wrapper.find('.row-start-1')
+      const diffElement = wrapper.find('[data-testid="bid-difference"]')
 
-      expect(diffElement.exists()).toBe(true)
+      expect(diffElement.attributes('data-status')).toBe('positive')
     })
 
     it('should position difference at row 3 when negative', () => {
@@ -210,9 +210,9 @@ describe('BidStatus', () => {
       mockGuess.value = 'down'
 
       const wrapper = mount(BidStatus, mountOptions)
-      const diffElement = wrapper.find('.row-start-3')
+      const diffElement = wrapper.find('[data-testid="bid-difference"]')
 
-      expect(diffElement.exists()).toBe(true)
+      expect(diffElement.attributes('data-status')).toBe('negative')
     })
   })
 

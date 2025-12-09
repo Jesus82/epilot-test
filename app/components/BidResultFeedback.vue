@@ -17,6 +17,7 @@ const { formatPrice } = useBtcPrice()
     >
       <p
         data-testid="result-feedback-message"
+        :data-status="won ? 'positive' : 'negative'"
         class="font-display text-2xl font-bold"
         :class="won ? 'text-green' : 'text-red'"
       >
@@ -24,6 +25,7 @@ const { formatPrice } = useBtcPrice()
       </p>
       <p
         data-testid="result-feedback-earnings"
+        :data-status="won ? 'positive' : 'negative'"
         class="font-display text-xl"
         :class="won ? 'text-green' : 'text-red'"
       >

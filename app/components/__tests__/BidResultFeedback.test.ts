@@ -75,10 +75,10 @@ describe('BidResultFeedback', () => {
       })
 
       const message = wrapper.find('[data-testid="result-feedback-message"]')
-      expect(message.classes()).toContain('text-green')
+      expect(message.attributes('data-status')).toBe('positive')
 
       const earnings = wrapper.find('[data-testid="result-feedback-earnings"]')
-      expect(earnings.classes()).toContain('text-green')
+      expect(earnings.attributes('data-status')).toBe('positive')
     })
   })
 
@@ -117,10 +117,10 @@ describe('BidResultFeedback', () => {
       })
 
       const message = wrapper.find('[data-testid="result-feedback-message"]')
-      expect(message.classes()).toContain('text-red')
+      expect(message.attributes('data-status')).toBe('negative')
 
       const earnings = wrapper.find('[data-testid="result-feedback-earnings"]')
-      expect(earnings.classes()).toContain('text-red')
+      expect(earnings.attributes('data-status')).toBe('negative')
     })
   })
 

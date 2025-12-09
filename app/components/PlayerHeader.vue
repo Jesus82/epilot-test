@@ -42,6 +42,7 @@ const handleStartEdit = () => {
           />
           <p
             v-if="nameError"
+            data-testid="name-error"
             class="text-red text-sm mt-1"
           >
             {{ nameError }}
@@ -68,6 +69,7 @@ const handleStartEdit = () => {
           v-if="showResultFeedback && lastScoreChange !== null"
           :key="lastScoreChange"
           data-testid="score-change-indicator"
+          :data-status="lastScoreChange > 0 ? 'positive' : 'negative'"
           class="font-display text-sm font-bold"
           :class="lastScoreChange > 0 ? 'text-green' : 'text-red'"
         >

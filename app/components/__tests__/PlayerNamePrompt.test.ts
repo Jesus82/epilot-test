@@ -251,7 +251,7 @@ describe('PlayerNamePrompt', () => {
 
       await nextTick()
 
-      expect(wrapper.find('.text-red').exists()).toBe(true)
+      expect(wrapper.find('[data-testid="name-error"]').exists()).toBe(true)
     })
 
     it('should not emit events on failed save', async () => {

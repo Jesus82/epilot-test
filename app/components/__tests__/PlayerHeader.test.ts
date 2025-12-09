@@ -224,7 +224,7 @@ describe('PlayerHeader', () => {
       mockNameError.value = 'Name already taken'
 
       const wrapper = mount(PlayerHeader, mountOptions)
-      const errorElement = wrapper.find('.text-red')
+      const errorElement = wrapper.find('[data-testid="name-error"]')
 
       expect(errorElement.exists()).toBe(true)
     })
@@ -268,7 +268,7 @@ describe('PlayerHeader', () => {
       const scoreIndicator = wrapper.find('[data-testid="score-change-indicator"]')
       expect(scoreIndicator.exists()).toBe(true)
       expect(scoreIndicator.text()).toBe('+1')
-      expect(scoreIndicator.classes()).toContain('text-green')
+      expect(scoreIndicator.attributes('data-status')).toBe('positive')
     })
 
     it('should show -1 with red text for losing bid', () => {
@@ -280,7 +280,7 @@ describe('PlayerHeader', () => {
       const scoreIndicator = wrapper.find('[data-testid="score-change-indicator"]')
       expect(scoreIndicator.exists()).toBe(true)
       expect(scoreIndicator.text()).toBe('-1')
-      expect(scoreIndicator.classes()).toContain('text-red')
+      expect(scoreIndicator.attributes('data-status')).toBe('negative')
     })
   })
 })
