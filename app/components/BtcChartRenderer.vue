@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { debounce } from 'perfect-debounce'
 import type { PricePoint } from '../../shared/types/chart'
 import type { GuessDirection } from '../../shared/types/game'
 
@@ -238,10 +239,10 @@ const updateChart = () => {
   updateAxes(d3, xAxisGroup, yAxisGroup, x, y, xTicks!, yTickValues)
 }
 
-const handleResize = () => {
+const handleResize = debounce(() => {
   if (!isChartReady.value) return
   updateChart()
-}
+}, 150)
 
 onMounted(() => {
   window.addEventListener('resize', handleResize)
