@@ -224,19 +224,6 @@
 }
 
 @font-face {
-  font-family: 'JustMyType';
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-
-  text-rendering: optimizeLegibility;
-  src: url('/fonts/JustMyType.woff2') format('woff2'),
-    url('/fonts/JustMyType.woff') format('woff'),
-    url('/fonts/JustMyType.ttf') format('truetype'),
-    url('/fonts/JustMyType.svg#JustMyType') format('svg');
-}
-
-@font-face {
   font-family: 'Inconsolata';
   font-weight: 400;
   font-style: normal;
