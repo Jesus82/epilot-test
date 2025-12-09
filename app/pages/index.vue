@@ -60,12 +60,12 @@ onUnmounted(() => {
 
     <ClientOnly fallback-tag="div">
       <BtcPriceChart />
-
-      <div class="grid grid-cols-3 py-second">
-        <BidStatus />
-        <BidButtons />
-        <PlayerStatsPanel />
-      </div>
     </ClientOnly>
+
+    <div class="grid grid-cols-3 py-second">
+      <BidStatus />
+      <BidButtons />
+      <PlayerStatsPanel />
+    </div>
   </main>
 </template>

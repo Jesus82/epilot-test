@@ -53,13 +53,13 @@
   background-color: var(--color-red)
 }
 
-.o-button[data-button-color="active"] {
-  background-color: var(--color-blue-darkest);
-}
-
 .o-button:disabled,
 .o-button[disabled] {
   background-color: hsl(from var(--o-button-bg-color) h s l / 0.4);
   cursor: not-allowed;
   pointer-events: none;
+}
+
+.o-button[data-button-color="active"] {
+  background-color: var(--color-blue-darkest);
 }
