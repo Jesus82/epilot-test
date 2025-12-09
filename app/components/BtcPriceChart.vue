@@ -27,7 +27,7 @@ watch(selectedRange, async (newRange) => {
 
 <template>
   <div class="btc-price-chart">
-    <div class="flex gap-eighth justify-end">
+    <div class="flex gap-eighth justify-center md:justify-end">
       <div class="flex gap-fourth items-center">
         <p
           v-if="isLoadingHistory"

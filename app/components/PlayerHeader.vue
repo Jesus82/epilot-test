@@ -26,7 +26,7 @@ const handleKeydown = (event: KeyboardEvent) => {
 </script>
 
 <template>
-  <nav class="flex justify-between items-center">
+  <nav class="flex flex-col md:flex-row justify-between items-center">
     <div class="flex items-center gap-half">
       <template v-if="!isEditingName && playerName">
         <h1
@@ -65,7 +65,7 @@ const handleKeydown = (event: KeyboardEvent) => {
 
     <NuxtLink
       :to="{ name: 'leaderboard' }"
-      class="font-display text-md"
+      class="font-display text-md order-3 md:order-2"
       :class="{ 'hidden md:block': isEditingName }"
     >
       Leaderboard

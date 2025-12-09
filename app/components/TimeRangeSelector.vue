@@ -54,4 +54,10 @@ const model = defineModel<number>({ required: true })
   color: var(--color-blue);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
+
+@media (max-width: 900px) {
+  .time-range-selector__btn {
+    font-size: var(--text-base);
+  }
+}
 </style>
