@@ -1,15 +1,36 @@
 <script setup lang="ts">
 import type { LeaderboardEntry } from '../../shared/types/api'
 
+// Track when page transition completes to trigger stagger animations
+const showItems = ref(false)
+
+definePageMeta({
+  pageTransition: {
+    name: 'page',
+    mode: 'out-in',
+    onAfterEnter() {
+      // Trigger stagger animation after page enters
+      showItems.value = true
+    },
+    onBeforeLeave() {
+      showItems.value = false
+    },
+  },
+})
+
+// Also trigger on mount for direct navigation/refresh (no page transition)
+onMounted(() => {
+  // Small delay to ensure smooth animation start
+  requestAnimationFrame(() => {
+    showItems.value = true
+  })
+})
+
 const { formatPrice } = useBtcPrice()
-const route = useRoute()
 
 const { data: leaderboard, status, error, refresh } = await useFetch<LeaderboardEntry[]>('/api/leaderboard', {
   query: { limit: 50 },
 })
-
-// Key to force re-render of TransitionGroups on navigation
-const transitionKey = computed(() => route.fullPath)
 
 // Top 10 by score (from database)
 const topByScore = computed(() => {
@@ -108,38 +129,33 @@ const activeTab = ref<Tab>('score')
         role="tabpanel"
         aria-label="Highest scores leaderboard"
         class="min-w-[40%]"
+        :class="{ 'stagger-animate': showItems }"
       >
         <h1 class="font-display text-4xl mb-half">
           Highest Scores
         </h1>
-        <TransitionGroup
-          :key="transitionKey + '-score'"
-          name="t-stagger"
-          appear
+        <div
+          v-for="(player, index) in topByScore"
+          :key="'score-' + player.playerId"
+          class="stagger-item grid grid-cols-[1fr_max-content] gap-base"
+          :style="{ '--stagger-index': index }"
+          data-testid="leaderboard-row"
         >
-          <div
-            v-for="(player, index) in topByScore"
-            :key="'score-' + player.playerId"
-            class="grid grid-cols-[1fr_max-content] gap-base"
-            :style="{ transitionDelay: `${index * 50}ms` }"
-            data-testid="leaderboard-row"
+          <p
+            class="font-display"
+            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+            data-testid="leaderboard-name"
           >
-            <p
-              class="font-display"
-              :class="index < 3 ? 'text-3xl' : 'text-2xl'"
-              data-testid="leaderboard-name"
-            >
-              {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
-            </p>
-            <p
-              class="font-display flex justify-end"
-              :class="index < 3 ? 'text-3xl' : 'text-2xl'"
-              data-testid="leaderboard-value"
-            >
-              {{ player.score }}
-            </p>
-          </div>
-        </TransitionGroup>
+            {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
+          </p>
+          <p
+            class="font-display flex justify-end"
+            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+            data-testid="leaderboard-value"
+          >
+            {{ player.score }}
+          </p>
+        </div>
       </div>
 
       <div
@@ -148,38 +164,33 @@ const activeTab = ref<Tab>('score')
         role="tabpanel"
         aria-label="Best streaks leaderboard"
         class="min-w-[40%]"
+        :class="{ 'stagger-animate': showItems }"
       >
         <h1 class="font-display text-4xl mb-half">
           Best Streaks
         </h1>
-        <TransitionGroup
-          :key="transitionKey + '-streak'"
-          name="t-stagger"
-          appear
+        <div
+          v-for="(player, index) in topByStreak"
+          :key="'streak-' + player.playerId"
+          class="stagger-item grid grid-cols-[1fr_max-content] gap-base"
+          :style="{ '--stagger-index': index }"
+          data-testid="leaderboard-row"
         >
-          <div
-            v-for="(player, index) in topByStreak"
-            :key="'streak-' + player.playerId"
-            class="grid grid-cols-[1fr_max-content] gap-base"
-            :style="{ transitionDelay: `${index * 50}ms` }"
-            data-testid="leaderboard-row"
+          <p
+            class="font-display"
+            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+            data-testid="leaderboard-name"
           >
-            <p
-              class="font-display"
-              :class="index < 3 ? 'text-3xl' : 'text-2xl'"
-              data-testid="leaderboard-name"
-            >
-              {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
-            </p>
-            <p
-              class="font-display flex justify-end"
-              :class="index < 3 ? 'text-3xl' : 'text-2xl'"
-              data-testid="leaderboard-value"
-            >
-              {{ player.longestStreak }}
-            </p>
-          </div>
-        </TransitionGroup>
+            {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
+          </p>
+          <p
+            class="font-display flex justify-end"
+            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+            data-testid="leaderboard-value"
+          >
+            {{ player.longestStreak }}
+          </p>
+        </div>
       </div>
 
       <div
@@ -188,38 +199,33 @@ const activeTab = ref<Tab>('score')
         role="tabpanel"
         aria-label="Top earnings leaderboard"
         class="min-w-[40%]"
+        :class="{ 'stagger-animate': showItems }"
       >
         <h1 class="font-display text-4xl mb-half">
           Top Earnings
         </h1>
-        <TransitionGroup
-          :key="transitionKey + '-earnings'"
-          name="t-stagger"
-          appear
+        <div
+          v-for="(player, index) in topByEarnings"
+          :key="'earnings-' + player.playerId"
+          class="stagger-item grid grid-cols-[1fr_max-content] gap-base"
+          :style="{ '--stagger-index': index }"
+          data-testid="leaderboard-row"
         >
-          <div
-            v-for="(player, index) in topByEarnings"
-            :key="'earnings-' + player.playerId"
-            class="grid grid-cols-[1fr_max-content] gap-base"
-            :style="{ transitionDelay: `${index * 50}ms` }"
-            data-testid="leaderboard-row"
+          <p
+            class="font-display"
+            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+            data-testid="leaderboard-name"
           >
-            <p
-              class="font-display"
-              :class="index < 3 ? 'text-3xl' : 'text-2xl'"
-              data-testid="leaderboard-name"
-            >
-              {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
-            </p>
-            <p
-              class="font-display flex justify-end"
-              :class="index < 3 ? 'text-3xl' : 'text-2xl'"
-              data-testid="leaderboard-value"
-            >
-              {{ formatPrice(player.totalEarnings) }}
-            </p>
-          </div>
-        </TransitionGroup>
+            {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
+          </p>
+          <p
+            class="font-display flex justify-end"
+            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+            data-testid="leaderboard-value"
+          >
+            {{ formatPrice(player.totalEarnings) }}
+          </p>
+        </div>
       </div>
     </template>
 

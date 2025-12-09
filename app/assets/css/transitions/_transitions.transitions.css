@@ -16,6 +16,38 @@
   transform: translateY(-20px);
 }
 
+/* CSS animation-based stagger - triggered by parent class */
+@keyframes stagger-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.stagger-item {
+  opacity: 0;
+}
+
+.stagger-animate .stagger-item {
+  animation: stagger-slide-in 0.4s ease-out forwards;
+  animation-delay: calc(var(--stagger-index, 0) * 50ms);
+}
+
+/* Page transitions */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.2s ease-out;
+}
+
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}
+
 /* Leaderboard stagger animation */
 .t-stagger-enter-active,
 .t-stagger-appear-active {

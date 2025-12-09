@@ -44,9 +44,14 @@ describe('leaderboard.vue', () => {
       formatPrice: mockFormatPrice,
     }))
 
-    vi.stubGlobal('useRoute', () => ({
-      fullPath: '/leaderboard',
-    }))
+    // Mock Nuxt macros
+    vi.stubGlobal('definePageMeta', vi.fn())
+
+    // Mock onMounted to immediately call the callback
+    vi.stubGlobal('onMounted', (cb: () => void) => cb())
+
+    // Mock requestAnimationFrame for the stagger animation trigger
+    vi.stubGlobal('requestAnimationFrame', (cb: () => void) => cb())
 
     vi.stubGlobal('ref', ref)
     vi.stubGlobal('computed', computed)
