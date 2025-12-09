@@ -28,10 +28,6 @@ export const useBtcPrice = () => {
   // Computed Y domain for charts/progress bar
   const yDomain = computed(() => calculateYDomain(filteredPriceHistory.value))
 
-  const setBidPrice = (price: number | null) => {
-    bidPrice.value = price
-  }
-
   const setBid = (price: number | null, direction: GuessDirection = null) => {
     bidPrice.value = price
     bidTimestamp.value = price ? Date.now() : null
@@ -76,7 +72,6 @@ export const useBtcPrice = () => {
     bidPrice,
     bidTimestamp,
     guessDirection,
-    setBidPrice,
     setBid,
     clearBid,
     formatPrice,

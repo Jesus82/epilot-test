@@ -74,10 +74,8 @@ describe('bidPersistenceHelpers', () => {
       localStorageMock.setItem.mockImplementation(() => {
         throw new Error('localStorage not available')
       })
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
       expect(() => saveBidToStorage(50000, 'up', 60)).not.toThrow()
-      expect(consoleSpy).toHaveBeenCalledWith('[BidPersistence] Failed to save bid to localStorage')
     })
   })
 
@@ -138,12 +136,10 @@ describe('bidPersistenceHelpers', () => {
 
     it('should handle JSON parse errors gracefully', () => {
       localStorageMock.getItem.mockReturnValue('not valid json')
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
       const result = loadBidFromStorage()
 
       expect(result).toBeNull()
-      expect(consoleSpy).toHaveBeenCalledWith('[BidPersistence] Failed to load bid from localStorage')
     })
   })
 
@@ -157,13 +153,11 @@ describe('bidPersistenceHelpers', () => {
     })
 
     it('should handle localStorage errors gracefully', () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
       localStorageMock.removeItem.mockImplementation(() => {
         throw new Error('localStorage not available')
       })
 
       expect(() => clearBidFromStorage()).not.toThrow()
-      expect(consoleSpy).toHaveBeenCalledWith('[BidPersistence] Failed to clear bid from localStorage')
     })
   })
 

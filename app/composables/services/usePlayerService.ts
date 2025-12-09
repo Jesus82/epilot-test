@@ -162,6 +162,3 @@ export const usePlayerService = () => {
     onBidComplete,
   }
 }
-
-// Re-export for backward compatibility
-export const usePlayerApi = usePlayerService

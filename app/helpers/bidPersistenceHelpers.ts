@@ -21,7 +21,6 @@ export const saveBidToStorage = (
   }
   catch {
     // localStorage may not be available (SSR, private browsing, etc.)
-    console.warn('[BidPersistence] Failed to save bid to localStorage')
   }
 }
 
@@ -50,7 +49,6 @@ export const loadBidFromStorage = (): PersistedBid | null => {
     return bid
   }
   catch {
-    console.warn('[BidPersistence] Failed to load bid from localStorage')
     return null
   }
 }
@@ -63,7 +61,7 @@ export const clearBidFromStorage = (): void => {
     localStorage.removeItem(BID_STORAGE_KEY)
   }
   catch {
-    console.warn('[BidPersistence] Failed to clear bid from localStorage')
+    // localStorage may not be available
   }
 }
 

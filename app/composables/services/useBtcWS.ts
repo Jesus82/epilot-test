@@ -32,7 +32,6 @@ export const useBtcWS = () => {
       ws.onopen = () => {
         status.value = 'connected'
         reconnectAttempts = 0
-        console.log('[BTC WebSocket] Connected to Binance')
       }
 
       ws.onmessage = (event: MessageEvent) => {
@@ -56,11 +55,9 @@ export const useBtcWS = () => {
 
       ws.onclose = (event) => {
         status.value = 'disconnected'
-        console.log('[BTC WebSocket] Disconnected:', event.code, event.reason)
 
         if (shouldAttemptReconnect(event.code, reconnectAttempts, MAX_RECONNECT_ATTEMPTS)) {
           reconnectAttempts++
-          console.log(`[BTC WebSocket] Reconnecting... Attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}`)
           reconnectTimeout = setTimeout(connect, RECONNECT_DELAY)
         }
       }

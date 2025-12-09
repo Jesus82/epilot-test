@@ -29,7 +29,6 @@ const fetchBinanceKlines = async (
 const clearHistoryOnRangeChange = (newMinutes: number): boolean => {
   if (newMinutes === currentRangeMinutes.value) return false
 
-  console.log(`[BTC History] Range changed from ${currentRangeMinutes.value}m to ${newMinutes}m, clearing history`)
   priceHistory.value = []
   currentRangeMinutes.value = newMinutes
   return true
@@ -56,7 +55,6 @@ export const useBtcHistory = () => {
     clearHistoryOnRangeChange(minutes)
 
     isLoadingHistory.value = true
-    console.log(`[BTC History] Loading historical data for ${minutes} minutes...`)
 
     try {
       const historicalData = await fetchHistoricalData(minutes)
@@ -64,7 +62,6 @@ export const useBtcHistory = () => {
 
       if (historicalData.length > 0) {
         priceHistory.value = takeRecentPoints(historicalData, maxPoints)
-        console.log(`[BTC History] Loaded ${priceHistory.value.length} points (max: ${maxPoints})`)
       }
     }
     finally {
@@ -86,7 +83,6 @@ export const useBtcHistory = () => {
   const clearHistory = () => {
     priceHistory.value = []
     currentRangeMinutes.value = 5
-    console.log('[BTC History] History cleared')
   }
 
   return {

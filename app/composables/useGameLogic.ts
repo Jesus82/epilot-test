@@ -188,11 +188,8 @@ export const useGameLogic = (
 
     // Check if bid has expired
     if (isBidExpired(persistedBid)) {
-      // Bid expired while user was away - we need to resolve it
-      // For now, we'll just clear it and let user make a new bid
-      // A more sophisticated approach would resolve with a stored price
+      // Bid expired while user was away - clear it and let user make a new bid
       clearBidFromStorage()
-      console.log('[BidPersistence] Expired bid cleared')
       return false
     }
 
@@ -211,7 +208,6 @@ export const useGameLogic = (
     // Start countdown
     startCountdownInterval()
 
-    console.log(`[BidPersistence] Restored bid: ${persistedBid.guess} at ${persistedBid.guessPrice}, ${remainingTime}s remaining`)
     return true
   }
 

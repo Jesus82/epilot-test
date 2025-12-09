@@ -205,25 +205,25 @@ describe('useBtcPrice', () => {
       expect(bidPrice.value).toBeNull()
     })
 
-    it('should set bidPrice via setBidPrice', async () => {
+    it('should set bidPrice via setBid', async () => {
       const { useBtcPrice } = await import('../useBtcPrice')
-      const { bidPrice, setBidPrice } = useBtcPrice()
+      const { bidPrice, setBid } = useBtcPrice()
 
       expect(bidPrice.value).toBeNull()
 
-      setBidPrice(42000)
+      setBid(42000, 'up')
 
       expect(bidPrice.value).toBe(42000)
     })
 
-    it('should clear bidPrice by setting to null', async () => {
+    it('should clear bidPrice via clearBid', async () => {
       const { useBtcPrice } = await import('../useBtcPrice')
-      const { bidPrice, setBidPrice } = useBtcPrice()
+      const { bidPrice, setBid, clearBid } = useBtcPrice()
 
-      setBidPrice(50000)
+      setBid(50000, 'up')
       expect(bidPrice.value).toBe(50000)
 
-      setBidPrice(null)
+      clearBid()
       expect(bidPrice.value).toBeNull()
     })
 
@@ -233,7 +233,7 @@ describe('useBtcPrice', () => {
       const instance1 = useBtcPrice()
       const instance2 = useBtcPrice()
 
-      instance1.setBidPrice(55000)
+      instance1.setBid(55000, 'down')
 
       expect(instance2.bidPrice.value).toBe(55000)
     })
@@ -395,13 +395,6 @@ describe('useBtcPrice', () => {
 
       expect(typeof connect).toBe('function')
       expect(typeof disconnect).toBe('function')
-    })
-
-    it('should expose setBidPrice function', async () => {
-      const { useBtcPrice } = await import('../useBtcPrice')
-      const { setBidPrice } = useBtcPrice()
-
-      expect(typeof setBidPrice).toBe('function')
     })
 
     it('should expose loadHistoricalData function', async () => {
