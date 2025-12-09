@@ -297,4 +297,35 @@ describe('PlayerNameInput', () => {
       wrapper.unmount()
     })
   })
+
+  describe('showCancel prop', () => {
+    it('should show Cancel button by default', () => {
+      const wrapper = mount(PlayerNameInput, {
+        props: { modelValue: '' },
+      })
+
+      const buttons = wrapper.findAll('button')
+      expect(buttons).toHaveLength(2)
+      expect(buttons[1].text()).toBe('Cancel')
+    })
+
+    it('should hide Cancel button when showCancel is false', () => {
+      const wrapper = mount(PlayerNameInput, {
+        props: { modelValue: '', showCancel: false },
+      })
+
+      const buttons = wrapper.findAll('button')
+      expect(buttons).toHaveLength(1)
+      expect(buttons[0].text()).toBe('Save')
+    })
+
+    it('should show Cancel button when showCancel is true', () => {
+      const wrapper = mount(PlayerNameInput, {
+        props: { modelValue: '', showCancel: true },
+      })
+
+      const buttons = wrapper.findAll('button')
+      expect(buttons).toHaveLength(2)
+    })
+  })
 })

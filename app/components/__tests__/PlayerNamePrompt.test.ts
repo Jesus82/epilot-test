@@ -23,7 +23,7 @@ vi.stubGlobal('usePlayerService', () => ({
 // Stub for PlayerNameInput
 const PlayerNameInputStub = defineComponent({
   name: 'PlayerNameInput',
-  props: ['modelValue', 'disabled', 'isEditing'],
+  props: ['modelValue', 'disabled', 'isEditing', 'showCancel'],
   emits: ['update:modelValue', 'save'],
   setup(props, { emit }) {
     return () => h('div', { class: 'player-name-input-stub' }, [
@@ -113,6 +113,16 @@ describe('PlayerNamePrompt', () => {
       })
 
       expect(wrapper.findComponent({ name: 'PlayerNameInput' }).exists()).toBe(false)
+    })
+
+    it('should pass showCancel=false to PlayerNameInput', () => {
+      const wrapper = mount(PlayerNamePrompt, {
+        ...mountOptions,
+        props: { show: true, showContent: true, showInput: true },
+      })
+
+      const playerNameInput = wrapper.findComponent({ name: 'PlayerNameInput' })
+      expect(playerNameInput.props('showCancel')).toBe(false)
     })
   })
 

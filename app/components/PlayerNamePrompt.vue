@@ -54,6 +54,7 @@ const handleSave = async () => {
           v-model="localName"
           :disabled="isLoading"
           :is-editing="true"
+          :show-cancel="false"
           @save="handleSave"
         />
         <p

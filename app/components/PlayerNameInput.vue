@@ -3,6 +3,7 @@ interface Props {
   modelValue: string
   isEditing?: boolean
   disabled?: boolean
+  showCancel?: boolean
 }
 
 interface Emits {
@@ -13,6 +14,7 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   isEditing: false,
   disabled: false,
+  showCancel: true,
 })
 
 const emit = defineEmits<Emits>()
@@ -93,6 +95,7 @@ const handleKeydown = (event: KeyboardEvent) => {
       Save
     </button>
     <button
+      v-if="showCancel"
       :disabled="disabled"
       class="o-button"
       data-button-variant="small"
