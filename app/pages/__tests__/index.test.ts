@@ -164,7 +164,7 @@ describe('index.vue', () => {
     })
 
     it('should not fetch stats when no player ID', async () => {
-      mockGetPlayerId.mockReturnValueOnce(null)
+      mockGetPlayerId.mockReturnValueOnce(null as unknown as string)
       mountPage()
       await flushPromises()
 

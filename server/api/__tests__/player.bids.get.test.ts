@@ -74,26 +74,20 @@ describe('GET /api/players/:playerId/bids', () => {
   it('returns bid history for player', async () => {
     const mockBids = [
       {
-        id: '1',
-        player_id: 'player-123',
         direction: 'up' as const,
-        bid_price: 50000,
-        final_price: 51000,
+        bidPrice: 50000,
+        finalPrice: 51000,
         earnings: 100,
         won: true,
         timestamp: 1704067200000,
-        created_at: '2024-01-01',
       },
       {
-        id: '2',
-        player_id: 'player-123',
         direction: 'down' as const,
-        bid_price: 51000,
-        final_price: 52000,
+        bidPrice: 51000,
+        finalPrice: 52000,
         earnings: -100,
         won: false,
         timestamp: 1704067300000,
-        created_at: '2024-01-01',
       },
     ]
 

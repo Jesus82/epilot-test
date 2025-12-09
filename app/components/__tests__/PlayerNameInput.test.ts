@@ -28,8 +28,8 @@ describe('PlayerNameInput', () => {
 
       const buttons = wrapper.findAll('button')
       expect(buttons).toHaveLength(2)
-      expect(buttons[0].text()).toBe('Save')
-      expect(buttons[1].text()).toBe('Cancel')
+      expect(buttons[0]!.text()).toBe('Save')
+      expect(buttons[1]!.text()).toBe('Cancel')
     })
 
     it('should have maxlength of 20 on input', () => {
@@ -66,7 +66,7 @@ describe('PlayerNameInput', () => {
         props: { modelValue: 'Test', disabled: true, isEditing: true },
       })
 
-      const saveButton = wrapper.findAll('button')[0]
+      const saveButton = wrapper.findAll('button')[0]!
       expect(saveButton.attributes('disabled')).toBeDefined()
     })
 
@@ -75,7 +75,7 @@ describe('PlayerNameInput', () => {
         props: { modelValue: 'Test', disabled: true },
       })
 
-      const cancelButton = wrapper.findAll('button')[1]
+      const cancelButton = wrapper.findAll('button')[1]!
       expect(cancelButton.attributes('disabled')).toBeDefined()
     })
   })
@@ -86,7 +86,7 @@ describe('PlayerNameInput', () => {
         props: { modelValue: '' },
       })
 
-      const saveButton = wrapper.findAll('button')[0]
+      const saveButton = wrapper.findAll('button')[0]!
       expect(saveButton.attributes('disabled')).toBeDefined()
     })
 
@@ -95,7 +95,7 @@ describe('PlayerNameInput', () => {
         props: { modelValue: '   ' },
       })
 
-      const saveButton = wrapper.findAll('button')[0]
+      const saveButton = wrapper.findAll('button')[0]!
       expect(saveButton.attributes('disabled')).toBeDefined()
     })
 
@@ -104,7 +104,7 @@ describe('PlayerNameInput', () => {
         props: { modelValue: 'TestPlayer', isEditing: true },
       })
 
-      const saveButton = wrapper.findAll('button')[0]
+      const saveButton = wrapper.findAll('button')[0]!
       expect(saveButton.attributes('disabled')).toBeDefined()
     })
 
@@ -117,7 +117,7 @@ describe('PlayerNameInput', () => {
       const input = wrapper.find('input')
       await input.setValue('NewName')
 
-      const saveButton = wrapper.findAll('button')[0]
+      const saveButton = wrapper.findAll('button')[0]!
       expect(saveButton.attributes('disabled')).toBeUndefined()
     })
   })
@@ -191,7 +191,7 @@ describe('PlayerNameInput', () => {
       const input = wrapper.find('input')
       await input.setValue('Changed')
 
-      const saveButton = wrapper.findAll('button')[0]
+      const saveButton = wrapper.findAll('button')[0]!
       await saveButton.trigger('click')
 
       expect(wrapper.emitted('save')).toBeTruthy()
@@ -202,7 +202,7 @@ describe('PlayerNameInput', () => {
         props: { modelValue: 'Test' },
       })
 
-      const cancelButton = wrapper.findAll('button')[1]
+      const cancelButton = wrapper.findAll('button')[1]!
       await cancelButton.trigger('click')
 
       expect(wrapper.emitted('cancel')).toBeTruthy()
@@ -216,7 +216,7 @@ describe('PlayerNameInput', () => {
       const input = wrapper.find('input')
       await input.setValue('Changed')
 
-      const cancelButton = wrapper.findAll('button')[1]
+      const cancelButton = wrapper.findAll('button')[1]!
       await cancelButton.trigger('click')
 
       // Should emit update:modelValue with original value
@@ -249,7 +249,7 @@ describe('PlayerNameInput', () => {
       // Add whitespace but same trimmed value
       await input.setValue('Test  ')
 
-      const saveButton = wrapper.findAll('button')[0]
+      const saveButton = wrapper.findAll('button')[0]!
       // Should still be disabled because trimmed values are the same
       expect(saveButton.attributes('disabled')).toBeDefined()
     })
@@ -270,7 +270,7 @@ describe('PlayerNameInput', () => {
       await input.setValue('Changed')
 
       // Cancel should restore to Original
-      const cancelButton = wrapper.findAll('button')[1]
+      const cancelButton = wrapper.findAll('button')[1]!
       await cancelButton.trigger('click')
 
       const emitted = wrapper.emitted('update:modelValue')
@@ -306,7 +306,7 @@ describe('PlayerNameInput', () => {
 
       const buttons = wrapper.findAll('button')
       expect(buttons).toHaveLength(2)
-      expect(buttons[1].text()).toBe('Cancel')
+      expect(buttons[1]!.text()).toBe('Cancel')
     })
 
     it('should hide Cancel button when showCancel is false', () => {
@@ -316,7 +316,7 @@ describe('PlayerNameInput', () => {
 
       const buttons = wrapper.findAll('button')
       expect(buttons).toHaveLength(1)
-      expect(buttons[0].text()).toBe('Save')
+      expect(buttons[0]!.text()).toBe('Save')
     })
 
     it('should show Cancel button when showCancel is true', () => {

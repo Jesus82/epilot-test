@@ -173,7 +173,7 @@ describe('useBtcPrice', () => {
       await loadHistoricalData(5)
 
       expect(priceHistory.value.length).toBe(2)
-      expect(priceHistory.value[0].price).toBe(42200)
+      expect(priceHistory.value[0]!.price).toBe(42200)
     })
 
     it('should expose isLoadingHistory from useBtcHistory', async () => {

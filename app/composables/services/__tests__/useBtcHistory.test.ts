@@ -69,7 +69,7 @@ describe('useBtcHistory', () => {
       await btcHistory.loadHistoricalData(5)
 
       expect(mockFetch).toHaveBeenCalledTimes(1)
-      const calledUrl = mockFetch.mock.calls[0][0] as string
+      const calledUrl = mockFetch.mock.calls[0]![0] as string
       expect(calledUrl).toContain('symbol=BTCUSDT')
       expect(calledUrl).toContain('interval=1s') // 5 min uses 1s interval
     })
@@ -81,7 +81,7 @@ describe('useBtcHistory', () => {
 
       await btcHistory.loadHistoricalData(60)
 
-      const calledUrl = mockFetch.mock.calls[0][0] as string
+      const calledUrl = mockFetch.mock.calls[0]![0] as string
       expect(calledUrl).toContain('interval=1m') // 60 min uses 1m interval
     })
 
@@ -92,7 +92,7 @@ describe('useBtcHistory', () => {
 
       await btcHistory.loadHistoricalData(1440)
 
-      const calledUrl = mockFetch.mock.calls[0][0] as string
+      const calledUrl = mockFetch.mock.calls[0]![0] as string
       expect(calledUrl).toContain('interval=5m') // 24h uses 5m interval
     })
 

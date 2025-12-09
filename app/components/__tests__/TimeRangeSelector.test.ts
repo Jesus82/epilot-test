@@ -21,7 +21,7 @@ describe('TimeRangeSelector', () => {
 
       const buttons = wrapper.findAll('button')
       TIME_RANGES.forEach((range, index) => {
-        expect(buttons[index].text()).toBe(range.label)
+        expect(buttons[index]!.text()).toBe(range.label)
       })
     })
 
@@ -97,7 +97,7 @@ describe('TimeRangeSelector', () => {
       // Click buttons that are NOT the current value (to get emissions)
       // Start from index 1 since index 0 (5m) is already the current value
       for (let i = 1; i < TIME_RANGES.length; i++) {
-        await buttons[i].trigger('click')
+        await buttons[i]!.trigger('click')
       }
 
       const emitted = wrapper.emitted('update:modelValue')!
@@ -105,7 +105,7 @@ describe('TimeRangeSelector', () => {
 
       // Verify the emitted values match the expected ranges (skipping first)
       for (let i = 0; i < emitted.length; i++) {
-        expect(emitted[i]).toEqual([TIME_RANGES[i + 1].minutes])
+        expect(emitted[i]).toEqual([TIME_RANGES[i + 1]!.minutes])
       }
     })
 

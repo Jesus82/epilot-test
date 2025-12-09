@@ -54,7 +54,7 @@ describe('bidPersistenceHelpers', () => {
 
       saveBidToStorage(50000, 'up', 60)
 
-      const stored = JSON.parse(store.activeBid)
+      const stored = JSON.parse(store.activeBid!)
       expect(stored.guessPrice).toBe(50000)
       expect(stored.guess).toBe('up')
       expect(stored.bidDuration).toBe(60)
@@ -64,7 +64,7 @@ describe('bidPersistenceHelpers', () => {
     it('should save down guess correctly', () => {
       saveBidToStorage(45000, 'down', 30)
 
-      const stored = JSON.parse(store.activeBid)
+      const stored = JSON.parse(store.activeBid!)
       expect(stored.guessPrice).toBe(45000)
       expect(stored.guess).toBe('down')
       expect(stored.bidDuration).toBe(30)

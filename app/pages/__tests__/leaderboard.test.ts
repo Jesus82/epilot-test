@@ -135,14 +135,14 @@ describe('leaderboard.vue', () => {
       const buttons = wrapper.findAll('button')
 
       expect(buttons).toHaveLength(3)
-      expect(buttons[0].text()).toBe('Score')
-      expect(buttons[1].text()).toBe('Streak')
-      expect(buttons[2].text()).toBe('Earnings')
+      expect(buttons[0]!.text()).toBe('Score')
+      expect(buttons[1]!.text()).toBe('Streak')
+      expect(buttons[2]!.text()).toBe('Earnings')
     })
 
     it('should default to score tab', async () => {
       const wrapper = await mountPage()
-      const scoreButton = wrapper.findAll('button')[0]
+      const scoreButton = wrapper.findAll('button')[0]!
 
       expect(scoreButton.attributes('data-active')).toBe('true')
       expect(scoreButton.classes()).toContain('underline')
@@ -150,7 +150,7 @@ describe('leaderboard.vue', () => {
 
     it('should switch to streak tab when clicked', async () => {
       const wrapper = await mountPage()
-      const streakButton = wrapper.findAll('button')[1]
+      const streakButton = wrapper.findAll('button')[1]!
 
       await streakButton.trigger('click')
 
@@ -160,7 +160,7 @@ describe('leaderboard.vue', () => {
 
     it('should switch to earnings tab when clicked', async () => {
       const wrapper = await mountPage()
-      const earningsButton = wrapper.findAll('button')[2]
+      const earningsButton = wrapper.findAll('button')[2]!
 
       await earningsButton.trigger('click')
 
@@ -181,9 +181,9 @@ describe('leaderboard.vue', () => {
       const playerNames = wrapper.findAll('[data-testid="leaderboard-name"]')
 
       // Bob (200) > Charlie (150) > Alice (100) > Anonymous (50)
-      expect(playerNames[0].text()).toContain('Bob')
-      expect(playerNames[1].text()).toContain('Charlie')
-      expect(playerNames[2].text()).toContain('Alice')
+      expect(playerNames[0]!.text()).toContain('Bob')
+      expect(playerNames[1]!.text()).toContain('Charlie')
+      expect(playerNames[2]!.text()).toContain('Alice')
     })
 
     it('should show Anonymous for players without name', async () => {
@@ -191,16 +191,16 @@ describe('leaderboard.vue', () => {
       const playerRows = wrapper.findAll('[data-testid="leaderboard-row"]')
 
       // The 4th player has null name
-      expect(playerRows[3].text()).toContain('Anonymous')
+      expect(playerRows[3]!.text()).toContain('Anonymous')
     })
 
     it('should display ranking numbers', async () => {
       const wrapper = await mountPage()
       const playerNames = wrapper.findAll('[data-testid="leaderboard-name"]')
 
-      expect(playerNames[0].text()).toContain('1.')
-      expect(playerNames[1].text()).toContain('2.')
-      expect(playerNames[2].text()).toContain('3.')
+      expect(playerNames[0]!.text()).toContain('1.')
+      expect(playerNames[1]!.text()).toContain('2.')
+      expect(playerNames[2]!.text()).toContain('3.')
     })
 
     it('should limit to top 10', async () => {
@@ -224,7 +224,7 @@ describe('leaderboard.vue', () => {
     it('should display "Best Streaks" heading when on streak tab', async () => {
       const wrapper = await mountPage()
 
-      await wrapper.findAll('button')[1].trigger('click')
+      await wrapper.findAll('button')[1]!.trigger('click')
 
       expect(wrapper.find('h1').text()).toBe('Best Streaks')
     })
@@ -232,22 +232,22 @@ describe('leaderboard.vue', () => {
     it('should sort players by longest streak descending', async () => {
       const wrapper = await mountPage()
 
-      await wrapper.findAll('button')[1].trigger('click')
+      await wrapper.findAll('button')[1]!.trigger('click')
 
       const playerNames = wrapper.findAll('[data-testid="leaderboard-name"]')
       // Bob (10) > Alice (5) > Charlie (3) > Anonymous (2)
-      expect(playerNames[0].text()).toContain('Bob')
-      expect(playerNames[1].text()).toContain('Alice')
-      expect(playerNames[2].text()).toContain('Charlie')
+      expect(playerNames[0]!.text()).toContain('Bob')
+      expect(playerNames[1]!.text()).toContain('Alice')
+      expect(playerNames[2]!.text()).toContain('Charlie')
     })
 
     it('should display streak values', async () => {
       const wrapper = await mountPage()
 
-      await wrapper.findAll('button')[1].trigger('click')
+      await wrapper.findAll('button')[1]!.trigger('click')
 
       const streakValues = wrapper.findAll('[data-testid="leaderboard-value"]')
-      expect(streakValues[0].text()).toBe('10') // Bob's streak
+      expect(streakValues[0]!.text()).toBe('10') // Bob's streak
     })
   })
 
@@ -255,7 +255,7 @@ describe('leaderboard.vue', () => {
     it('should display "Top Earnings" heading when on earnings tab', async () => {
       const wrapper = await mountPage()
 
-      await wrapper.findAll('button')[2].trigger('click')
+      await wrapper.findAll('button')[2]!.trigger('click')
 
       expect(wrapper.find('h1').text()).toBe('Top Earnings')
     })
@@ -263,19 +263,19 @@ describe('leaderboard.vue', () => {
     it('should sort players by total earnings descending', async () => {
       const wrapper = await mountPage()
 
-      await wrapper.findAll('button')[2].trigger('click')
+      await wrapper.findAll('button')[2]!.trigger('click')
 
       const playerNames = wrapper.findAll('[data-testid="leaderboard-name"]')
       // Charlie (2000) > Alice (1000) > Bob (500) > Anonymous (100)
-      expect(playerNames[0].text()).toContain('Charlie')
-      expect(playerNames[1].text()).toContain('Alice')
-      expect(playerNames[2].text()).toContain('Bob')
+      expect(playerNames[0]!.text()).toContain('Charlie')
+      expect(playerNames[1]!.text()).toContain('Alice')
+      expect(playerNames[2]!.text()).toContain('Bob')
     })
 
     it('should format earnings using formatPrice', async () => {
       const wrapper = await mountPage()
 
-      await wrapper.findAll('button')[2].trigger('click')
+      await wrapper.findAll('button')[2]!.trigger('click')
       await flushPromises()
 
       expect(mockFormatPrice).toHaveBeenCalled()
