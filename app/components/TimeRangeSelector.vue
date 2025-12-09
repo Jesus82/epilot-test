@@ -5,7 +5,11 @@ const model = defineModel<number>({ required: true })
 </script>
 
 <template>
-  <div class="time-range-selector" role="group" aria-label="Select time range">
+  <div
+    class="time-range-selector"
+    role="group"
+    aria-label="Select time range"
+  >
     <button
       v-for="range in TIME_RANGES"
       :key="range.minutes"

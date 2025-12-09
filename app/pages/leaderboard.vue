@@ -35,7 +35,11 @@ const activeTab = ref<Tab>('score')
 
 <template>
   <div class="flex flex-col items-center p-base min-w-screen min-h-screen">
-    <div v-if="status === 'pending'" role="status" aria-live="polite">
+    <div
+      v-if="status === 'pending'"
+      role="status"
+      aria-live="polite"
+    >
       Loading...
     </div>
 
@@ -47,7 +51,11 @@ const activeTab = ref<Tab>('score')
     </div>
 
     <template v-else-if="leaderboard && leaderboard.length > 0">
-      <div class="pb-third grid grid-cols-3 gap-base" role="tablist" aria-label="Leaderboard categories">
+      <div
+        class="pb-third grid grid-cols-3 gap-base"
+        role="tablist"
+        aria-label="Leaderboard categories"
+      >
         <button
           :data-active="activeTab === 'score'"
           class="font-display text-xl"
