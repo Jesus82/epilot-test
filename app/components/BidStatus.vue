@@ -1,21 +1,14 @@
 <script setup lang="ts">
-import type { GuessDirection } from '../../shared/types/game'
+const {
+  countdown,
+  isLocked,
+  guessPrice,
+  isWinning,
+  guess,
+  bidToPriceDifference,
+} = useGameLogic()
 
-interface Props {
-  countdown: number
-  isLocked: boolean
-  guessPrice: number | null
-  currentPrice: number | null
-  isWinning: boolean
-  guess: GuessDirection
-  bidToPriceDifference: number | null
-  yMin: number
-  yMax: number
-}
-
-defineProps<Props>()
-
-const { formatPrice } = useBtcPrice()
+const { price, yDomain, formatPrice } = useBtcPrice()
 </script>
 
 <template>
@@ -27,12 +20,12 @@ const { formatPrice } = useBtcPrice()
       {{ countdown }}s
     </p>
     <BidProgressBar
-      v-if="isLocked && guessPrice && currentPrice && guess"
+      v-if="isLocked && guessPrice && price && guess"
       :bid-price="guessPrice"
-      :current-price="currentPrice"
+      :current-price="price"
       :is-winning="isWinning"
-      :y-min="yMin"
-      :y-max="yMax"
+      :y-min="yDomain.yMin"
+      :y-max="yDomain.yMax"
     />
     <div class="grid grid-rows-3">
       <p

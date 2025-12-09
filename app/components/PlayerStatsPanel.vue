@@ -1,18 +1,14 @@
 <script setup lang="ts">
-import type { BidResult } from '../../shared/types/api'
-
-interface Props {
-  totalEarnings: number
-  currentStreak: number
-  longestStreak: number
-  totalWins: number
-  totalLosses: number
-  potentialEarnings: number
-  isLocked: boolean
-  lastBidResult: BidResult | null
-}
-
-defineProps<Props>()
+const {
+  totalEarnings,
+  currentStreak,
+  longestStreak,
+  totalWins,
+  totalLosses,
+  potentialEarnings,
+  isLocked,
+  lastBidResult,
+} = useGameLogic()
 
 const { formatPrice } = useBtcPrice()
 </script>

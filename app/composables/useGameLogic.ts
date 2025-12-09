@@ -11,28 +11,53 @@ import {
   createInitialBidState,
 } from '~/helpers/gameLogicHelpers'
 
+// Shared game state (module-level for singleton behavior)
+const score = ref(0)
+const guess = ref<GuessDirection>(null)
+const isLocked = ref(false)
+const countdown = ref(0)
+const guessPrice = ref<number | null>(null)
+
+// Stats state
+const currentStreak = ref(0)
+const longestStreak = ref(0)
+const totalWins = ref(0)
+const totalLosses = ref(0)
+const totalEarnings = ref(0)
+const lastBidResult = ref<BidResult | null>(null)
+
+// Internal state for minimum time tracking
+const isMinimumTimePassed = ref(false)
+
+// Store dependencies (set once during initialization)
+let priceDataRef: Ref<BtcPriceData | null> | null = null
+let setBidFn: ((price: number | null, direction: GuessDirection) => void) | null = null
+let clearBidFn: (() => void) | null = null
+let onBidCompleteFn: ((result: BidResult) => void) | null = null
+let countdownInterval: ReturnType<typeof setInterval> | null = null
+let isInitialized = false
+
 export const useGameLogic = (
-  priceData: Ref<BtcPriceData | null>,
-  setBid: (price: number | null, direction: GuessDirection) => void,
-  clearBid: () => void,
+  priceData?: Ref<BtcPriceData | null>,
+  setBid?: (price: number | null, direction: GuessDirection) => void,
+  clearBid?: () => void,
   onBidComplete?: (result: BidResult) => void,
 ) => {
-  // Game state
-  const score = ref(0)
-  const guess = ref<GuessDirection>(null)
-  const isLocked = ref(false)
-  const countdown = ref(0)
-  const guessPrice = ref<number | null>(null)
+  // Initialize dependencies on first call with params
+  if (priceData && setBid && clearBid && !isInitialized) {
+    priceDataRef = priceData
+    setBidFn = setBid
+    clearBidFn = clearBid
+    onBidCompleteFn = onBidComplete ?? null
+    isInitialized = true
 
-  // Stats state
-  const currentStreak = ref(0)
-  const longestStreak = ref(0)
-  const totalWins = ref(0)
-  const totalLosses = ref(0)
-  const totalEarnings = ref(0)
-  const lastBidResult = ref<BidResult | null>(null)
-
-  let countdownInterval: ReturnType<typeof setInterval> | null = null
+    // Set up watcher for price changes after minimum time has passed
+    watch(() => priceDataRef?.value?.price, () => {
+      if (isMinimumTimePassed.value && hasPriceChanged()) {
+        checkGuess()
+      }
+    })
+  }
 
   /**
    * Reset the game state after a guess is evaluated
@@ -46,7 +71,7 @@ export const useGameLogic = (
     isLocked.value = false
     guess.value = null
     guessPrice.value = null
-    clearBid()
+    clearBidFn?.()
     countdown.value = 0
   }
 
@@ -54,9 +79,9 @@ export const useGameLogic = (
    * Check the guess result and update score and stats
    */
   const checkGuess = () => {
-    if (!priceData.value || !guessPrice.value || !guess.value) return
+    if (!priceDataRef?.value || !guessPrice.value || !guess.value) return
 
-    const currentPrice = priceData.value.price
+    const currentPrice = priceDataRef.value.price
     const isCorrect = evaluateGuess(guess.value, guessPrice.value, currentPrice)
     const earnings = calculateEarnings(guess.value, guessPrice.value, currentPrice)
 
@@ -68,7 +93,7 @@ export const useGameLogic = (
     lastBidResult.value = bidResult
 
     // Notify callback if provided
-    onBidComplete?.(bidResult)
+    onBidCompleteFn?.(bidResult)
 
     resetGameState()
   }
@@ -77,30 +102,25 @@ export const useGameLogic = (
    * Check if price has changed from bid price
    */
   const hasPriceChanged = (): boolean => {
-    if (!priceData.value || !guessPrice.value) return false
-    return priceData.value.price !== guessPrice.value
+    if (!priceDataRef?.value || !guessPrice.value) return false
+    return priceDataRef.value.price !== guessPrice.value
   }
-
-  /**
-   * Tracks if minimum time has passed (countdown <= 0)
-   */
-  const isMinimumTimePassed = ref(false)
 
   /**
    * Make a guess (up or down) and start the countdown
    * The guess resolves when: countdown reaches 0 AND price has changed
    */
   const makeGuess = (direction: 'up' | 'down', countdownSeconds: number = 60) => {
-    if (isLocked.value || !priceData.value) return
+    if (isLocked.value || !priceDataRef?.value) return
 
-    const bidState = createInitialBidState(direction, priceData.value.price, countdownSeconds)
+    const bidState = createInitialBidState(direction, priceDataRef.value.price, countdownSeconds)
 
     // Apply bid state
     isLocked.value = true
     guess.value = bidState.direction
     guessPrice.value = bidState.price
     isMinimumTimePassed.value = false
-    setBid(bidState.price, bidState.direction)
+    setBidFn?.(bidState.price, bidState.direction)
     countdown.value = bidState.countdownSeconds
 
     // Start countdown interval
@@ -117,15 +137,6 @@ export const useGameLogic = (
   }
 
   /**
-   * Watch for price changes after minimum time has passed
-   */
-  watch(() => priceData.value?.price, () => {
-    if (isMinimumTimePassed.value && hasPriceChanged()) {
-      checkGuess()
-    }
-  })
-
-  /**
    * Cancel an active guess (useful for testing or user cancellation)
    */
   const cancelGuess = () => {
@@ -137,26 +148,26 @@ export const useGameLogic = (
    * Computed that determines if the current bet is winning
    */
   const isWinning = computed(() => {
-    if (!guess.value || !guessPrice.value || !priceData.value) return false
+    if (!guess.value || !guessPrice.value || !priceDataRef?.value) return false
 
-    return calculateIsWinning(guess.value, priceData.value.price, guessPrice.value)
+    return calculateIsWinning(guess.value, priceDataRef.value.price, guessPrice.value)
   })
 
   /**
    * Computed for the difference between current price and bid price
    */
   const bidToPriceDifference = computed(() => {
-    if (!guessPrice.value || !priceData.value) return null
-    return priceData.value.price - guessPrice.value
+    if (!guessPrice.value || !priceDataRef?.value) return null
+    return priceDataRef.value.price - guessPrice.value
   })
 
   /**
    * Computed for current potential earnings (before bid completes)
    */
   const potentialEarnings = computed(() => {
-    if (!guess.value || !guessPrice.value || !priceData.value) return 0
+    if (!guess.value || !guessPrice.value || !priceDataRef?.value) return 0
 
-    return calculateEarnings(guess.value, guessPrice.value, priceData.value.price)
+    return calculateEarnings(guess.value, guessPrice.value, priceDataRef.value.price)
   })
 
   /**
@@ -193,6 +204,31 @@ export const useGameLogic = (
     }
   }
 
+  /**
+   * Reset all state for testing purposes
+   * This allows tests to start with fresh state
+   */
+  const resetForTesting = () => {
+    cleanup()
+    score.value = 0
+    guess.value = null
+    isLocked.value = false
+    countdown.value = 0
+    guessPrice.value = null
+    currentStreak.value = 0
+    longestStreak.value = 0
+    totalWins.value = 0
+    totalLosses.value = 0
+    totalEarnings.value = 0
+    lastBidResult.value = null
+    isMinimumTimePassed.value = false
+    priceDataRef = null
+    setBidFn = null
+    clearBidFn = null
+    onBidCompleteFn = null
+    isInitialized = false
+  }
+
   return {
     // State
     score,
@@ -220,6 +256,7 @@ export const useGameLogic = (
     cleanup,
     loadStats,
     getStats,
+    resetForTesting,
 
     // Helper for testing
     hasPriceChanged,

@@ -1,21 +1,11 @@
 <script setup lang="ts">
-import type { GuessDirection } from '../../shared/types/game'
+const { guess, isLocked, makeGuess } = useGameLogic()
+const { status } = useBtcPrice()
 
-interface Props {
-  isLocked: boolean
-  isConnected: boolean
-  guess: GuessDirection
-}
-
-interface Emits {
-  (e: 'guess', direction: 'up' | 'down'): void
-}
-
-defineProps<Props>()
-const emit = defineEmits<Emits>()
+const isConnected = computed(() => status.value === 'connected')
 
 const handleGuess = (direction: 'up' | 'down') => {
-  emit('guess', direction)
+  makeGuess(direction)
 }
 </script>
 

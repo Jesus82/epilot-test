@@ -7,15 +7,15 @@ interface UsePlayerProfileOptions {
   isLocked?: Ref<boolean>
 }
 
+// Shared profile state (module-level for singleton behavior)
+const playerName = ref<string>('')
+const isEditingName = ref(false)
+const nameError = ref<string | null>(null)
+
 export const usePlayerProfile = (options: UsePlayerProfileOptions = {}) => {
   const { isLocked } = options
   const { getPlayerId } = usePlayerId()
   const { updatePlayerName, isLoading, error: apiError } = usePlayerService()
-
-  // Profile state
-  const playerName = ref<string>('')
-  const isEditingName = ref(false)
-  const nameError = ref<string | null>(null)
 
   /**
    * Set the player name (e.g., after loading from API)

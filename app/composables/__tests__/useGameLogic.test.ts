@@ -25,6 +25,9 @@ describe('useGameLogic', () => {
     priceData = ref<BtcPriceData | null>(null)
     setBidMock = vi.fn()
     clearBidMock = vi.fn()
+    // Reset singleton state before each test
+    const { resetForTesting } = useGameLogic()
+    resetForTesting()
   })
 
   afterEach(() => {
@@ -754,7 +757,7 @@ describe('useGameLogic', () => {
 
   describe('loadStats and getStats', () => {
     it('should load stats from external source', () => {
-      const { loadStats, currentStreak, longestStreak, totalWins, totalLosses, totalEarnings } = useGameLogic(priceData, setBidMock, clearBidMock)
+      const { loadStats, currentStreak, longestStreak, totalWins, totalLosses, totalEarnings, score } = useGameLogic(priceData, setBidMock, clearBidMock)
 
       loadStats({
         currentStreak: 5,
@@ -762,6 +765,7 @@ describe('useGameLogic', () => {
         totalWins: 25,
         totalLosses: 15,
         totalEarnings: 5000,
+        score: 10,
       })
 
       expect(currentStreak.value).toBe(5)
@@ -769,6 +773,7 @@ describe('useGameLogic', () => {
       expect(totalWins.value).toBe(25)
       expect(totalLosses.value).toBe(15)
       expect(totalEarnings.value).toBe(5000)
+      expect(score.value).toBe(10)
     })
 
     it('should get stats as plain object', () => {

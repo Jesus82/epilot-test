@@ -1,30 +1,19 @@
 <script setup lang="ts">
-interface Props {
-  playerName: string
-  score: number
-  isEditingName: boolean
-  isLocked: boolean
-  isApiLoading: boolean
-  nameError: string | null
-}
+const { score, isLocked } = useGameLogic()
 
-interface Emits {
-  (e: 'update:playerName', value: string): void
-  (e: 'update:isEditingName', value: boolean): void
-  (e: 'save' | 'cancel' | 'startEdit'): void
-}
-
-const props = defineProps<Props>()
-const emit = defineEmits<Emits>()
-
-const localPlayerName = computed({
-  get: () => props.playerName,
-  set: (value: string) => emit('update:playerName', value),
-})
+const {
+  playerName,
+  isEditingName,
+  nameError,
+  isLoading: isApiLoading,
+  startEditing,
+  cancelEditing,
+  saveName,
+} = usePlayerProfile({ isLocked })
 
 const handleStartEdit = () => {
-  if (!props.isLocked) {
-    emit('startEdit')
+  if (!isLocked.value) {
+    startEditing()
   }
 }
 </script>
@@ -45,11 +34,11 @@ const handleStartEdit = () => {
       <template v-else-if="isEditingName">
         <div class="flex flex-col">
           <PlayerNameInput
-            v-model="localPlayerName"
+            v-model="playerName"
             :disabled="isApiLoading"
             :is-editing="true"
-            @save="$emit('save')"
-            @cancel="$emit('cancel')"
+            @save="saveName"
+            @cancel="cancelEditing"
           />
           <p
             v-if="nameError"
