@@ -56,7 +56,9 @@ watch(selectedRange, async (newRange) => {
         role="status"
         aria-live="polite"
       >
-        <span>Loading historical data...</span>
+        <p class="font-sans text-sm">
+          Loading historical data...
+        </p>
       </div>
     </div>
   </div>
