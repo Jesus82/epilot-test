@@ -4,7 +4,7 @@
  */
 
 import type { PricePoint } from '../../shared/types/chart'
-import type { GuessDirection } from '~/composables/useGameLogic'
+import type { GuessDirection } from '../../shared/types/game'
 
 /**
  * Determine if a bet is winning based on guess direction and price difference

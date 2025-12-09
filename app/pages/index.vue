@@ -8,7 +8,7 @@ const { getPlayerId } = usePlayerId()
 const { fetchStats, onBidComplete } = usePlayerService()
 
 // Game logic composable with bid completion callback
-const { isLocked, cleanup, loadStats } = useGameLogic(priceData, setBid, clearBid, onBidComplete)
+const { isLocked, cleanup, loadStats, restoreBid } = useGameLogic(priceData, setBid, clearBid, onBidComplete)
 
 // Player profile management
 const { setPlayerName } = usePlayerProfile({ isLocked })
@@ -21,6 +21,9 @@ const isPlayerChecked = ref(false)
 // Load player stats on mount
 onMounted(async () => {
   connect()
+
+  // Restore any active bid from localStorage
+  restoreBid()
 
   const playerId = getPlayerId()
   if (playerId) {

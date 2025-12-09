@@ -15,6 +15,7 @@ const mockOnBidComplete = vi.fn()
 const mockIsLocked = ref(false)
 const mockCleanup = vi.fn()
 const mockLoadStats = vi.fn()
+const mockRestoreBid = vi.fn()
 const mockSetPlayerName = vi.fn()
 
 // Stub child components
@@ -83,6 +84,7 @@ describe('index.vue', () => {
       isLocked: mockIsLocked,
       cleanup: mockCleanup,
       loadStats: mockLoadStats,
+      restoreBid: mockRestoreBid,
     }))
 
     vi.stubGlobal('usePlayerProfile', () => ({
@@ -132,7 +134,7 @@ describe('index.vue', () => {
       const wrapper = mountPage()
 
       expect(wrapper.find('main').exists()).toBe(true)
-      expect(wrapper.find('.grid.grid-cols-3').exists()).toBe(true)
+      expect(wrapper.find('.md\\:grid-cols-3').exists()).toBe(true)
     })
   })
 
@@ -263,6 +265,7 @@ describe('index.vue', () => {
         isLocked: mockIsLocked,
         cleanup: mockCleanup,
         loadStats: mockLoadStats,
+        restoreBid: mockRestoreBid,
       }))
       vi.stubGlobal('useGameLogic', useGameLogicSpy)
 

@@ -1,5 +1,5 @@
 import type { BtcPriceData } from '../../shared/types/btc'
-import type { GuessDirection, GameState } from '../../shared/types/game'
+import type { GuessDirection } from '../../shared/types/game'
 import type { BidResult } from '../../shared/types/api'
 import type { PlayerStats } from '../../shared/types/player'
 import { calculateIsWinning } from '~/helpers/btcChartHelpers'
@@ -10,6 +10,13 @@ import {
   createBidResult,
   createInitialBidState,
 } from '~/helpers/gameLogicHelpers'
+import {
+  saveBidToStorage,
+  loadBidFromStorage,
+  clearBidFromStorage,
+  calculateRemainingTime,
+  isBidExpired,
+} from '~/helpers/bidPersistenceHelpers'
 
 // Shared game state (module-level for singleton behavior)
 const score = ref(0)
@@ -78,6 +85,9 @@ export const useGameLogic = (
     guessPrice.value = null
     clearBidFn?.()
     countdown.value = 0
+
+    // Clear persisted bid from localStorage
+    clearBidFromStorage()
   }
 
   /**
@@ -141,7 +151,21 @@ export const useGameLogic = (
     setBidFn?.(bidState.price, bidState.direction)
     countdown.value = bidState.countdownSeconds
 
+    // Persist bid to localStorage
+    saveBidToStorage(bidState.price, bidState.direction, countdownSeconds)
+
     // Start countdown interval
+    startCountdownInterval()
+  }
+
+  /**
+   * Start the countdown interval
+   */
+  const startCountdownInterval = () => {
+    if (countdownInterval) {
+      clearInterval(countdownInterval)
+    }
+
     countdownInterval = setInterval(() => {
       countdown.value--
 
@@ -152,6 +176,43 @@ export const useGameLogic = (
         }
       }
     }, 1000)
+  }
+
+  /**
+   * Restore a bid from localStorage (called on page load)
+   * Returns true if a bid was restored, false otherwise
+   */
+  const restoreBid = (): boolean => {
+    const persistedBid = loadBidFromStorage()
+    if (!persistedBid) return false
+
+    // Check if bid has expired
+    if (isBidExpired(persistedBid)) {
+      // Bid expired while user was away - we need to resolve it
+      // For now, we'll just clear it and let user make a new bid
+      // A more sophisticated approach would resolve with a stored price
+      clearBidFromStorage()
+      console.log('[BidPersistence] Expired bid cleared')
+      return false
+    }
+
+    // Restore the bid state
+    const remainingTime = calculateRemainingTime(persistedBid)
+
+    isLocked.value = true
+    guess.value = persistedBid.guess
+    guessPrice.value = persistedBid.guessPrice
+    countdown.value = remainingTime
+    isMinimumTimePassed.value = remainingTime <= 0
+
+    // Restore bid marker on chart
+    setBidFn?.(persistedBid.guessPrice, persistedBid.guess)
+
+    // Start countdown
+    startCountdownInterval()
+
+    console.log(`[BidPersistence] Restored bid: ${persistedBid.guess} at ${persistedBid.guessPrice}, ${remainingTime}s remaining`)
+    return true
   }
 
   /**
@@ -285,6 +346,7 @@ export const useGameLogic = (
     loadStats,
     getStats,
     resetForTesting,
+    restoreBid,
 
     // Helper for testing
     hasPriceChanged,

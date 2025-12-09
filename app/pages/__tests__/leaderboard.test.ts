@@ -177,7 +177,7 @@ describe('leaderboard.vue', () => {
 
     it('should sort players by score descending', async () => {
       const wrapper = await mountPage()
-      const playerNames = wrapper.findAll('.grid.grid-cols-2 p:first-child')
+      const playerNames = wrapper.findAll('[data-testid="leaderboard-name"]')
 
       // Bob (200) > Charlie (150) > Alice (100) > Anonymous (50)
       expect(playerNames[0].text()).toContain('Bob')
@@ -187,7 +187,7 @@ describe('leaderboard.vue', () => {
 
     it('should show Anonymous for players without name', async () => {
       const wrapper = await mountPage()
-      const playerRows = wrapper.findAll('.grid.grid-cols-2')
+      const playerRows = wrapper.findAll('[data-testid="leaderboard-row"]')
 
       // The 4th player has null name
       expect(playerRows[3].text()).toContain('Anonymous')
@@ -195,7 +195,7 @@ describe('leaderboard.vue', () => {
 
     it('should display ranking numbers', async () => {
       const wrapper = await mountPage()
-      const playerNames = wrapper.findAll('.grid.grid-cols-2 p:first-child')
+      const playerNames = wrapper.findAll('[data-testid="leaderboard-name"]')
 
       expect(playerNames[0].text()).toContain('1.')
       expect(playerNames[1].text()).toContain('2.')
@@ -213,7 +213,7 @@ describe('leaderboard.vue', () => {
       }))
 
       const wrapper = await mountPage()
-      const playerRows = wrapper.findAll('.grid.grid-cols-2')
+      const playerRows = wrapper.findAll('[data-testid="leaderboard-row"]')
 
       expect(playerRows.length).toBeLessThanOrEqual(10)
     })
@@ -233,7 +233,7 @@ describe('leaderboard.vue', () => {
 
       await wrapper.findAll('button')[1].trigger('click')
 
-      const playerNames = wrapper.findAll('.grid.grid-cols-2 p:first-child')
+      const playerNames = wrapper.findAll('[data-testid="leaderboard-name"]')
       // Bob (10) > Alice (5) > Charlie (3) > Anonymous (2)
       expect(playerNames[0].text()).toContain('Bob')
       expect(playerNames[1].text()).toContain('Alice')
@@ -245,7 +245,7 @@ describe('leaderboard.vue', () => {
 
       await wrapper.findAll('button')[1].trigger('click')
 
-      const streakValues = wrapper.findAll('.grid.grid-cols-2 p:last-child')
+      const streakValues = wrapper.findAll('[data-testid="leaderboard-value"]')
       expect(streakValues[0].text()).toBe('10') // Bob's streak
     })
   })
@@ -264,7 +264,7 @@ describe('leaderboard.vue', () => {
 
       await wrapper.findAll('button')[2].trigger('click')
 
-      const playerNames = wrapper.findAll('.grid.grid-cols-2 p:first-child')
+      const playerNames = wrapper.findAll('[data-testid="leaderboard-name"]')
       // Charlie (2000) > Alice (1000) > Bob (500) > Anonymous (100)
       expect(playerNames[0].text()).toContain('Charlie')
       expect(playerNames[1].text()).toContain('Alice')

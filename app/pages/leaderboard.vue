@@ -97,16 +97,19 @@ const activeTab = ref<Tab>('score')
             :key="'score-' + player.playerId"
             class="grid grid-cols-[1fr_max-content] gap-base"
             :style="{ transitionDelay: `${index * 50}ms` }"
+            data-testid="leaderboard-row"
           >
             <p
               class="font-display"
               :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+              data-testid="leaderboard-name"
             >
               {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
             </p>
             <p
               class="font-display flex justify-end"
               :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+              data-testid="leaderboard-value"
             >
               {{ player.score }}
             </p>
@@ -130,16 +133,19 @@ const activeTab = ref<Tab>('score')
             :key="'streak-' + player.playerId"
             class="grid grid-cols-[1fr_max-content] gap-base"
             :style="{ transitionDelay: `${index * 50}ms` }"
+            data-testid="leaderboard-row"
           >
             <p
               class="font-display"
               :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+              data-testid="leaderboard-name"
             >
               {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
             </p>
             <p
               class="font-display flex justify-end"
               :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+              data-testid="leaderboard-value"
             >
               {{ player.longestStreak }}
             </p>
@@ -163,16 +169,19 @@ const activeTab = ref<Tab>('score')
             :key="'earnings-' + player.playerId"
             class="grid grid-cols-[1fr_max-content] gap-base"
             :style="{ transitionDelay: `${index * 50}ms` }"
+            data-testid="leaderboard-row"
           >
             <p
               class="font-display"
               :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+              data-testid="leaderboard-name"
             >
               {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
             </p>
             <p
               class="font-display flex justify-end"
               :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+              data-testid="leaderboard-value"
             >
               {{ formatPrice(player.totalEarnings) }}
             </p>

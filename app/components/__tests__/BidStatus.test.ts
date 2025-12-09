@@ -142,6 +142,8 @@ describe('BidStatus', () => {
       mockIsLocked.value = true
       mockBidToPriceDifference.value = 500
       mockIsWinning.value = true
+      mockGuessPrice.value = 50000
+      mockGuess.value = 'up'
 
       const wrapper = mount(BidStatus, mountOptions)
 
@@ -153,6 +155,8 @@ describe('BidStatus', () => {
       mockIsLocked.value = true
       mockBidToPriceDifference.value = -500
       mockIsWinning.value = false
+      mockGuessPrice.value = 50000
+      mockGuess.value = 'down'
 
       const wrapper = mount(BidStatus, mountOptions)
 
@@ -163,6 +167,8 @@ describe('BidStatus', () => {
       mockIsLocked.value = true
       mockBidToPriceDifference.value = 500
       mockIsWinning.value = true
+      mockGuessPrice.value = 50000
+      mockGuess.value = 'up'
 
       const wrapper = mount(BidStatus, mountOptions)
       const diffElement = wrapper.find('.text-green')
@@ -174,6 +180,8 @@ describe('BidStatus', () => {
       mockIsLocked.value = true
       mockBidToPriceDifference.value = -500
       mockIsWinning.value = false
+      mockGuessPrice.value = 50000
+      mockGuess.value = 'down'
 
       const wrapper = mount(BidStatus, mountOptions)
       const diffElement = wrapper.find('.text-red')
@@ -185,6 +193,8 @@ describe('BidStatus', () => {
       mockIsLocked.value = true
       mockBidToPriceDifference.value = 500
       mockIsWinning.value = true
+      mockGuessPrice.value = 50000
+      mockGuess.value = 'up'
 
       const wrapper = mount(BidStatus, mountOptions)
       const diffElement = wrapper.find('.row-start-1')
@@ -196,6 +206,8 @@ describe('BidStatus', () => {
       mockIsLocked.value = true
       mockBidToPriceDifference.value = -500
       mockIsWinning.value = false
+      mockGuessPrice.value = 50000
+      mockGuess.value = 'down'
 
       const wrapper = mount(BidStatus, mountOptions)
       const diffElement = wrapper.find('.row-start-3')
@@ -279,6 +291,9 @@ describe('BidStatus', () => {
     it('should pass show=false to BidResultFeedback when showResultFeedback is false', () => {
       mockShowResultFeedback.value = false
       mockLastBidResult.value = { won: true, earnings: 150 }
+      // Need to set guessPrice to ensure the wrapper renders
+      mockGuessPrice.value = 50000
+      mockGuess.value = 'up'
 
       const wrapper = mount(BidStatus, mountOptions)
 
@@ -289,6 +304,9 @@ describe('BidStatus', () => {
     it('should pass show=false to BidResultFeedback when lastBidResult is null', () => {
       mockShowResultFeedback.value = true
       mockLastBidResult.value = null
+      // Need to set guessPrice to ensure the wrapper renders
+      mockGuessPrice.value = 50000
+      mockGuess.value = 'up'
 
       const wrapper = mount(BidStatus, mountOptions)
 

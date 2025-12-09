@@ -29,3 +29,14 @@ export interface GameState {
   countdown: Ref<number>
   guessPrice: Ref<number | null>
 }
+
+/**
+ * Persisted bid state for localStorage
+ * Used to restore active bids after page refresh
+ */
+export interface PersistedBid {
+  guessPrice: number
+  guess: 'up' | 'down'
+  startTime: number // timestamp when bid was placed
+  bidDuration: number // countdown duration in seconds
+}
