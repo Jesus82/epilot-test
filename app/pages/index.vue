@@ -1,21 +1,11 @@
 <script setup lang="ts">
-import type { BidResult } from '../../shared/types/api'
-
 const { priceData, price, status, yDomain, setBid, clearBid, connect, disconnect } = useBtcPrice()
 
 // Player identification
 const { getPlayerId } = usePlayerId()
 
 // Player API for persistence
-const { fetchStats, saveBid } = usePlayerService()
-
-// Callback when a bid completes - save to Supabase
-const onBidComplete = async (result: BidResult) => {
-  const playerId = getPlayerId()
-  if (playerId) {
-    await saveBid(playerId, result)
-  }
-}
+const { fetchStats, onBidComplete } = usePlayerService()
 
 // Game logic composable with bid completion callback
 const {

@@ -6,6 +6,12 @@ import type { ApiPlayerStats, BidResult } from '../../../../shared/types/api'
 const mockFetch = vi.fn()
 vi.stubGlobal('$fetch', mockFetch)
 
+// Mock usePlayerId composable
+const mockGetPlayerId = vi.fn(() => 'mock-player-id')
+vi.stubGlobal('usePlayerId', () => ({
+  getPlayerId: mockGetPlayerId,
+}))
+
 describe('usePlayerService', () => {
   beforeEach(() => {
     vi.clearAllMocks()

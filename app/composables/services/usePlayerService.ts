@@ -11,6 +11,7 @@ import { getErrorMessage } from '~/helpers/playerServiceHelpers'
  * Composable for interacting with player REST API
  */
 export const usePlayerService = () => {
+  const { getPlayerId } = usePlayerId()
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
@@ -139,6 +140,17 @@ export const usePlayerService = () => {
     }
   }
 
+  /**
+   * Callback handler for when a bid completes
+   * Saves the bid result for the current player
+   */
+  const onBidComplete = async (result: BidResult): Promise<void> => {
+    const playerId = getPlayerId()
+    if (playerId) {
+      await saveBid(playerId, result)
+    }
+  }
+
   return {
     isLoading: readonly(isLoading),
     error: readonly(error),
@@ -147,6 +159,7 @@ export const usePlayerService = () => {
     fetchBids,
     updatePlayerName,
     fetchLeaderboard,
+    onBidComplete,
   }
 }
 
