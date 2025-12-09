@@ -11,10 +11,19 @@ const {
 } = useGameLogic()
 
 const { price, yDomain, formatPrice } = useBtcPrice()
+
+const hasContent = computed(() =>
+  countdown.value
+  || (showResultFeedback.value && lastBidResult.value)
+  || guessPrice.value,
+)
 </script>
 
 <template>
-  <div class="flex justify-center items-center gap-half relative">
+  <div
+    v-if="hasContent"
+    class="flex justify-center items-center gap-half relative"
+  >
     <BidResultFeedback
       :show="showResultFeedback && !!lastBidResult"
       :won="lastBidResult?.won ?? false"

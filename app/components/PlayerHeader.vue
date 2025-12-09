@@ -53,11 +53,15 @@ const handleStartEdit = () => {
     <NuxtLink
       :to="{ name: 'leaderboard' }"
       class="font-display text-md"
+      :class="{ 'hidden md:block': isEditingName }"
     >
       Leaderboard
     </NuxtLink>
 
-    <p class="font-display text-lg inline-flex items-center gap-1">
+    <p
+      class="font-display text-lg items-center gap-1"
+      :class="{ 'hidden md:inline-flex': isEditingName }"
+    >
       Score: {{ score }}
       <Transition name="t-score-change">
         <span

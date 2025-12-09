@@ -62,10 +62,10 @@ onUnmounted(() => {
       <BtcPriceChart />
     </ClientOnly>
 
-    <div class="grid grid-cols-3 py-second">
-      <BidStatus />
-      <BidButtons />
-      <PlayerStatsPanel />
+    <div class="flex flex-col md:grid md:grid-cols-3 md:py-second gap-base">
+      <BidStatus class="order-2 md:order-1 mb-base md:m-0" />
+      <BidButtons class="order-1 md:order-2" />
+      <PlayerStatsPanel class="order-3 md:order-3" />
     </div>
   </main>
 </template>

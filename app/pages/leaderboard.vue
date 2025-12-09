@@ -85,13 +85,13 @@ const activeTab = ref<Tab>('score')
         v-if="activeTab === 'score'"
         class="min-w-[40%]"
       >
-        <h1 class="font-display text-4xl">
+        <h1 class="font-display text-4xl mb-half">
           Highest Scores
         </h1>
         <div
           v-for="(player, index) in topByScore"
           :key="'score-' + player.playerId"
-          class="grid grid-cols-2 gap-fourth"
+          class="grid grid-cols-[1fr_max-content] gap-base"
         >
           <p
             class="font-display"
@@ -112,13 +112,13 @@ const activeTab = ref<Tab>('score')
         v-else-if="activeTab === 'streak'"
         class="min-w-[40%]"
       >
-        <h1 class="font-display text-4xl">
+        <h1 class="font-display text-4xl mb-half">
           Best Streaks
         </h1>
         <div
           v-for="(player, index) in topByStreak"
           :key="'streak-' + player.playerId"
-          class="grid grid-cols-2 gap-fourth"
+          class="grid grid-cols-[1fr_max-content] gap-base"
         >
           <p
             class="font-display"
@@ -139,13 +139,13 @@ const activeTab = ref<Tab>('score')
         v-else-if="activeTab === 'earnings'"
         class="min-w-[40%]"
       >
-        <h1 class="font-display text-4xl">
+        <h1 class="font-display text-4xl mb-half">
           Top Earnings
         </h1>
         <div
           v-for="(player, index) in topByEarnings"
           :key="'earnings-' + player.playerId"
-          class="grid grid-cols-2 gap-fourth"
+          class="grid grid-cols-[1fr_max-content] gap-base"
         >
           <p
             class="font-display"
