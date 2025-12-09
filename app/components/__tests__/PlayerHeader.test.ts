@@ -6,10 +6,14 @@ import PlayerHeader from '../PlayerHeader.vue'
 // Mock useGameLogic
 const mockScore = ref(0)
 const mockIsLocked = ref(false)
+const mockShowResultFeedback = ref(false)
+const mockLastScoreChange = ref<number | null>(null)
 
 vi.stubGlobal('useGameLogic', () => ({
   score: mockScore,
   isLocked: mockIsLocked,
+  showResultFeedback: mockShowResultFeedback,
+  lastScoreChange: mockLastScoreChange,
 }))
 
 // Mock usePlayerProfile
@@ -60,6 +64,8 @@ describe('PlayerHeader', () => {
     vi.clearAllMocks()
     mockScore.value = 0
     mockIsLocked.value = false
+    mockShowResultFeedback.value = false
+    mockLastScoreChange.value = null
     mockPlayerName.value = ''
     mockIsEditingName.value = false
     mockNameError.value = null
@@ -231,6 +237,50 @@ describe('PlayerHeader', () => {
       const wrapper = mount(PlayerHeader, mountOptions)
 
       expect(wrapper.text()).not.toContain('error')
+    })
+  })
+
+  describe('score change indicator', () => {
+    it('should not show score change indicator when showResultFeedback is false', () => {
+      mockShowResultFeedback.value = false
+      mockLastScoreChange.value = 1
+
+      const wrapper = mount(PlayerHeader, mountOptions)
+
+      expect(wrapper.find('[data-testid="score-change-indicator"]').exists()).toBe(false)
+    })
+
+    it('should not show score change indicator when lastScoreChange is null', () => {
+      mockShowResultFeedback.value = true
+      mockLastScoreChange.value = null
+
+      const wrapper = mount(PlayerHeader, mountOptions)
+
+      expect(wrapper.find('[data-testid="score-change-indicator"]').exists()).toBe(false)
+    })
+
+    it('should show +1 with green text for winning bid', () => {
+      mockShowResultFeedback.value = true
+      mockLastScoreChange.value = 1
+
+      const wrapper = mount(PlayerHeader, mountOptions)
+
+      const scoreIndicator = wrapper.find('[data-testid="score-change-indicator"]')
+      expect(scoreIndicator.exists()).toBe(true)
+      expect(scoreIndicator.text()).toBe('+1')
+      expect(scoreIndicator.classes()).toContain('text-green')
+    })
+
+    it('should show -1 with red text for losing bid', () => {
+      mockShowResultFeedback.value = true
+      mockLastScoreChange.value = -1
+
+      const wrapper = mount(PlayerHeader, mountOptions)
+
+      const scoreIndicator = wrapper.find('[data-testid="score-change-indicator"]')
+      expect(scoreIndicator.exists()).toBe(true)
+      expect(scoreIndicator.text()).toBe('-1')
+      expect(scoreIndicator.classes()).toContain('text-red')
     })
   })
 })

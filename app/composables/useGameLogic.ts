@@ -26,6 +26,11 @@ const totalLosses = ref(0)
 const totalEarnings = ref(0)
 const lastBidResult = ref<BidResult | null>(null)
 
+// Result feedback state (for momentary win/loss display)
+const showResultFeedback = ref(false)
+const lastScoreChange = ref<number | null>(null)
+let resultFeedbackTimeout: ReturnType<typeof setTimeout> | null = null
+
 // Internal state for minimum time tracking
 const isMinimumTimePassed = ref(false)
 
@@ -87,10 +92,23 @@ export const useGameLogic = (
 
     const newStats = calculateStatsUpdate(getStats(), isCorrect, earnings)
 
+    // Track score change for animation
+    lastScoreChange.value = isCorrect ? 1 : -1
+
     loadStats(newStats)
 
     const bidResult = createBidResult(guess.value, guessPrice.value, currentPrice, earnings, isCorrect)
     lastBidResult.value = bidResult
+
+    // Show result feedback momentarily
+    showResultFeedback.value = true
+    if (resultFeedbackTimeout) {
+      clearTimeout(resultFeedbackTimeout)
+    }
+    resultFeedbackTimeout = setTimeout(() => {
+      showResultFeedback.value = false
+      lastScoreChange.value = null
+    }, 3000)
 
     // Notify callback if provided
     onBidCompleteFn?.(bidResult)
@@ -202,6 +220,10 @@ export const useGameLogic = (
       clearInterval(countdownInterval)
       countdownInterval = null
     }
+    if (resultFeedbackTimeout) {
+      clearTimeout(resultFeedbackTimeout)
+      resultFeedbackTimeout = null
+    }
   }
 
   /**
@@ -221,6 +243,8 @@ export const useGameLogic = (
     totalLosses.value = 0
     totalEarnings.value = 0
     lastBidResult.value = null
+    showResultFeedback.value = false
+    lastScoreChange.value = null
     isMinimumTimePassed.value = false
     priceDataRef = null
     setBidFn = null
@@ -248,6 +272,10 @@ export const useGameLogic = (
     totalEarnings,
     lastBidResult,
     potentialEarnings,
+
+    // Result feedback state
+    showResultFeedback,
+    lastScoreChange,
 
     // Actions
     makeGuess,

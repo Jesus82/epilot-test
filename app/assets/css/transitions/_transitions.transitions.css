@@ -1,0 +1,17 @@
+.t-score-change-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.t-score-change-leave-active {
+  transition: all 0.8s ease-in;
+}
+
+.t-score-change-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.t-score-change-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}

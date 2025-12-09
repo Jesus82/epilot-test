@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { score, isLocked } = useGameLogic()
+const { score, isLocked, showResultFeedback, lastScoreChange } = useGameLogic()
 
 const {
   playerName,
@@ -50,8 +50,19 @@ const handleStartEdit = () => {
       </template>
     </div>
 
-    <p class="font-display text-lg">
+    <p class="font-display text-lg inline-flex items-center gap-1">
       Score: {{ score }}
+      <Transition name="t-score-change">
+        <span
+          v-if="showResultFeedback && lastScoreChange !== null"
+          :key="lastScoreChange"
+          data-testid="score-change-indicator"
+          class="font-display text-sm font-bold"
+          :class="lastScoreChange > 0 ? 'text-green' : 'text-red'"
+        >
+          {{ lastScoreChange > 0 ? '+1' : '-1' }}
+        </span>
+      </Transition>
     </p>
   </div>
 </template>

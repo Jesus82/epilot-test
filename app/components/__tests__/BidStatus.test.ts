@@ -10,6 +10,8 @@ const mockGuessPrice = ref<number | null>(null)
 const mockIsWinning = ref(false)
 const mockGuess = ref<'up' | 'down' | null>(null)
 const mockBidToPriceDifference = ref<number | null>(null)
+const mockShowResultFeedback = ref(false)
+const mockLastBidResult = ref<{ won: boolean, earnings: number } | null>(null)
 
 vi.stubGlobal('useGameLogic', () => ({
   countdown: mockCountdown,
@@ -18,6 +20,8 @@ vi.stubGlobal('useGameLogic', () => ({
   isWinning: mockIsWinning,
   guess: mockGuess,
   bidToPriceDifference: mockBidToPriceDifference,
+  showResultFeedback: mockShowResultFeedback,
+  lastBidResult: mockLastBidResult,
 }))
 
 // Mock useBtcPrice
@@ -40,11 +44,28 @@ const BidProgressBarStub = defineComponent({
   },
 })
 
+// Stub for BidResultFeedback component
+const BidResultFeedbackStub = defineComponent({
+  name: 'BidResultFeedback',
+  props: ['show', 'won', 'earnings'],
+  setup(props) {
+    return () => props.show
+      ? h('div', {
+          'data-testid': 'result-feedback-overlay',
+        }, [
+          h('p', { 'data-testid': 'result-feedback-message' }, props.won ? '🎉 You Won!' : '😔 You Lost'),
+          h('p', { 'data-testid': 'result-feedback-earnings' }, `${props.earnings >= 0 ? '+' : ''}$${props.earnings.toFixed(2)}`),
+        ])
+      : null
+  },
+})
+
 describe('BidStatus', () => {
   const mountOptions = {
     global: {
       stubs: {
         BidProgressBar: BidProgressBarStub,
+        BidResultFeedback: BidResultFeedbackStub,
       },
     },
   }
@@ -57,6 +78,8 @@ describe('BidStatus', () => {
     mockIsWinning.value = false
     mockGuess.value = null
     mockBidToPriceDifference.value = null
+    mockShowResultFeedback.value = false
+    mockLastBidResult.value = null
     mockPrice.value = null
     mockYDomain.value = { yMin: 49000, yMax: 51000 }
   })
@@ -216,6 +239,61 @@ describe('BidStatus', () => {
       const wrapper = mount(BidStatus, mountOptions)
 
       expect(wrapper.text()).toContain('⬇')
+    })
+  })
+
+  describe('result feedback overlay', () => {
+    it('should pass show=true to BidResultFeedback when showResultFeedback is true and lastBidResult exists', () => {
+      mockShowResultFeedback.value = true
+      mockLastBidResult.value = { won: true, earnings: 150 }
+
+      const wrapper = mount(BidStatus, mountOptions)
+
+      const feedback = wrapper.findComponent({ name: 'BidResultFeedback' })
+      expect(feedback.exists()).toBe(true)
+      expect(feedback.props('show')).toBe(true)
+    })
+
+    it('should pass won and earnings props to BidResultFeedback for winning bid', () => {
+      mockShowResultFeedback.value = true
+      mockLastBidResult.value = { won: true, earnings: 150 }
+
+      const wrapper = mount(BidStatus, mountOptions)
+
+      const feedback = wrapper.findComponent({ name: 'BidResultFeedback' })
+      expect(feedback.props('won')).toBe(true)
+      expect(feedback.props('earnings')).toBe(150)
+    })
+
+    it('should pass won and earnings props to BidResultFeedback for losing bid', () => {
+      mockShowResultFeedback.value = true
+      mockLastBidResult.value = { won: false, earnings: -100 }
+
+      const wrapper = mount(BidStatus, mountOptions)
+
+      const feedback = wrapper.findComponent({ name: 'BidResultFeedback' })
+      expect(feedback.props('won')).toBe(false)
+      expect(feedback.props('earnings')).toBe(-100)
+    })
+
+    it('should pass show=false to BidResultFeedback when showResultFeedback is false', () => {
+      mockShowResultFeedback.value = false
+      mockLastBidResult.value = { won: true, earnings: 150 }
+
+      const wrapper = mount(BidStatus, mountOptions)
+
+      const feedback = wrapper.findComponent({ name: 'BidResultFeedback' })
+      expect(feedback.props('show')).toBe(false)
+    })
+
+    it('should pass show=false to BidResultFeedback when lastBidResult is null', () => {
+      mockShowResultFeedback.value = true
+      mockLastBidResult.value = null
+
+      const wrapper = mount(BidStatus, mountOptions)
+
+      const feedback = wrapper.findComponent({ name: 'BidResultFeedback' })
+      expect(feedback.props('show')).toBe(false)
     })
   })
 })

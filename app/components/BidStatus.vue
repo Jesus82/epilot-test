@@ -6,13 +6,21 @@ const {
   isWinning,
   guess,
   bidToPriceDifference,
+  showResultFeedback,
+  lastBidResult,
 } = useGameLogic()
 
 const { price, yDomain, formatPrice } = useBtcPrice()
 </script>
 
 <template>
-  <div class="flex justify-center items-center gap-half">
+  <div class="flex justify-center items-center gap-half relative">
+    <BidResultFeedback
+      :show="showResultFeedback && !!lastBidResult"
+      :won="lastBidResult?.won ?? false"
+      :earnings="lastBidResult?.earnings ?? 0"
+    />
+
     <p
       v-if="countdown"
       class="font-display text-3xl"
