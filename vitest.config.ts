@@ -6,7 +6,10 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     globals: true,
-    include: ['app/**/__tests__/**/*.{test,spec}.ts'],
+    include: [
+      'app/**/__tests__/**/*.{test,spec}.ts',
+      'server/**/__tests__/**/*.{test,spec}.ts',
+    ],
     environment: 'happy-dom',
     setupFiles: ['./vitest.setup.ts'],
   },
@@ -14,6 +17,7 @@ export default defineConfig({
     alias: {
       '~': resolve(__dirname, './app'),
       '@': resolve(__dirname, './app'),
+      '~~/': resolve(__dirname, './'),
     },
   },
 })
