@@ -38,7 +38,7 @@ A real-time Bitcoin price prediction game built with Nuxt 3. Players predict whe
 └─────────────────────┘    └─────────────────────┘    └──────────┬──────────┘
                                                                   │
 ┌─────────────────────────────────────────────────────────────────┼──────────┐
-│                         SERVER (Nitro)                          │          │
+│                         SERVER (Nuxt 3 - Nitro)                 │          │
 ├─────────────────────────────────────────────────────────────────┼──────────┤
 │                                                                 ▼          │
 │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────────┐ │
@@ -55,7 +55,7 @@ A real-time Bitcoin price prediction game built with Nuxt 3. Players predict whe
                                                               │
                                                               ▼
                                                ┌─────────────────────────────┐
-                                               │        Supabase             │
+                                               │        Supabase (AWS)       │
                                                │     (PostgreSQL DB)         │
                                                ├─────────────────────────────┤
                                                │  Tables:                    │
@@ -209,6 +209,20 @@ created_at     TIMESTAMP
 | **Historical Data** | Binance REST API (klines)            |
 | **Testing**         | Vitest + @vue/test-utils (570 tests) |
 | **Linting**         | ESLint + Nuxt ESLint module          |
+
+---
+
+## Design choices
+
+The UX consist on a main Bitcoin chart that mimics elements from [Tradeview](https://www.tradingview.com/) implemented directly in SVG with D3 for better customization.
+
+The game flow starts at the login screen where the player is welcomed and sets its username (the username can be edited afterwards). After that, it goes directly to the main screen where the player can see the bitcoin chart in real time. The chart defaults to a 5-min view, but it can be changed up to 24h, but for the purpose of the game, 5 or 10 min are ideal for following the visuals.
+
+Below the chart, there are two simple up and down buttons for setting the bid. When the bid is set, a progress bar appears at one side. This progress bar is inspired in [Coinlive](https://play.google.com/store/apps/details?id=com.tenxchat.coin_live_chat&hl=en_GB) and gives additional hints so see if the player is winning or losing the bet and by what margin.
+
+There is an additional leaderboard that states the highest score in an old-school retro game fashion.
+
+The font choice wants to mimic a system font. Also a retro choice, but trying not to look too informal. We use fluid typography and spacing in order to assure a smooth experience at any given breakpoint, and media queries are seldom needed in the app.
 
 ---
 
