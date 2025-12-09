@@ -224,6 +224,8 @@ There is an additional leaderboard that states the highest score in an old-schoo
 
 The font choice wants to mimic a system font. Also a retro choice, but trying not to look too informal. We use fluid typography and spacing in order to assure a smooth experience at any given breakpoint, and media queries are seldom needed in the app.
 
+The CSS structure is based on the [ITCSS/BEMIT methodology](https://csswizardry.com/2015/08/bemit-taking-the-bem-naming-convention-a-step-further/), making use of layers and generating utility classes with the help of Tailwind.
+
 ---
 
 ## Setup
