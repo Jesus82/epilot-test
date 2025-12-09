@@ -14,7 +14,7 @@ const { formatPrice } = useBtcPrice()
 </script>
 
 <template>
-  <ul>
+  <ul class="list-none">
     <li>
       <p class="font-display text-md">
         Current Streak:

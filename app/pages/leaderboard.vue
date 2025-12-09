@@ -74,6 +74,13 @@ const activeTab = ref<Tab>('score')
         </button>
       </div>
 
+      <p>
+        <NuxtLink
+          class="font-display text-lg mb-second"
+          to="/"
+        >Back to Game</NuxtLink>
+      </p>
+
       <div
         v-if="activeTab === 'score'"
         class="min-w-[40%]"
@@ -86,10 +93,16 @@ const activeTab = ref<Tab>('score')
           :key="'score-' + player.playerId"
           class="grid grid-cols-2 gap-fourth"
         >
-          <p class="font-display text-2xl">
+          <p
+            class="font-display"
+            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+          >
             {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
           </p>
-          <p class="font-display text-2xl flex justify-end">
+          <p
+            class="font-display flex justify-end"
+            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+          >
             {{ player.score }}
           </p>
         </div>
@@ -107,10 +120,16 @@ const activeTab = ref<Tab>('score')
           :key="'streak-' + player.playerId"
           class="grid grid-cols-2 gap-fourth"
         >
-          <p class="font-display text-2xl">
+          <p
+            class="font-display"
+            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+          >
             {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
           </p>
-          <p class="font-display text-2xl flex justify-end">
+          <p
+            class="font-display flex justify-end"
+            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+          >
             {{ player.longestStreak }}
           </p>
         </div>
@@ -128,10 +147,16 @@ const activeTab = ref<Tab>('score')
           :key="'earnings-' + player.playerId"
           class="grid grid-cols-2 gap-fourth"
         >
-          <p class="font-display text-2xl">
+          <p
+            class="font-display"
+            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+          >
             {{ index + 1 }}. {{ player.playerName || 'Anonymous' }}
           </p>
-          <p class="font-display text-2xl flex justify-end">
+          <p
+            class="font-display flex justify-end"
+            :class="index < 3 ? 'text-3xl' : 'text-2xl'"
+          >
             {{ formatPrice(player.totalEarnings) }}
           </p>
         </div>
@@ -141,9 +166,5 @@ const activeTab = ref<Tab>('score')
     <div v-else>
       No players on the leaderboard yet.
     </div>
-
-    <p>
-      <NuxtLink to="/">Back to Game</NuxtLink>
-    </p>
   </div>
 </template>

@@ -19,7 +19,7 @@ const handleStartEdit = () => {
 </script>
 
 <template>
-  <div class="flex justify-between items-center">
+  <nav class="flex justify-between items-center">
     <div class="flex items-center gap-half">
       <template v-if="!isEditingName && playerName">
         <span
@@ -50,6 +50,13 @@ const handleStartEdit = () => {
       </template>
     </div>
 
+    <NuxtLink
+      :to="{ name: 'leaderboard' }"
+      class="font-display text-md"
+    >
+      Leaderboard
+    </NuxtLink>
+
     <p class="font-display text-lg inline-flex items-center gap-1">
       Score: {{ score }}
       <Transition name="t-score-change">
@@ -64,5 +71,5 @@ const handleStartEdit = () => {
         </span>
       </Transition>
     </p>
-  </div>
+  </nav>
 </template>
