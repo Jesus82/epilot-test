@@ -13,4 +13,4 @@ export {
   isUniqueConstraintError,
   isRecordNotFoundError,
   getErrorMessage,
-} from '../../shared/helpers/playerHelpers'
+} from '~shared/helpers/playerHelpers'

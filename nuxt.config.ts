@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url'
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
 
@@ -49,11 +51,18 @@ export default defineNuxtConfig({
     },
   },
 
-  // Make shared types available via alias
+  // Make shared types available via alias (for client)
   alias: {
-    '~shared': '../shared',
+    '~shared': fileURLToPath(new URL('./shared', import.meta.url)),
   },
   compatibilityDate: '2025-07-15',
+
+  // Include shared folder in Nitro build (for server)
+  nitro: {
+    alias: {
+      '~shared': fileURLToPath(new URL('./shared', import.meta.url)),
+    },
+  },
 
   eslint: {
     config: {

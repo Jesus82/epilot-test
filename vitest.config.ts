@@ -18,6 +18,7 @@ export default defineConfig({
       '~': resolve(__dirname, './app'),
       '@': resolve(__dirname, './app'),
       '~~': resolve(__dirname, './'),
+      '~shared': resolve(__dirname, './shared'),
     },
   },
 })
